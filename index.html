@@ -8,6 +8,7 @@
     <meta name="description" content="things I probably shouldn't publish">
 
     <style>
+
         * {
             box-sizing: border-box;
         }
@@ -16,23 +17,18 @@
             scroll-behavior: smooth;
         }
 
-        html,
         body {
             margin: 0;
             padding: 0;
-            min-height: 100%;
-        }
-
-        body {
             background: #000;
             color: #000;
             font-family: Georgia, "Times New Roman", serif;
         }
 
 
-        /* =========================
+        /* =====================================
            TOP MENU
-        ========================= */
+        ===================================== */
 
         .top-menu {
             position: fixed;
@@ -53,7 +49,13 @@
             z-index: 1000;
         }
 
-        .top-menu a {
+
+        .menu-item {
+            position: relative;
+
+            display: flex;
+            align-items: center;
+
             color: #050505;
             text-decoration: none;
 
@@ -61,16 +63,77 @@
             font-weight: bold;
 
             white-space: nowrap;
+
+            transition:
+                transform 0.35s ease,
+                letter-spacing 0.35s ease;
         }
 
-        .top-menu a:hover {
-            text-decoration: underline;
+
+        /*
+           Слово плавно увеличивается
+        */
+
+        .menu-item:hover {
+            transform: scale(1.08);
+            letter-spacing: 0.3px;
         }
 
 
-        /* =========================
-           HOME / BACKGROUND
-        ========================= */
+        /*
+           Иконка изначально находится
+           слева за пределами слова
+        */
+
+        .menu-icon {
+            position: absolute;
+
+            right: calc(100% + 7px);
+
+            top: 50%;
+
+            transform:
+                translateX(-18px)
+                translateY(-50%);
+
+            opacity: 0;
+
+            width: 17px;
+            height: 17px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 16px;
+
+            transition:
+                opacity 0.3s ease,
+                transform 0.35s ease;
+
+            pointer-events: none;
+        }
+
+
+        /*
+           ПОЛСЕКУНДЫ ЗАДЕРЖКИ,
+           потом иконка выезжает
+        */
+
+        .menu-item:hover .menu-icon {
+            opacity: 1;
+
+            transform:
+                translateX(0)
+                translateY(-50%);
+
+            transition-delay: 0.5s;
+        }
+
+
+        /* =====================================
+           HOME
+        ===================================== */
 
         .hero {
             position: relative;
@@ -79,13 +142,8 @@
 
             min-height: calc(100vh - 42px);
 
-            /*
-            ВАЖНО:
-            файл background.jpg должен лежать
-            рядом с index.html
-            */
-
             background-image: url("background.jpg");
+
             background-size: cover;
             background-position: center center;
             background-repeat: no-repeat;
@@ -96,9 +154,9 @@
         }
 
 
-        /* =========================
-           TITLE
-        ========================= */
+        /* =====================================
+           KINQSY.LOL
+        ===================================== */
 
         .site-title {
             position: absolute;
@@ -125,177 +183,28 @@
 
             letter-spacing: -5px;
 
+            /*
+               ТЕНЬ ЛОГОТИПА
+            */
+
             text-shadow:
-                1px 1px 0 #6e4057;
+                3px 3px 0 rgba(70, 28, 48, 0.85),
+                6px 6px 12px rgba(0, 0, 0, 0.65);
 
             z-index: 2;
         }
 
 
-        /* ФРАЗА ПОД НАЗВАНИЕМ */
+        /* =====================================
+           TAGLINE
+        ===================================== */
 
         .tagline {
             position: absolute;
 
             /*
-            Было слишком высоко.
-            Теперь она находится под названием.
-            */
-
-            top: 165px;
-            left: 4px;
-
-            color: #f3dce6;
-
-            font-family:
-                Georgia,
-                "Times New Roman",
-                serif;
-
-            font-size: clamp(16px, 1.8vw, 26px);
-
-            font-style: italic;
-            font-weight: bold;
-
-            z-index: 2;
-        }
-
-
-        /* =========================
-           FOOTER
-        ========================= */
-
-        footer {
-            min-height: 110px;
-
-            background: #000;
-
-            color: #f1b9d0;
-
-            display: grid;
-
-            grid-template-columns: 1fr auto 1fr;
-
-            align-items: center;
-
-            padding: 20px 28px;
-        }
-
-        .copyright {
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-
-        /* СОЦСЕТИ */
-
-        .socials {
-            display: flex;
-
-            gap: 6px;
-
-            justify-content: center;
-        }
-
-        .socials a {
-            width: 23px;
-            height: 23px;
-
-            display: flex;
-
-            align-items: center;
-            justify-content: center;
-
-            border-radius: 50%;
-
-            background: #f1b9d0;
-            color: #000;
-
-            text-decoration: none;
-
-            font-family: Arial, sans-serif;
-            font-size: 13px;
-            font-weight: bold;
-        }
-
-        .socials a:hover {
-            transform: scale(1.1);
-        }
-
-
-        /* КНОПКА НАВЕРХ */
-
-        .back-to-top {
-            color: #f1b9d0;
-
-            font-size: 13px;
-            font-weight: bold;
-
-            text-decoration: none;
-
-            cursor: pointer;
-        }
-
-        .back-to-top:hover {
-            text-decoration: underline;
-        }
-
-
-        /* =========================
-           MOBILE
-        ========================= */
-
-        @media (max-width: 700px) {
-
-            .top-menu {
-                height: 42px;
-
-                padding: 0 8px;
-
-                gap: 11px;
-
-                overflow-x: auto;
-
-                justify-content: flex-start;
-
-                scrollbar-width: none;
-            }
-
-            .top-menu::-webkit-scrollbar {
-                display: none;
-            }
-
-            .top-menu a {
-                font-size: 16px;
-            }
-
-
-            .hero {
-                min-height: 80vh;
-
-                margin-top: 42px;
-
-                border-radius: 0 0 20px 20px;
-
-                background-position: center center;
-            }
-
-
-            .site-title {
-                top: 35px;
-                left: 5px;
-
-                font-size: clamp(55px, 17vw, 100px);
-
-                letter-spacing: -4px;
-            }
-
-
-            .tagline {
-                top: 145px;
-                left: 7px;
-
-                font-size: 15px;
+               Опустили примерно на полсантиметра
+            font-size: 15px;
             }
 
 
@@ -307,6 +216,7 @@
                 text-align: center;
             }
         }
+
     </style>
 </head>
 
@@ -314,47 +224,87 @@
 <body id="top">
 
 
-    <!-- =========================
+    <!-- =====================================
          MENU
-    ========================= -->
+    ====================================== -->
 
     <nav class="top-menu">
 
-        <a href="index.html">home</a>
 
-        <a href="notes.html">notes</a>
+        <a class="menu-item" href="index.html">
 
-        <a href="dreams.html">dreams</a>
+            <span class="menu-icon">♥</span>
 
-        <a href="quotes.html">quotation/definition</a>
+            home
 
-        <a href="about.html">about</a>
+        </a>
+
+
+        <a class="menu-item" href="notes.html">
+
+            <span class="menu-icon">▣</span>
+
+            notes
+
+        </a>
+
+
+        <a class="menu-item" href="dreams.html">
+
+            <span class="menu-icon">✾</span>
+
+            dreams
+
+        </a>
+
+
+        <a class="menu-item" href="quotes.html">
+
+            <span class="menu-icon">☏</span>
+
+            quotation/definition
+
+        </a>
+
+
+        <a class="menu-item" href="about.html">
+
+            <span class="menu-icon">★</span>
+
+            about
+
+        </a>
+
 
     </nav>
 
 
-    <!-- =========================
+    <!-- =====================================
          HOME
-    ========================= -->
+    ====================================== -->
 
     <main class="hero">
+
 
         <h1 class="site-title">
             KINQSY.LOL
         </h1>
 
+
         <div class="tagline">
             things I probably shouldn't publish
         </div>
 
+
     </main>
 
 
-    <!-- =========================
+    <!-- =====================================
          FOOTER
-    ========================= -->
+    ====================================== -->
 
     <footer>
+
 
         <div class="copyright">
             © 2026 kinqsy.lol
@@ -363,22 +313,72 @@
 
         <div class="socials">
 
-            <a href="#" aria-label="Telegram">✈</a>
 
-            <a href="#" aria-label="Instagram">◎</a>
+            <!-- TELEGRAM -->
 
-            <a href="#" aria-label="TikTok">♪</a>
+            <a
+                class="social-link"
+                href="https://t.me/kinqsy_notes"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Telegram"
+            >
+
+                <svg viewBox="0 0 24 24">
+                    <path d="M21.8 3.2 18.7 20c-.2 1.2-.9 1.5-1.8.9l-5-3.7-2.4 2.3c-.3.3-.5.5-1 .5l.4-5.1 9.3-8.4c.4-.4-.1-.6-.6-.2L6.1 13.5l-5-1.6c-1.1-.3-1.1-1.1.2-1.6L20.7 2c.9-.3 1.7.2 1.1 1.2z"/>
+                </svg>
+
+            </a>
+
+
+            <!-- PINTEREST -->
+
+            <a
+                class="social-link"
+                href="https://pin.it/2zVQL9Udi"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Pinterest"
+            >
+
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 1.5C6.2 1.5 2 5.7 2 11.1c0 4 2.3 7.5 5.8 8.8-.1-.8-.1-2.1 0-3l1-4.1s-.3-.7-.3-1.7c0-1.6.9-2.8 2.1-2.8 1 0 1.5.7 1.5 1.6 0 1-.6 2.4-.9 3.7-.3 1.1.6 2 1.7 2 2 0 3.4-2.1 3.4-5.1 0-2.7-1.9-4.6-4.7-4.6-3.2 0-5.1 2.4-5.1 4.9 0 1 .4 2.1.9 2.7.1.1.1.2.1.4l-.3 1.2c-.1.4-.4.5-.7.3-1.6-.7-2.6-2.9-2.6-4.7 0-3.8 2.8-7.3 8.1-7.3 4.3 0 7.6 3.1 7.6 7.2 0 4.3-2.7 7.7-6.5 7.7-1.3 0-2.5-.7-2.9-1.5l-.8 3.1c-.3 1.2-1.2 2.7-1.8 3.6.9.3 1.8.4 2.8.4 5.8 0 10-4.2 10-10S17.8 1.5 12 1.5z"/>
+                </svg>
+
+            </a>
+
+
+            <!-- YOUTUBE -->
+
+            <a
+                class="social-link"
+                href="https://youtube.com/@kinggggggggggggggggggggg?si=XlA_pi3qMNrxJnFV"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="YouTube"
+            >
+
+                <svg viewBox="0 0 24 24">
+                    <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.6 15.6V8.4l6.3 3.6-6.3 3.6z"/>
+                </svg>
+
+            </a>
+
 
         </div>
 
 
-        <!-- НАВЕРХ -->
+        <!-- BACK TO TOP -->
 
         <div>
-            <a href="#top" class="back-to-top">
+            <a
+                href="#top"
+                class="back-to-top"
+            >
                 back to top ↑
             </a>
         </div>
+
 
     </footer>
 
