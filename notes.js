@@ -134,3 +134,4 @@ function escapeAttribute(value) {
 
 
 loadPosts();
+console.log("KINQSY NOTES JS LOADED");
