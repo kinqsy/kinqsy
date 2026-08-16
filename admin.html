@@ -53,6 +53,7 @@ button {
     cursor: pointer;
 }
 button:hover { opacity: .85; }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
 #status { margin-top: 20px; font-weight: bold; min-height: 24px; }
 #login-box { display: block; }
 #admin-box { display: none; }
@@ -62,7 +63,6 @@ button:hover { opacity: .85; }
 <div class="admin">
     <h1>admin</h1>
 
-    <!-- LOGIN -->
     <div id="login-box">
         <label>email</label>
         <input id="email" type="email" autocomplete="email">
@@ -71,7 +71,6 @@ button:hover { opacity: .85; }
         <button id="login-button">login</button>
     </div>
 
-    <!-- ADMIN -->
     <div id="admin-box">
         <p>logged in ✓</p>
         <label>title</label>
@@ -90,10 +89,11 @@ const SUPABASE_URL = "https://rgkfegdtxaojceknnzlr.supabase.co";
 const SUPABASE_KEY = "sb_publishable_uK7zrVyq8AlHpoj13pGQ6g_q3L47Akw";
 const OWNER_UID = "0ee69fba-c2db-4601-b871-0d77eafb611f";
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// Важно: называем переменную по-другому, чтобы не было конфликта
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 async function checkSession() {
-    const { data: { user }, error } = await supabase.auth.getUser();
+    const { data: { user }, error } = await supabaseClient.auth.getUser();
 
     if (error) {
         document.getElementById("status").textContent = "Auth error: " + error.message;
@@ -113,7 +113,7 @@ async function checkSession() {
         return;
     }
 
-    // Всё ок — показываем админку
+    // Успешный вход — показываем форму
     document.getElementById("login-box").style.display = "none";
     document.getElementById("admin-box").style.display = "block";
     document.getElementById("status").textContent = "";
@@ -122,20 +122,37 @@ async function checkSession() {
 document.getElementById("login-button").addEventListener("click", async function () {
     const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value;
+    const status = document.getElementById("status");
+    const btn = document.getElementById("login-button");
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-
-    if (error) {
-        document.getElementById("status").textContent = error.message;
+    if (!email || !password) {
+        status.
+            textContent = "Введите email и пароль";
         return;
     }
 
-    location.reload();
+    status.textContent = "Вход...";
+    btn.disabled = true;
+
+    const { error } = await supabaseClient.auth.signInWithPassword({
+        email: email,
+        password: password
+    });
+
+    btn.disabled = false;
+
+    if (error) {
+        status.textContent = "Ошибка: " + error.message;
+        console.error(error);
+        return;
+    }
+
+    status.textContent = "Успешно! Обновляю...";
+    setTimeout(() => location.reload(), 500);
 });
 
-document.getElementById("publish-button").
-    addEventListener("click", async function () {
-    const { data: { user } } = await supabase.auth.getUser();
+document.getElementById("publish-button").addEventListener("click", async function () {
+    const { data: { user } } = await supabaseClient.auth.getUser();
 
     if (!user || user.id !== OWNER_UID) {
         document.getElementById("status").textContent = "Access denied.";
@@ -146,18 +163,18 @@ document.getElementById("publish-button").
     const content = document.getElementById("content").value.trim();
 
     if (!title && !content) {
-        document.getElementById("status").textContent = "Title or content required.";
+        document.getElementById("status").textContent = "Напишите title или note";
         return;
     }
 
-    const { error } = await supabase.from("posts").insert({
+    const { error } = await supabaseClient.from("posts").insert({
         title: title,
         content: content,
         user_id: user.id
     });
 
     if (error) {
-        document.getElementById("status").textContent = error.message;
+        document.getElementById("status").textContent = "Ошибка: " + error.message;
         return;
     }
 
@@ -167,7 +184,7 @@ document.getElementById("publish-button").
 });
 
 document.getElementById("logout-button").addEventListener("click", async function () {
-    await supabase.auth.signOut();
+    await supabaseClient.auth.signOut();
     location.reload();
 });
 
