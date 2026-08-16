@@ -1,8 +1,5 @@
-document.body.insertAdjacentHTML(
-    "afterbegin",
-    "<div style='position:fixed;top:50px;left:0;z-index:99999;background:red;color:white;padding:10px'>JS WORKS</div>"
-);
 const SUPABASE_URL = "https://rgkfegdtxaojceknnzlr.supabase.co";
+
 const SUPABASE_KEY = "sb_publishable_uK7zrVyq8AlHpoj13pGQ6g_q3L47Akw";
 
 const supabase = window.supabase.createClient(
@@ -10,131 +7,73 @@ const supabase = window.supabase.createClient(
     SUPABASE_KEY
 );
 
-
 async function loadPosts() {
 
     const feed = document.querySelector(".feed");
 
-    feed.innerHTML = `
-        <div class="empty">
-            loading...
-        </div>
-    `;
+    feed.innerHTML = '<div class="empty">loading...</div>';
 
-
-    const { data, error } = await supabase
+    const result = await supabase
         .from("posts")
         .select("*")
         .order("created_at", {
             ascending: false
         });
 
+    const data = result.data;
+    const error = result.error;
 
     if (error) {
 
-        console.error(error);
+        console.error("SUPABASE ERROR:", error);
 
-        feed.innerHTML = `
-            <div class="empty">
-                couldn't load notes.
-            </div>
-        `;
+        feed.innerHTML =
+            '<div class="empty">Supabase error: ' +
+            error.message +
+            '</div>';
 
         return;
     }
-
 
     if (!data || data.length === 0) {
 
-        feed.innerHTML = `
-            <div class="empty">
-                no notes yet.
-            </div>
-        `;
+        feed.innerHTML =
+            '<div class="empty">no notes yet.</div>';
 
         return;
     }
 
-
     feed.innerHTML = "";
 
-
-    data.forEach(post => {
+    data.forEach(function(post) {
 
         const article = document.createElement("article");
 
         article.className = "post";
 
+        const date = new Date(post.created_at)
+            .toLocaleDateString("en-GB");
 
-        const date = new Date(post.created_at);
+        article.innerHTML =
+            '<div class="post-date">' +
+                date +
+            '</div>' +
 
-        const formattedDate =
-            date.toLocaleDateString("en-GB", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric"
-            });
+            '<h2 class="post-title">' +
+                (post.title || "") +
+            '</h2>' +
 
+            '<div class="post-content">' +
+                (post.content || "") +
+            '</div>' +
 
-        article.innerHTML = `
-
-            <div class="post-date">
-                ${formattedDate}
-            </div>
-
-            <h2 class="post-title">
-                ${escapeHTML(post.title || "")}
-            </h2>
-
-            <div class="post-content">
-                ${escapeHTML(post.content || "")}
-            </div>
-
-            ${
-                post.media_url
-                ?
-                `<img
-                    class="post-image"
-                    src="${escapeAttribute(post.media_url)}"
-                    alt=""
-                    loading="lazy"
-                >`
-                :
-                ""
-            }
-
-            <div class="post-footer">
-                comments · 0
-            </div>
-
-        `;
-
+            '<div class="post-footer">' +
+                'comments · 0' +
+            '</div>';
 
         feed.appendChild(article);
 
     });
-
 }
-
-
-function escapeHTML(value) {
-
-    return String(value)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-}
-
-
-function escapeAttribute(value) {
-
-    return String(value)
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-}
-
 
 loadPosts();
-console.log("KINQSY NOTES JS LOADED");
