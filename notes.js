@@ -20,20 +20,17 @@ async function loadPosts() {
             ascending: false
         });
 
-    const data = result.data;
-    const error = result.error;
-
-    if (error) {
+    if (result.error) {
 
         feed.innerHTML =
             '<div class="empty">Supabase error: ' +
-            error.message +
+            result.error.message +
             '</div>';
 
         return;
     }
 
-    if (!data || data.length === 0) {
+    if (!result.data || result.data.length === 0) {
 
         feed.innerHTML =
             '<div class="empty">no notes yet.</div>';
@@ -43,19 +40,16 @@ async function loadPosts() {
 
     feed.innerHTML = "";
 
-    data.forEach(function(post) {
+    result.data.forEach(function(post) {
 
         const article = document.createElement("article");
 
         article.className = "post";
 
-        const date =
-            new Date(post.created_at)
-            .toLocaleDateString("en-GB");
-
         article.innerHTML =
             '<div class="post-date">' +
-                date +
+                new Date(post.created_at)
+                    .toLocaleDateString("en-GB") +
             '</div>' +
 
             '<h2 class="post-title">' +
@@ -71,7 +65,6 @@ async function loadPosts() {
             '</div>';
 
         feed.appendChild(article);
-
     });
 }
 
