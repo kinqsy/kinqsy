@@ -89,7 +89,7 @@ const SUPABASE_URL = "https://rgkfegdtxaojceknnzlr.supabase.co";
 const SUPABASE_KEY = "sb_publishable_uK7zrVyq8AlHpoj13pGQ6g_q3L47Akw";
 const OWNER_UID = "0ee69fba-c2db-4601-b871-0d77eafb611f";
 
-// Важно: называем переменную по-другому, чтобы не было конфликта
+// Важно: переменная называется supabaseClient, а не supabase
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 async function checkSession() {
@@ -113,7 +113,6 @@ async function checkSession() {
         return;
     }
 
-    // Успешный вход — показываем форму
     document.getElementById("login-box").style.display = "none";
     document.getElementById("admin-box").style.display = "block";
     document.getElementById("status").textContent = "";
@@ -126,12 +125,12 @@ document.getElementById("login-button").addEventListener("click", async function
     const btn = document.getElementById("login-button");
 
     if (!email || !password) {
-        status.
-            textContent = "Введите email и пароль";
+        status.textContent = "Введите email и пароль";
         return;
     }
 
-    status.textContent = "Вход...";
+    status.
+        textContent = "Вход...";
     btn.disabled = true;
 
     const { error } = await supabaseClient.auth.signInWithPassword({
@@ -148,7 +147,9 @@ document.getElementById("login-button").addEventListener("click", async function
     }
 
     status.textContent = "Успешно! Обновляю...";
-    setTimeout(() => location.reload(), 500);
+    setTimeout(function() {
+        location.reload();
+    }, 500);
 });
 
 document.getElementById("publish-button").addEventListener("click", async function () {
