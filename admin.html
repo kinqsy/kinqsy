@@ -1,328 +1,231 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KINQSY.LOL — Admin</title>
 
-    <title>KINQSY.LOL — Admin</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+* {
+    box-sizing: border-box;
+}
 
-    <style>
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: #F5BACB;
+    color: #000;
+    font-family: Georgia, "Times New Roman", serif;
+    padding: 80px 20px;
+}
 
-        * {
-            box-sizing: border-box;
-        }
+.admin {
+    max-width: 700px;
+    margin: auto;
+    padding: 35px;
+    border-radius: 24px;
 
-        body {
-            margin: 0;
-            min-height: 100vh;
+    background: rgba(255,255,255,.42);
 
-            background: #F5BACB;
-            color: #000;
+    border: 1px solid rgba(255,255,255,.8);
 
-            font-family: Georgia, "Times New Roman", serif;
+    box-shadow:
+        0 20px 50px rgba(0,0,0,.12),
+        inset 0 1px 0 rgba(255,255,255,.9);
 
-            padding: 80px 20px;
-        }
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
 
-        .admin {
-            width: min(700px, 100%);
-            margin: auto;
+h1 {
+    margin-top: 0;
+    font-size: 48px;
+    letter-spacing: -3px;
+}
 
-            padding: 35px;
+label {
+    display: block;
+    margin: 20px 0 7px;
+    font-weight: bold;
+}
 
-            background: rgba(255,255,255,.38);
+input,
+textarea {
+    width: 100%;
+    padding: 14px;
 
-            border: 1px solid rgba(255,255,255,.65);
+    border: 1px solid rgba(0,0,0,.15);
+    border-radius: 12px;
 
-            border-radius: 24px;
+    background: rgba(255,255,255,.65);
 
-            box-shadow:
-                0 20px 50px rgba(0,0,0,.12),
-                inset 0 1px 0 rgba(255,255,255,.8);
+    font-family: Georgia, serif;
+    font-size: 16px;
+}
 
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
-        }
+textarea {
+    min-height: 220px;
+}
 
-        h1 {
-            margin-top: 0;
+button {
+    margin-top: 22px;
+    padding: 13px 28px;
 
-            font-size: 42px;
+    border: 0;
+    border-radius: 999px;
 
-            letter-spacing: -2px;
-        }
+    background: #885069;
+    color: white;
 
-        label {
-            display: block;
+    font-family: Georgia, serif;
+    font-size: 16px;
+    font-weight: bold;
 
-            margin-top: 20px;
-            margin-bottom: 7px;
+    cursor: pointer;
+}
 
-            font-weight: bold;
-        }
-
-        input,
-        textarea {
-
-            width: 100%;
-
-            padding: 13px 15px;
-
-            border: 1px solid rgba(0,0,0,.15);
-
-            border-radius: 12px;
-
-            background: rgba(255,255,255,.55);
-
-            font-family: Georgia, serif;
-
-            font-size: 16px;
-
-            outline: none;
-        }
-
-        textarea {
-            min-height: 220px;
-            resize: vertical;
-        }
-
-        input:focus,
-        textarea:focus {
-            border-color: #885069;
-        }
-
-        button {
-
-            margin-top: 25px;
-
-            padding: 13px 24px;
-
-            border: none;
-
-            border-radius: 999px;
-
-            background: #885069;
-
-            color: white;
-
-            font-family: Georgia, serif;
-
-            font-size: 16px;
-
-            font-weight: bold;
-
-            cursor: pointer;
-        }
-
-        button:hover {
-            opacity: .85;
-        }
-
-        #status {
-
-            margin-top: 20px;
-
-            font-weight: bold;
-        }
-
-        .user-info {
-
-            margin-bottom: 25px;
-
-            padding: 12px 15px;
-
-            background: rgba(255,255,255,.35);
-
-            border-radius: 12px;
-
-            font-size: 13px;
-
-            word-break: break-all;
-        }
-
-    </style>
-
+#status {
+    margin-top: 20px;
+    font-weight: bold;
+}
+</style>
 </head>
 
 <body>
 
 <div class="admin">
 
-    <h1>admin</h1>
+<h1>admin</h1>
 
-    <div class="user-info" id="user-info">
-        checking authentication...
-    </div>
+<form id="post-form">
 
-    <form id="post-form">
+<label>title</label>
 
-        <label for="title">
-            title
-        </label>
+<input
+    id="title"
+    type="text"
+    maxlength="200"
+    required
+>
 
-        <input
-            id="title"
-            type="text"
-            maxlength="200"
-            required
-        >
+<label>note</label>
 
-        <label for="content">
-            note
-        </label>
+<textarea
+    id="content"
+    maxlength="10000"
+    required
+></textarea>
 
-        <textarea
-            id="content"
-            maxlength="10000"
-            required
-        ></textarea>
+<button type="submit">
+publish
+</button>
 
-        <button type="submit">
-            publish
-        </button>
+<div id="status"></div>
 
-    </form>
-
-    <div id="status"></div>
+</form>
 
 </div>
 
 <script>
 
 const SUPABASE_URL =
-    "https://rgkfegdtxaojceknnzlr.supabase.co";
+"https://rgkfegdtxaojceknnzlr.supabase.co";
 
 const SUPABASE_KEY =
-    "sb_publishable_uK7zrVyq8AlHpoj13pGQ6g_q3L47Akw";
-
-const supabase =
-    window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_KEY
-    );
-
+"sb_publishable_uK7zrVyq8AlHpoj13pGQ6g_q3L47Akw";
 
 const OWNER_UID =
-    "96ef4011-2e87-4e4f-8a55-537b0c852d7f";
+"96ef4011-2e87-4e4f-8a55-537b0c852d7f";
+
+const supabase =
+window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
 
 
-async function checkUser() {
+document
+.getElementById("post-form")
+.addEventListener("submit", async function(event) {
 
-    const result =
+    event.preventDefault();
+
+    const status =
+        document.getElementById("status");
+
+    status.textContent = "publishing...";
+
+
+    const {
+        data: { user },
+        error: userError
+    } =
         await supabase.auth.getUser();
 
-    const user =
-        result.data.user;
 
-    const info =
-        document.getElementById("user-info");
+    if (userError || !user) {
 
-    const form =
-        document.getElementById("post-form");
-
-
-    if (!user) {
-
-        info.textContent =
-            "not logged in";
-
-        form.style.display =
-            "none";
+        status.textContent =
+        "You are not logged in.";
 
         return;
-
     }
-
-
-    info.textContent =
-        "logged in as: " +
-        user.email;
 
 
     if (user.id !== OWNER_UID) {
 
-        info.textContent =
-            "access denied";
-      form.style.display =
-            "none";
+        status.textContent =
+        "Access denied.";
 
         return;
-
     }
 
 
-    info.textContent =
-        "admin access granted";
-
-}
-
-
-document
-    .getElementById("post-form")
-    .addEventListener("submit", async function(event) {
-
-        event.preventDefault();
+    const title =
+        document
+        .getElementById("title")
+        .value
+        .trim();
 
 
-        const title =
-            document
-                .getElementById("title")
-                .value
-                .trim();
+    const content =
+        document
+        .getElementById("content")
+        .value
+        .trim();
 
 
-        const content =
-            document
-                .getElementById("content")
-                .value
-                .trim();
+    const { error } =
+        await supabase
+        .from("posts")
+        .insert({
+            title: title,
+            content: content,
+            user_id: user.id
+        });
 
 
-        const result =
-            await supabase
-                .from("posts")
-                .insert({
-
-                    title: title,
-
-                    content: content,
-
-                    user_id: OWNER_UID
-
-                });
-
-
-        const status =
-            document
-                .getElementById("status");
-
-
-        if (result.error) {
-
-            status.textContent =
-                "Error: " +
-                result.error.message;
-
-            return;
-
-        }
-
+    if (error) {
 
         status.textContent =
-            "Published ✓";
+        "Error: " + error.message;
+
+        return;
+    }
 
 
-        document
-            .getElementById("post-form")
-            .reset();
-
-    });
+    status.textContent =
+    "Published ✓";
 
 
-checkUser();
+    document
+    .getElementById("post-form")
+    .reset();
+
+});
 
 </script>
 
