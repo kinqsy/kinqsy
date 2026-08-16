@@ -1,19 +1,20 @@
 const SUPABASE_URL = "https://rgkfegdtxaojceknnzlr.supabase.co";
 const SUPABASE_KEY = "sb_publishable_uK7zrVyq8AlHpoj13pGQ6g_q3L47Akw";
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// Важно: переменная называется supabaseClient
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 async function loadPosts() {
-    const feed = document.getElementById("feed") || document.querySelector(".feed");
+    const feed = document.querySelector(".feed");
 
     if (!feed) {
-        console.error("Feed element not found");
+        console.error("Элемент .feed не найден");
         return;
     }
 
     feed.innerHTML = '<div class="empty">loading...</div>';
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
         .from("posts")
         .select("*")
         .order("created_at", { ascending: false });
