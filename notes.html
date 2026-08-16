@@ -1,17 +1,4 @@
-const SUPABASE_URL = "https://rgkfegdtxaojceknnzlr.supabase.co";
-
-const SUPABASE_KEY = "sb_publishable_uK7zrVyq8AlHpoj13pGQ6g_q3L47Akw";
-
-
-const supabase = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_KEY
-);
-
-
-async function loadPosts() {
-
-    const feed = document.querySelector(".feed");
+const feed = document.querySelector(".feed");
 
     feed.innerHTML = "<div class='empty'>loading...</div>";
 
