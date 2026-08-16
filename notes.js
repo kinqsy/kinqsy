@@ -1,5 +1,8 @@
+document.body.insertAdjacentHTML(
+    "afterbegin",
+    "<div style='position:fixed;top:50px;left:0;z-index:99999;background:red;color:white;padding:10px'>JS WORKS</div>"
+);
 const SUPABASE_URL = "https://rgkfegdtxaojceknnzlr.supabase.co";
-
 const SUPABASE_KEY = "sb_publishable_uK7zrVyq8AlHpoj13pGQ6g_q3L47Akw";
 
 const supabase = window.supabase.createClient(
