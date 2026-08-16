@@ -1,1 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
 
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>KINQSY.LOL — Admin</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+
+            background: #F5BACB;
+            color: #000;
+
+            font-family: Georgia, "Times New Roman", serif;
+
+            padding: 80px 20px;
+        }
+
+        .admin {
+            width: min(700px, 100%);
+            margin: auto;
+
+            padding: 35px;
+
+            background: rgba(255,255,255,.38);
+
+            border: 1px solid rgba(255,255,255,.65);
+
+            border-radius: 24px;
+
+            box-shadow:
+                0 20px 50px rgba(0,0,0,.12),
+                inset 0 1px 0 rgba(255,255,255,.8);
+
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+        }
+
+        h1 {
+            margin-top: 0;
+
+            font-size: 42px;
+
+            letter-spacing: -2px;
+        }
+
+        label {
+            display: block;
+
+            margin-top: 20px;
+            margin-bottom: 7px;
+
+            font-weight: bold;
+        }
+
+        input,
+        textarea {
+
+            width: 100%;
+
+            padding: 13px 15px;
+
+            border: 1px solid rgba(0,0,0,.15);
+
+            border-radius: 12px;
+
+            background: rgba(255,255,255,.55);
+
+            font-family: Georgia, serif;
+
+            font-size: 16px;
+
+            outline: none;
+        }
+
+        textarea {
+            min-height: 220px;
+            resize: vertical;
+        }
+
+        input:focus,
+        textarea:focus {
+            border-color: #885069;
+        }
+
+        button {
+
+            margin-top: 25px;
+
+            padding: 13px 24px;
+
+            border: none;
+
+            border-radius: 999px;
+
+            background: #885069;
+
+            color: white;
+
+            font-family: Georgia, serif;
+
+            font-size: 16px;
+
+            font-weight: bold;
+
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: .85;
+        }
+
+        #status {
+
+            margin-top: 20px;
+
+            font-weight: bold;
+        }
+
+        .user-info {
+
+            margin-bottom: 25px;
+
+            padding: 12px 15px;
+
+            background: rgba(255,255,255,.35);
+
+            border-radius: 12px;
+
+            font-size: 13px;
+
+            word-break: break-all;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="admin">
+
+    <h1>admin</h1>
+
+    <div class="user-info" id="user-info">
+        checking authentication...
+    </div>
+
+    <form id="post-form">
+
+        <label for="title">
+            title
+        </label>
+
+        <input
+            id="title"
+            type="text"
+            maxlength="200"
+            required
+        >
+
+        <label for="content">
+            note
+        </label>
+
+        <textarea
+            id="content"
+            maxlength="10000"
+            required
+        ></textarea>
+
+        <button type="submit">
+            publish
+        </button>
+
+    </form>
+
+    <div id="status"></div>
+
+</div>
+
+<script>
+
+const SUPABASE_URL =
+    "https://rgkfegdtxaojceknnzlr.supabase.co";
+
+const SUPABASE_KEY =
+    "sb_publishable_uK7zrVyq8AlHpoj13pGQ6g_q3L47Akw";
+
+const supabase =
+    window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+    );
+
+
+const OWNER_UID =
+    "96ef4011-2e87-4e4f-8a55-537b0c852d7f";
+
+
+async function checkUser() {
+
+    const result =
+        await supabase.auth.getUser();
+
+    const user =
+        result.data.user;
+
+    const info =
+        document.getElementById("user-info");
+
+    const form =
+        document.getElementById("post-form");
+
+
+    if (!user) {
+
+        info.textContent =
+            "not logged in";
+
+        form.style.display =
+            "none";
+
+        return;
+
+    }
+
+
+    info.textContent =
+        "logged in as: " +
+        user.email;
+
+
+    if (user.id !== OWNER_UID) {
+
+        info.textContent =
+            "access denied";
+      form.style.display =
+            "none";
+
+        return;
+
+    }
+
+
+    info.textContent =
+        "admin access granted";
+
+}
+
+
+document
+    .getElementById("post-form")
+    .addEventListener("submit", async function(event) {
+
+        event.preventDefault();
+
+
+        const title =
+            document
+                .getElementById("title")
+                .value
+                .trim();
+
+
+        const content =
+            document
+                .getElementById("content")
+                .value
+                .trim();
+
+
+        const result =
+            await supabase
+                .from("posts")
+                .insert({
+
+                    title: title,
+
+                    content: content,
+
+                    user_id: OWNER_UID
+
+                });
+
+
+        const status =
+            document
+                .getElementById("status");
+
+
+        if (result.error) {
+
+            status.textContent =
+                "Error: " +
+                result.error.message;
+
+            return;
+
+        }
+
+
+        status.textContent =
+            "Published ✓";
+
+
+        document
+            .getElementById("post-form")
+            .reset();
+
+    });
+
+
+checkUser();
+
+</script>
+
+</body>
+</html>
