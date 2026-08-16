@@ -1,3 +1,4 @@
+alert("SUPABASE FILE WORKS");
 const SUPABASE_URL = "https://rgkfegdtxaojceknnzlr.supabase.co";
 
 const SUPABASE_KEY = "sb_publishable_uK7zrVyq8AlHpoj13pGQ6g_q3L47Akw";
