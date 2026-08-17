@@ -13,14 +13,12 @@
             padding: 0;
             min-height: 100%;
         }
-
         body {
             background: #000;
             color: #000;
             font-family: Georgia, "Times New Roman", serif;
         }
 
-        /* ===== MENU ===== */
         .top-menu {
             position: fixed;
             top: 0;
@@ -34,7 +32,6 @@
             gap: 18px;
             z-index: 1000;
         }
-
         .top-menu a {
             color: #050505;
             text-decoration: none;
@@ -42,7 +39,6 @@
             font-weight: bold;
             white-space: nowrap;
         }
-
         .top-menu a:hover { text-decoration: underline; }
 
         .top-menu .star {
@@ -53,12 +49,8 @@
             cursor: pointer;
             user-select: none;
         }
+        .top-menu .star:hover { opacity: 1; }
 
-        .top-menu .star:hover {
-            opacity: 1;
-        }
-
-        /* ===== HOME ===== */
         .hero {
             position: relative;
             margin-top: 42px;
@@ -83,9 +75,10 @@
             line-height: 0.9;
             letter-spacing: -5px;
             text-shadow:
-                0 2px 0 #6e4057,
-                0 8px 24px rgba(0, 0, 0, 0.45),
-                0 2px 8px rgba(0, 0, 0, 0.35);
+                0 3px 0 #6e4057,
+                0 10px 28px rgba(0, 0, 0, 0.55),
+                0 4px 12px rgba(0, 0, 0, 0.45),
+                0 0 40px rgba(0, 0, 0, 0.35);
             z-index: 2;
         }
 
@@ -99,12 +92,12 @@
             font-style: italic;
             font-weight: bold;
             text-shadow:
-                0 1px 0 rgba(110, 64, 87, 0.8),
-                0 4px 14px rgba(0, 0, 0, 0.4);
+                0 2px 0 rgba(110, 64, 87, 0.9),
+                0 6px 18px rgba(0, 0, 0, 0.5),
+                0 2px 8px rgba(0, 0, 0, 0.4);
             z-index: 2;
         }
 
-        /* ===== FOOTER ===== */
         footer {
             min-height: 110px;
             background: #000;
@@ -114,19 +107,16 @@
             align-items: center;
             padding: 20px 28px;
         }
-
         .copyright {
             font-size: 12px;
             font-weight: bold;
         }
-
         .socials {
             display: flex;
-            gap: 14px;
+            gap: 16px;
             justify-content: center;
             align-items: center;
         }
-
         .socials a {
             width: 28px;
             height: 28px;
@@ -137,19 +127,16 @@
             text-decoration: none;
             transition: opacity 0.2s, transform 0.2s;
         }
-
         .socials a:hover {
             opacity: 0.8;
             transform: scale(1.08);
         }
-
         .socials svg {
             width: 22px;
             height: 22px;
             fill: currentColor;
         }
 
-        /* ===== BACK TO TOP ===== */
         .back-to-top-fixed {
             position: fixed;
             right: 22px;
@@ -169,51 +156,41 @@
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
             transition: opacity 0.2s, transform 0.2s;
         }
-
         .back-to-top-fixed:hover {
             transform: translateY(-2px);
             opacity: 0.9;
         }
 
-        /* ===== MOBILE ===== */
         @media (max-width: 700px) {
             .top-menu {
-                height: 42px;
                 padding: 0 8px;
                 gap: 11px;
-                overflow-x: auto;
                 justify-content: flex-start;
+                overflow-x: auto;
                 scrollbar-width: none;
             }
-
             .top-menu::-webkit-scrollbar { display: none; }
             .top-menu a { font-size: 16px; }
-
             .hero {
                 min-height: 80vh;
-                margin-top: 42px;
                 border-radius: 0 0 20px 20px;
             }
-
             .site-title {
                 top: 35px;
                 left: 5px;
                 font-size: clamp(55px, 17vw, 100px);
                 letter-spacing: -4px;
             }
-
             .tagline {
                 top: 145px;
                 left: 7px;
                 font-size: 15px;
             }
-
             footer {
                 grid-template-columns: 1fr;
                 gap: 18px;
                 text-align: center;
             }
-
             .back-to-top-fixed {
                 right: 16px;
                 bottom: 16px;
@@ -231,7 +208,7 @@
         <a href="dreams.html">dreams</a>
         <a href="quotes.html">quotation/definition</a>
         <a href="about.html">about</a>
-        <span class="star" id="admin-star" title="">★</span>
+        <span class="star" id="admin-star">★</span>
     </nav>
 
     <main class="hero">
@@ -243,176 +220,17 @@
         <div class="copyright">© 2026 kinqsy.lol</div>
 
         <div class="socials">
-            <!-- Telegram -->
             <a href="https://t.me/kinqsy_notes" target="_blank" rel="noopener noreferrer" aria-label="Telegram">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
                 </svg>
             </a>
-
-            <!-- Pinterest -->
             <a href="https://pin.it/7q2l8cx9W" target="_blank" rel="noopener noreferrer" aria-label="Pinterest">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.401.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.
-                        <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KINQSY.LOL</title>
-    <meta name="description" content="things I probably shouldn't publish">
-    <style>
-        * { box-sizing: border-box; }
-        html { scroll-behavior: smooth; }
-        html, body {
-            margin: 0;
-            padding: 0;
-            min-height: 100%;
-        }
-
-        body {
-            background: #000;
-            color: #000;
-            font-family: Georgia, "Times New Roman", serif;
-        }
-
-        /* ===== MENU ===== */
-        .top-menu {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 42px;
-            background: #8d526e;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 18px;
-            z-index: 1000;
-        }
-
-        .top-menu a {
-            color: #050505;
-            text-decoration: none;
-            font-size: 21px;
-            font-weight: bold;
-            white-space: nowrap;
-        }
-
-        .top-menu a:hover { text-decoration: underline; }
-
-        .top-menu .star {
-            color: #111;
-            font-size: 18px;
-            opacity: 0.75;
-            margin-left: 6px;
-            cursor: pointer;
-            user-select: none;
-        }
-
-        .top-menu .star:hover {
-            opacity: 1;
-        }
-
-        /* ===== HOME ===== */
-        .hero {
-            position: relative;
-            margin-top: 42px;
-            min-height: calc(100vh - 42px);
-            background-image: url("background.jpg");
-            background-size: cover;
-            background-position: center center;
-            background-repeat: no-repeat;
-            border-radius: 0 0 30px 30px;
-            overflow: hidden;
-        }
-
-        .site-title {
-            position: absolute;
-            top: 28px;
-            left: 0;
-            margin: 0;
-            color: #f6dce8;
-            font-family: "Bodoni 72", Didot, "Bodoni MT", "Times New Roman", serif;
-            font-size: clamp(70px, 10vw, 150px);
-            font-weight: 400;
-            line-height: 0.9;
-            letter-spacing: -5px;
-            text-shadow:
-                0 2px 0 #6e4057,
-                0 8px 24px rgba(0, 0, 0, 0.45),
-                0 2px 8px rgba(0, 0, 0, 0.35);
-            z-index: 2;
-        }
-
-        .tagline {
-            position: absolute;
-            top: 165px;
-            left: 4px;
-            color: #f3dce6;
-            font-family: Georgia, "Times New Roman", serif;
-            font-size: clamp(16px, 1.8vw, 26px);
-            font-style: italic;
-            font-weight: bold;
-            text-shadow:
-                0 1px 0 rgba(110, 64, 87, 0.8),
-                0 4px 14px rgba(0, 0, 0, 0.4);
-            z-index: 2;
-        }
-
-        /* ===== FOOTER ===== */
-        footer {
-            min-height: 110px;
-            background: #000;
-            color: #f1b9d0;
-            display: grid;
-            grid-template-columns: 1fr auto 1fr;
-            align-items: center;
-            padding: 20px 28px;
-        }
-
-        .copyright {
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        .socials {
-            display: flex;
-            gap: 14px;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .socials a {
-            width: 28px;
-            height: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #f1b9d0;
-            text-decoration: none;
-            transition: opacity 0.2s, transform 0.2s;
-        }
-
-        .socials a:hover {
-            opacity: 0.8;
-            transform: scale(1.08);
-        }
-
-        .socials svg {
-            width: 22px;
-            height: 22px;
-            fill: currentColor;
-        }
-
-        /* ===== BACK TO TOP ===== */
-        .back-to-top-fixed {
-            position: fixed;
-            right: 22px;
-            748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.354-.629-2.758-1.379l-.749 2.848c-.269 1.045-1.004 2.352-1.498 3.146 1.123.345 2.306.535 3.55.535 6.607 0 11.985-5.365 11.985-11.987C23.97 5.39 18.592.026 11.985.026L12.017 0z"/>
+                    <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.401.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.354-.629-2.758-1.379l-.749 2.848c-.269 1.045-1.004 2.352-1.498 3.146 1.123.345 2.306.535 3.55.535 6.607 0 11.985-5.365 11.985-11.987C23.97 5.39 18.592.026 11.
+                        985.026L12.017 0z"/>
                 </svg>
             </a>
-
             <!-- YouTube -->
             <a href="https://youtube.com/@kinggggggggggggggggggggg" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -428,26 +246,25 @@
 
     <script>
     (function () {
-        const star = document.getElementById("admin-star");
+        var star = document.getElementById("admin-star");
         if (!star) return;
 
-        let clicks = 0;
-        let timer = null;
+        var clicks = 0;
+        var timer = null;
 
-        star.addEventListener("click", function () {
-            clicks += 1;
+        star.onclick = function () {
+            clicks = clicks + 1;
 
             if (timer) clearTimeout(timer);
-
             timer = setTimeout(function () {
                 clicks = 0;
-            }, 1500);
+            }, 2000);
 
             if (clicks >= 3) {
                 clicks = 0;
                 window.location.href = "admin.html";
             }
-        });
+        };
     })();
     </script>
 
