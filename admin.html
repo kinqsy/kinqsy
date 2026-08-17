@@ -27,7 +27,7 @@ body {
     -webkit-backdrop-filter: blur(20px);
 }
 h1 { margin-top: 0; font-size: 48px; letter-spacing: -3px; }
-input, textarea {
+input, textarea, select {
     width: 100%;
     padding: 14px;
     margin-top: 8px;
@@ -37,11 +37,11 @@ input, textarea {
     font-family: Georgia, serif;
     font-size: 16px;
 }
-textarea { min-height: 220px; resize: vertical; }
-label { display: block; margin-top: 20px; font-weight: bold; }
+textarea { min-height: 200px; resize: vertical; }
+label { display: block; margin-top: 18px; font-weight: bold; }
 button {
-    margin-top: 25px;
-    margin-right: 12px;
+    margin-top: 22px;
+    margin-right: 10px;
     padding: 13px 28px;
     border: 0;
     border-radius: 999px;
@@ -52,11 +52,19 @@ button {
     font-weight: bold;
     cursor: pointer;
 }
+button.secondary { background: #333; }
 button:hover { opacity: .85; }
 button:disabled { opacity: 0.5; cursor: not-allowed; }
-#status { margin-top: 20px; font-weight: bold; min-height: 24px; }
+#status { margin-top: 18px; font-weight: bold; min-height: 24px; }
 #login-box { display: block; }
 #admin-box { display: none; }
+.hint { margin-top: 6px; font-size: 13px; opacity: 0.7; font-weight: normal; }
+#preview {
+    margin-top: 12px;
+    display: none;
+    max-width: 100%;
+    border-radius: 14px;
+}
 </style>
 </head>
 <body>
@@ -73,12 +81,27 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 
     <div id="admin-box">
         <p>logged in ✓</p>
+
+        <label>publish to</label>
+        <select id="category">
+            <option value="notes">notes</option>
+            <option value="dreams">dreams</option>
+            <option value="quotes">quotation / definition</option>
+        </select>
+
         <label>title</label>
         <input id="title" type="text" maxlength="200">
-        <label>note</label>
+
+        <label>text</label>
         <textarea id="content" maxlength="10000"></textarea>
+
+        <label>image / gif url</label>
+        <input id="media_url" type="url" placeholder="https://...">
+        <div class="hint">Вставь прямую ссылку на картинку или GIF. Позже сделаем загрузку с телефона.</div>
+        <img id="preview" alt="preview">
+
         <button id="publish-button">publish</button>
-        <button id="logout-button">logout</button>
+        <button id="logout-button" class="secondary">logout</button>
     </div>
 
     <div id="status"></div>
@@ -89,12 +112,29 @@ const SUPABASE_URL = "https://rgkfegdtxaojceknnzlr.supabase.co";
 const SUPABASE_KEY = "sb_publishable_uK7zrVyq8AlHpoj13pGQ6g_q3L47Akw";
 const OWNER_UID = "0ee69fba-c2db-4601-b871-0d77eafb611f";
 
-// Важно: переменная называется supabaseClient, а не supabase
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+function guessMediaType(url) {
+    if (!url) return null;
+    const u = url.toLowerCase();
+    if (u.includes(".gif")  u.includes("giphy")  u.includes("tenor")) return "gif";
+    return "image";
+}
+
+document.getElementById("media_url").addEventListener("input", function () {
+    const url = this.value.trim();
+    const preview = document.getElementById("preview");
+    if (url) {
+        preview.src = url;
+        preview.style.display = "block";
+    } else {
+        preview.style.display = "none";
+        preview.src = "";
+    }
+});
 
 async function checkSession() {
     const { data: { user }, error } = await supabaseClient.auth.getUser();
-
     if (error) {
         document.getElementById("status").textContent = "Auth error: " + error.message;
         return;
@@ -129,8 +169,7 @@ document.getElementById("login-button").addEventListener("click", async function
         return;
     }
 
-    status.
-        textContent = "Вход...";
+    status.textContent = "Вход...";
     btn.disabled = true;
 
     const { error } = await supabaseClient.auth.signInWithPassword({
@@ -142,46 +181,62 @@ document.getElementById("login-button").addEventListener("click", async function
 
     if (error) {
         status.textContent = "Ошибка: " + error.message;
-        console.error(error);
         return;
     }
 
-    status.textContent = "Успешно! Обновляю...";
-    setTimeout(function() {
-        location.reload();
-    }, 500);
+    status.textContent = "Успешно!";
+    setTimeout(function () { location.reload(); }, 400);
 });
 
 document.getElementById("publish-button").addEventListener("click", async function () {
     const { data: { user } } = await supabaseClient.auth.getUser();
+    const status = document.getElementById("status");
+    const btn = document.getElementById("publish-button");
 
     if (!user || user.id !== OWNER_UID) {
-        document.getElementById("status").textContent = "Access denied.";
+        status.textContent = "Access denied.";
         return;
     }
 
     const title = document.getElementById("title").value.trim();
     const content = document.getElementById("content").value.trim();
+    const category = document.getElementById("category").value;
+    const media_url = document.getElementById("media_url").value.trim();
 
-    if (!title && !content) {
-        document.getElementById("status").textContent = "Напишите title или note";
+    if (!title && !content && !media_url) {
+        status.textContent = "Добавь текст или картинку";
         return;
     }
 
-    const { error } = await supabaseClient.from("posts").insert({
+    btn.disabled = true;
+    status.textContent = "Публикую...";
+
+    const payload = {
         title: title,
         content: content,
+        category: category,
         user_id: user.id
-    });
+    };
+
+    if (media_url) {
+        payload.media_url = media_url;
+        payload.media_type = guessMediaType(media_url);
+    }
+
+    const { error } = await supabaseClient.from("posts").insert(payload);
+
+    btn.disabled = false;
 
     if (error) {
-        document.getElementById("status").textContent = "Ошибка: " + error.message;
+        status.textContent = "Ошибка: " + error.message;
         return;
     }
 
-    document.getElementById("status").textContent = "Published ✓";
+    status.textContent = "Published to " + category + " ✓";
     document.getElementById("title").value = "";
     document.getElementById("content").value = "";
+    document.getElementById("media_url").value = "";
+    document.getElementById("preview").style.display = "none";
 });
 
 document.getElementById("logout-button").addEventListener("click", async function () {
