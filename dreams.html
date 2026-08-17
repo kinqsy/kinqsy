@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DREAMS — KINQSY.LOL</title>
+    <style>
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        html, body { margin: 0; padding: 0; min-height: 100%; }
+
+        body {
+            background: #1a0f14 url("dreams-bg.jpg") center center / cover no-repeat fixed;
+            color: #000;
+            font-family: Georgia, "Times New Roman", serif;
+        }
+
+        .top-menu {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%;
+            height: 42px;
+            background: #885069;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+            z-index: 1000;
+            box-shadow: 0 2px 12px rgba(0,0,0,.18);
+        }
+        .top-menu a {
+            color: #050505;
+            text-decoration: none;
+            font-size: 21px;
+            font-weight: bold;
+        }
+        .top-menu a:hover { text-decoration: underline; }
+        .top-menu .star {
+            color: #111;
+            font-size: 18px;
+            opacity: 0.75;
+            margin-left: 6px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .top-menu .star:hover { opacity: 1; }
+
+        .dreams-page {
+            min-height: 100vh;
+            padding: 100px 20px 80px;
+        }
+
+        .dreams-header {
+            max-width: 900px;
+            margin: 0 auto 40px;
+            padding: 28px 24px 32px;
+            border-radius: 0 0 28px 28px;
+            background: linear-gradient(
+                180deg,
+                rgba(255,255,255,.18) 0%,
+                rgba(255,255,255,.06) 100%
+            );
+            border: 1px solid rgba(255,255,255,.35);
+            border-top: none;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 16px 40px rgba(0,0,0,.15);
+        }
+
+        .dreams-title {
+            margin: 0 0 14px;
+            color: #000;
+            font-family: "Bodoni 72", Didot, "Bodoni MT", Georgia, serif;
+            font-size: clamp(70px, 11vw, 150px);
+            font-weight: 400;
+            line-height: .8;
+            letter-spacing: -5px;
+            text-shadow: 0 2px 0 rgba(255,255,255,.35), 0 8px 24px rgba(0,0,0,.25);
+        }
+
+        .dreams-subtitle {
+            margin: 0;
+            font-size: 17px;
+            font-style: italic;
+            font-weight: bold;
+            text-shadow: 0 2px 10px rgba(0,0,0,.2);
+        }
+
+        .feed {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+        }
+
+        .post {
+            position: relative;
+            padding: 28px;
+            border-radius: 22px;
+            background: linear-gradient(
+                145deg,
+                rgba(255,255,255,.42) 0%,
+                rgba(255,255,255,.16) 40%,
+                rgba(255,255,255,.1) 100%
+            );
+            border: 1px solid rgba(255,255,255,.7);
+            box-shadow:
+                0 18px 40px rgba(0,0,0,.2),
+                inset 0 1px 1px rgba(255,255,255,.9),
+                inset 0 -1px 1px rgba(0,0,0,.08);
+            backdrop-filter: blur(16px) saturate(160%);
+            -webkit-backdrop-filter: blur(16px) saturate(160%);
+            overflow: hidden;
+        }
+        .post::before {
+            content: "";
+            position: absolute;
+            top: -40%; left: -15%;
+            width: 130%; height: 70%;
+            background: linear-gradient(
+                110deg,
+                rgba(255,255,255,.7) 0%,
+                rgba(255,255,255,.2) 30%,
+                rgba(255,255,255,0) 60%
+            );
+            transform: rotate(-4deg);
+            pointer-events: none;
+        }
+        .post > * { position: relative; z-index: 2; }
+
+        .post-date {
+            margin-bottom: 12px;
+font-family: Arial, sans-serif;
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            opacity: .6;
+        }
+        .post-title { margin: 0 0 15px; font-size: 29px; }
+        .post-content { font-size: 17px; line-height: 1.65; }
+        .post-media {
+            margin: 14px 0 6px;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        .post-media img {
+            display: block;
+            width: 100%;
+            height: auto;
+            vertical-align: middle;
+        }
+        .post-footer {
+            margin-top: 24px;
+            padding-top: 14px;
+            border-top: 1px solid rgba(0,0,0,.14);
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .empty {
+            padding: 60px 20px;
+            text-align: center;
+            font-style: italic;
+            opacity: .75;
+            background: rgba(255,255,255,.28);
+            border-radius: 18px;
+            backdrop-filter: blur(10px);
+        }
+
+        footer {
+            min-height: 110px;
+            background: #000;
+            color: #F1B9D0;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            padding: 20px 28px;
+        }
+        .socials {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            align-items: center;
+        }
+        .socials a {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #F1B9D0;
+            text-decoration: none;
+        }
+        .socials a:hover { opacity: 0.8; transform: scale(1.08); }
+        .socials svg { width: 22px; height: 22px; fill: currentColor; }
+
+        .back-to-top-fixed {
+            position: fixed;
+            right: 22px;
+            bottom: 22px;
+            z-index: 999;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #885069;
+            color: #f6dce8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: bold;
+            box-shadow: 0 8px 24px rgba(0,0,0,.35);
+        }
+        .back-to-top-fixed:hover {
+            transform: translateY(-2px);
+            opacity: 0.9;
+        }
+
+        @media (max-width: 700px) {
+            .top-menu {
+                padding: 0 8px;
+                gap: 11px;
+                justify-content: flex-start;
+                overflow-x: auto;
+                scrollbar-width: none;
+            }
+            .top-menu::-webkit-scrollbar { display: none; }
+            .top-menu a { font-size: 16px; }
+            .dreams-page { padding: 85px 12px 50px; }
+            .dreams-title { font-size: clamp(55px, 17vw, 100px); letter-spacing: -4px; }
+            .post { padding: 20px; border-radius: 16px; }
+            .post-title { font-size: 24px; }
+            .post-content { font-size: 16px; }
+            footer { grid-template-columns: 1fr; gap: 18px; text-align: center; }
+            .back-to-top-fixed { right: 16px; bottom: 16px; width: 40px; height: 40px; }
+        }
+    </style>
+</head>
+<body id="top">
+
+    <nav class="top-menu">
+        <a href="index.html">home</a>
+        <a href="notes.html">notes</a>
+        <a href="dreams.html">dreams</a>
+        <a href="quotes.html">quotation/definition</a>
+        <a href="about.html">about</a>
+        <span class="star" id="admin-star">★</span>
+    </nav>
+
+    <main class="dreams-page">
+        <div class="dreams-header">
+            <h1 class="dreams-title">DREAMS</h1>
+            <div class="dreams-subtitle">things I probably shouldn't publish</div>
+        </div>
+
+        <section class="feed" id="feed"></section>
+    </main>
+
+    <footer>
+        <div>© 2026 kinqsy.lol</div>
+        <div class="socials">
+<a href="https://t.me/kinqsy_notes" target="_blank" rel="noopener noreferrer" aria-label="Telegram">
+                <svg viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+            </a>
+            <a href="https://pin.it/7q2l8cx9W" target="_blank" rel="noopener noreferrer" aria-label="Pinterest">
+                <svg viewBox="0 0 24 24"><path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.401.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.354-.629-2.758-1.379l-.749 2.848c-.269 1.045-1.004 2.352-1.498 3.146 1.123.345 2.306.535 3.55.535 6.607 0 11.985-5.365 11.985-11.987C23.97 5.39 18.592.026 11.985.026L12.017 0z"/></svg>
+            </a>
+            <a href="https://youtube.com/@kinggggggggggggggggggggg" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
+                <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+            </a>
+        </div>
+        <div></div>
+    </footer>
+
+    <a href="#top" class="back-to-top-fixed" aria-label="Back to top">↑</a>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+    const SUPABASE_URL = "https://rgkfegdtxaojceknnzlr.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_uK7zrVyq8AlHpoj13pGQ6g_q3L47Akw";
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    async function loadDreams() {
+        const feed = document.getElementById("feed");
+        if (!feed) return;
+
+        feed.innerHTML = '<div class="empty">loading...</div>';
+
+        const { data, error } = await supabaseClient
+            .from("posts")
+            .select("*")
+            .eq("category", "dreams")
+            .order("created_at", { ascending: false });
+
+        if (error) {
+            feed.innerHTML = '<div class="empty">Supabase error: ' + error.message + '</div>';
+            console.error(error);
+            return;
+        }
+
+        if (!data || data.length === 0) {
+            feed.innerHTML = '<div class="empty">no dreams yet.</div>';
+            return;
+        }
+
+        feed.innerHTML = "";
+
+        data.forEach(function (post) {
+            const article = document.createElement("article");
+            article.className = "post";
+
+            let mediaHtml = "";
+            if (post.media_url) {
+                mediaHtml = '<div class="post-media"><img src="' + post.media_url + '" alt=""></div>';
+            }
+
+            article.innerHTML =
+                '<div class="post-date">' +
+                    new Date(post.created_at).toLocaleDateString("en-GB") +
+                '</div>' +
+'<h2 class="post-title">' + (post.title || "") + '</h2>' +
+                mediaHtml +
+                '<div class="post-content">' + (post.content || "") + '</div>' +
+                '<div class="post-footer">comments · 0</div>';
+
+            feed.appendChild(article);
+        });
+    }
+
+    loadDreams();
+
+    (function () {
+        var star = document.getElementById("admin-star");
+        if (!star) return;
+        var clicks = 0;
+        var timer = null;
+        star.onclick = function () {
+            clicks = clicks + 1;
+            if (timer) clearTimeout(timer);
+            timer = setTimeout(function () { clicks = 0; }, 2000);
+            if (clicks >= 3) {
+                clicks = 0;
+                window.location.href = "admin.html";
+            }
+        };
+    })();
+    </script>
+</body>
+</html>
