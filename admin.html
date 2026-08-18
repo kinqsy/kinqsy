@@ -117,7 +117,9 @@ const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 function guessMediaType(url) {
     if (!url) return null;
     const u = url.toLowerCase();
-    if (u.includes(".gif")  u.includes("giphy")  u.includes("tenor")) return "gif";
+    if (u.indexOf(".gif") !== -1) return "gif";
+    if (u.indexOf("giphy") !== -1) return "gif";
+    if (u.indexOf("tenor") !== -1) return "gif";
     return "image";
 }
 
