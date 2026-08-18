@@ -39,6 +39,7 @@ input, textarea, select {
 }
 textarea { min-height: 200px; resize: vertical; }
 label { display: block; margin-top: 18px; font-weight: bold; }
+.hint { margin-top: 6px; font-size: 13px; opacity: 0.7; font-weight: normal; }
 button {
     margin-top: 22px;
     margin-right: 10px;
@@ -58,7 +59,6 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 #status { margin-top: 18px; font-weight: bold; min-height: 24px; }
 #login-box { display: block; }
 #admin-box { display: none; }
-.hint { margin-top: 6px; font-size: 13px; opacity: 0.7; font-weight: normal; }
 #preview {
     margin-top: 12px;
     display: none;
@@ -97,7 +97,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 
         <label>image / gif url</label>
         <input id="media_url" type="url" placeholder="https://...">
-        <div class="hint">Вставь прямую ссылку на картинку или GIF. Позже сделаем загрузку с телефона.</div>
+        <div class="hint">Прямая ссылка на картинку или GIF.</div>
         <img id="preview" alt="preview">
 
         <button id="publish-button">publish</button>
@@ -129,14 +129,16 @@ document.getElementById("media_url").addEventListener("input", function () {
         preview.style.display = "block";
     } else {
         preview.style.display = "none";
-        preview.src = "";
+        preview.removeAttribute("src");
     }
 });
 
 async function checkSession() {
     const { data: { user }, error } = await supabaseClient.auth.getUser();
+
     if (error) {
-        document.getElementById("status").textContent = "Auth error: " + error.message;
+        document.
+            getElementById("status").textContent = "Auth error: " + error.message;
         return;
     }
 
@@ -189,9 +191,9 @@ document.getElementById("login-button").addEventListener("click", async function
 });
 
 document.getElementById("publish-button").addEventListener("click", async function () {
-    const { data: { user } } = await supabaseClient.auth.getUser();
     const status = document.getElementById("status");
     const btn = document.getElementById("publish-button");
+    const { data: { user } } = await supabaseClient.auth.getUser();
 
     if (!user || user.id !== OWNER_UID) {
         status.textContent = "Access denied.";
