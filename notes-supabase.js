@@ -35,17 +35,18 @@ async function loadPosts() {
     data.forEach(function (post) {
         const article = document.createElement("article");
         article.className = "post";
-
+        
+        let mediaHtml = "";
+if (post.media_url) {
+    mediaHtml = '<div class="post-media"><img src="' + post.media_url + '" alt=""></div>';
+}
         article.innerHTML =
             '<div class="post-date">' +
                 new Date(post.created_at).toLocaleDateString("en-GB") +
             '</div>' +
-            '<h2 class="post-title">' +
-                (post.title || "") +
-            '</h2>' +
-            '<div class="post-content">' +
-                (post.content || "") +
-            '</div>' +
+            '<h2 class="post-title">' + (post.title || "") + '</h2>' +
+mediaHtml +
+'<div class="post-content">' + (post.content || "") + '</div>' +
             '<div class="post-footer">' +
                 'comments · 0' +
             '</div>';
