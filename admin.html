@@ -97,7 +97,10 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 
         <label>image / gif url</label>
         <input id="media_url" type="url" placeholder="https://...">
-        <div class="hint">Прямая ссылка на картинку или GIF.</div>
+
+        <label>или загрузи с устройства</label>
+        <input id="media_file" type="file" accept="image/*,.gif">
+        <div class="hint">JPG, PNG, GIF, WEBP. Сначала создай Public bucket с именем media в Supabase Storage.</div>
         <img id="preview" alt="preview">
 
         <button id="publish-button">publish</button>
@@ -110,7 +113,9 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 <script>
 const SUPABASE_URL = "https://rgkfegdtxaojceknnzlr.supabase.co";
 const SUPABASE_KEY = "sb_publishable_uK7zrVyq8AlHpoj13pGQ6g_q3L47Akw";
-const OWNER_UID = "4923abc5-5c86-48c2-904b-a267c2e21703";
+
+// Если снова Access denied — вставь сюда свой UID из Authentication → Users
+const OWNER_UID = "0ee69fba-c2db-4601-b871-0d77eafb611f";
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -123,24 +128,12 @@ function guessMediaType(url) {
     return "image";
 }
 
-document.getElementById("media_url").addEventListener("input", function () {
-    const url = this.value.trim();
-    const preview = document.getElementById("preview");
-    if (url) {
-        preview.src = url;
-        preview.style.display = "block";
-    } else {
-        preview.style.display = "none";
-        preview.removeAttribute("src");
-    }
-});
-
 async function checkSession() {
     const { data: { user }, error } = await supabaseClient.auth.getUser();
 
     if (error) {
-        document.
-            getElementById("status").textContent = "Auth error: " + error.message;
+        document.getElementById("status").
+            textContent = "Auth error: " + error.message;
         return;
     }
 
@@ -150,7 +143,7 @@ async function checkSession() {
         return;
     }
 
-    if (user.id !== OWNER_UID) {
+    if (OWNER_UID && user.id !== OWNER_UID) {
         document.getElementById("login-box").style.display = "none";
         document.getElementById("admin-box").style.display = "none";
         document.getElementById("status").textContent = "Access denied. You are not the owner.";
@@ -192,12 +185,67 @@ document.getElementById("login-button").addEventListener("click", async function
     setTimeout(function () { location.reload(); }, 400);
 });
 
+document.getElementById("media_url").addEventListener("input", function () {
+    const url = this.value.trim();
+    const preview = document.getElementById("preview");
+    if (url) {
+        preview.src = url;
+        preview.style.display = "block";
+    } else {
+        preview.style.display = "none";
+        preview.removeAttribute("src");
+    }
+});
+
+document.getElementById("media_file").addEventListener("change", async function () {
+    const file = this.files && this.files[0];
+    const status = document.getElementById("status");
+    const preview = document.getElementById("preview");
+    const mediaUrlInput = document.getElementById("media_url");
+
+    if (!file) return;
+
+    status.textContent = "Загружаю файл...";
+
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if (!user) {
+        status.textContent = "Сначала войди в admin";
+        return;
+    }
+
+    const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+    const path = user.id + "/" + Date.now() + "." + ext;
+
+    const { error: uploadError } = await supabaseClient.storage
+        .from("media")
+        .upload(path, file, {
+            cacheControl: "3600",
+            upsert: false
+        });
+
+    if (uploadError) {
+        status.textContent = "Ошибка загрузки: " + uploadError.message;
+        return;
+    }
+
+    const { data } = supabaseClient.storage.from("media").getPublicUrl(path);
+    mediaUrlInput.value = data.publicUrl;
+    preview.src = data.publicUrl;
+    preview.style.display = "block";
+    status.textContent = "Файл загружен ✓";
+});
+
 document.getElementById("publish-button").addEventListener("click", async function () {
     const status = document.getElementById("status");
     const btn = document.getElementById("publish-button");
     const { data: { user } } = await supabaseClient.auth.getUser();
 
-    if (!user || user.id !== OWNER_UID) {
+    if (!user) {
+        status.textContent = "Access denied.";
+        return;
+    }
+
+    if (OWNER_UID && user.id !== OWNER_UID) {
         status.textContent = "Access denied.";
         return;
     }
@@ -214,7 +262,6 @@ document.getElementById("publish-button").addEventListener("click", async functi
 
     btn.disabled = true;
     status.textContent = "Публикую...";
-
     const payload = {
         title: title,
         content: content,
@@ -240,6 +287,7 @@ document.getElementById("publish-button").addEventListener("click", async functi
     document.getElementById("title").value = "";
     document.getElementById("content").value = "";
     document.getElementById("media_url").value = "";
+    document.getElementById("media_file").value = "";
     document.getElementById("preview").style.display = "none";
 });
 
