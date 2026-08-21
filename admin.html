@@ -76,10 +76,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
     background: rgba(255,255,255,.55);
     border: 1px solid rgba(0,0,0,.08);
 }
-.post-row-info {
-    min-width: 0;
-    flex: 1;
-}
+.post-row-info { min-width: 0; flex: 1; }
 .post-row-title {
     font-weight: bold;
     white-space: nowrap;
@@ -109,6 +106,9 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
         <label>password</label>
         <input id="password" type="password" autocomplete="current-password">
         <button id="login-button">login</button>
+        <hr style="margin: 28px 0; border: none; border-top: 1px solid rgba(0,0,0,.15);">
+        <h2 style="margin: 0 0 12px; font-size: 28px;">my posts</h2>
+        <div id="posts-list"></div>
     </div>
 
     <div id="admin-box">
