@@ -65,6 +65,38 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
     max-width: 100%;
     border-radius: 14px;
 }
+    .post-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    margin-top: 10px;
+    border-radius: 12px;
+    background: rgba(255,255,255,.55);
+    border: 1px solid rgba(0,0,0,.08);
+}
+.post-row-info {
+    min-width: 0;
+    flex: 1;
+}
+.post-row-title {
+    font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.post-row-meta {
+    font-size: 12px;
+    opacity: 0.7;
+    margin-top: 4px;
+}
+.post-row button.delete-btn {
+    margin: 0;
+    padding: 8px 14px;
+    background: #8b2e2e;
+    font-size: 13px;
+}
 </style>
 </head>
 <body>
@@ -106,6 +138,9 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
         <button id="publish-button">publish</button>
         <button id="logout-button" class="secondary">logout</button>
     </div>
+    <hr style="margin: 28px 0; border: none; border-top: 1px solid rgba(0,0,0,.15);">
+        <h2 style="margin: 0 0 12px; font-size: 28px;">my posts</h2>
+        <div id="posts-list"></div>
 
     <div id="status"></div>
 </div>
@@ -153,7 +188,7 @@ async function checkSession() {
     document.getElementById("login-box").style.display = "none";
     document.getElementById("admin-box").style.display = "block";
     document.getElementById("status").textContent = "";
-}
+    loadMyPosts();
 
 document.getElementById("login-button").addEventListener("click", async function () {
     const email = document.getElementById("email").value.trim();
