@@ -106,9 +106,6 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
         <label>password</label>
         <input id="password" type="password" autocomplete="current-password">
         <button id="login-button">login</button>
-        <hr style="margin: 28px 0; border: none; border-top: 1px solid rgba(0,0,0,.15);">
-        <h2 style="margin: 0 0 12px; font-size: 28px;">my posts</h2>
-        <div id="posts-list"></div>
     </div>
 
     <div id="admin-box">
@@ -135,7 +132,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
         <div class="hint">JPG, PNG, GIF, WEBP. Сначала создай Public bucket с именем media в Supabase Storage.</div>
         <img id="preview" alt="preview">
 
-        <button id="publish-button">publish</button>
+       <button id="publish-button">publish</button>
         <button id="logout-button" class="secondary">logout</button>
 
         <hr style="margin: 28px 0; border: none; border-top: 1px solid rgba(0,0,0,.15);">
@@ -168,8 +165,9 @@ async function checkSession() {
     const { data: { user }, error } = await supabaseClient.auth.getUser();
 
     if (error) {
-        document.getElementById("status").
-            textContent = "Auth error: " + error.message;
+        document.getElementById("login-box").style.display = "block";
+        document.getElementById("admin-box").style.display = "none";
+        document.getElementById("status").textContent = "";
         return;
     }
 
@@ -191,7 +189,7 @@ async function checkSession() {
     document.getElementById("status").textContent = "";
     loadMyPosts();
 }
-    
+
 document.getElementById("login-button").addEventListener("click", async function () {
     const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value;
@@ -326,14 +324,12 @@ document.getElementById("publish-button").addEventListener("click", async functi
     document.getElementById("media_url").value = "";
     document.getElementById("media_file").value = "";
     document.getElementById("preview").style.display = "none";
-});
-loadMyPosts();
-    
+    loadMyPosts();
+});    
 document.getElementById("logout-button").addEventListener("click", async function () {
     await supabaseClient.auth.signOut();
     location.reload();
 });
-
     async function loadMyPosts() {
     const list = document.getElementById("posts-list");
     if (!list) return;
@@ -401,6 +397,7 @@ document.getElementById("logout-button").addEventListener("click", async functio
         list.appendChild(row);
     });
 }
+
 checkSession();
 </script>
 </body>
