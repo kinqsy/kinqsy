@@ -228,6 +228,20 @@
             .post { padding: 20px; border-radius: 16px; }
             .post-title { font-size: 24px; }
             .post-content { font-size: 16px; }
+            .post-media {
+    margin: 14px 0 6px;
+    border-radius: 16px;
+    overflow: hidden;
+}
+.post-media img {
+    display: block;
+    max-width: 550px;
+    max-height: 550px;
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    margin: 0 auto;
+}
             footer { grid-template-columns: 1fr; gap: 18px; text-align: center; }
             .back-to-top-fixed { right: 16px; bottom: 16px; width: 40px; height: 40px; }
         }
@@ -307,13 +321,19 @@
             const article = document.createElement("article");
             article.className = "post";
 
-            article.innerHTML =
-                '<div class="post-date">' +
-                    new Date(post.created_at).toLocaleDateString("en-GB") +
-                '</div>' +
-                '<h2 class="post-title">' + (post.title || "") + '</h2>' +
-                '<div class="post-content">' + (post.content || "") + '</div>' +
-                '<div class="post-footer">comments · 0</div>';
+           let mediaHtml = "";
+if (post.media_url) {
+    mediaHtml = '<div class="post-media"><img src="' + post.media_url + '" alt=""></div>';
+}
+
+article.innerHTML =
+    '<div class="post-date">' +
+        new Date(post.created_at).toLocaleDateString("en-GB") +
+    '</div>' +
+    '<h2 class="post-title">' + (post.title || "") + '</h2>' +
+    mediaHtml +
+    '<div class="post-content">' + (post.content || "") + '</div>' +
+    '<div class="post-footer">comments · 0</div>';
 
             feed.appendChild(article);
         });
