@@ -26,7 +26,7 @@
             left: 0;
             width: 100%;
             height: 42px;
-            background: #8d526e;
+            background: #e2b7c6;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -146,8 +146,8 @@
             width: 44px;
             height: 44px;
             border-radius: 50%;
-            background: #8d526e;
-            color: #f6dce8;
+            background: #e2b7c6;
+            color: #3a2030;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -184,19 +184,22 @@
         align-items: flex-start;
     }
     .hero-btn {
-        border: 0;
-        border-radius: 999px;
-        padding: 12px 20px;
-        background: rgba(246, 220, 232, 0.9);
-        color: #3a2030;
-        font-family: Georgia, serif;
-        font-size: 15px;
-        font-weight: bold;
-        cursor: pointer;
-        text-decoration: none;
-        box-shadow: 0 8px 24px rgba(0,0,0,.25);
-    }
-    .hero-btn:hover { opacity: 0.92; transform: translateY(-1px); }
+    border: 1px solid rgba(246, 220, 232, 0.7);
+    border-radius: 999px;
+    padding: 12px 20px;
+    background: rgba(255, 255, 255, 0.18);
+    color: #f6dce8;
+    font-family: Georgia, serif;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: none;
+}
+.hero-btn:hover {
+    background: rgba(255, 255, 255, 0.28);
+}
     .post-counter {
         color: #f6dce8;
         font-size: 13px;
@@ -204,45 +207,47 @@
         text-shadow: 0 2px 10px rgba(0,0,0,.45);
     }
 
-    .home-feed {
-        max-width: 900px;
-        margin: 0 auto;
-        padding: 40px 20px 20px;
-    }
+    
     .home-feed h2 {
         margin: 0 0 18px;
         font-size: 28px;
         letter-spacing: -1px;
         color: #f1b9d0;
     }
-    .home-card {
-        display: block;
-        text-decoration: none;
-        color: #f6dce8;
-        padding: 18px 20px;
-        margin-bottom: 14px;
-        border-radius: 16px;
-        background: rgba(255,255,255,.06);
-        border: 1px solid rgba(255,255,255,.12);
-    }
-    .home-card:hover { background: rgba(255,255,255,.1); }
-    .home-card-meta {
-        font-family: Arial, sans-serif;
-        font-size: 11px;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-        opacity: 0.6;
-        margin-bottom: 6px;
-    }
-    .home-card-title {
-        font-size: 20px;
-        margin-bottom: 6px;
-    }
-    .home-card-text {
-        font-size: 15px;
-        line-height: 1.5;
-        opacity: 0.85;
-    }
+
+        .home-latest {
+    position: absolute;
+    left: 16px;
+    right: 16px;
+    bottom: 90px;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 520px;
+}
+.home-card {
+    display: block;
+    text-decoration: none;
+    color: #2a1822;
+    padding: 14px 16px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+.home-card:hover { background: rgba(255, 255, 255, 0.32); }
+.home-card-meta {
+    font-family: Arial, sans-serif;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    opacity: 0.65;
+    margin-bottom: 4px;
+}
+.home-card-title { font-size: 17px; margin-bottom: 4px; }
+.home-card-text { font-size: 13px; line-height: 1.4; opacity: 0.9; }
     .support-line {
         text-align: center;
         padding: 8px 16px 18px;
@@ -269,6 +274,7 @@
                 border-radius: 0 0 20px 20px;
             }
             .hero-actions { left: 12px; bottom: 20px; }
+            <section class="home-latest" id="latest-posts">loading…</section>
         .home-feed { padding: 28px 14px 16px; }
             .site-title {
                 top: 35px;
@@ -400,7 +406,8 @@ async function loadHome() {
     counter.textContent = "posts I probably shouldn't have published: " + (count != null ? count : posts.length);
     window.__allPosts = posts;
 
-    const top = posts.slice(0, 5);
+    const top = posts.slice(0, 3);
+    const href = pageForCategory(p.category) + "#post-" + p.id;
     if (!top.length) {
         latest.innerHTML = '<div class="home-card-text">no posts yet.</div>';
         return;
