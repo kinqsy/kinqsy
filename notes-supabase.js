@@ -1,5 +1,5 @@
 const SUPABASE_URL = "https://rgkfegdtxaojceknnzlr.supabase.co"; const SUPABASE_KEY = "sb_publishable_uK7zrVyq8AlHpoj13pGQ6g_q3L47Akw"; const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-function escapeHtml(text) { return String(text) .replace(/&/g, "&") .replace(/</g, "<") .replace(/>/g, ">") .replace(/"/g, """); }
+function escapeHtml(text) { return String(text || "") .replace(/&/g, "&") .replace(/</g, "<") .replace(/>/g, ">") .replace(/"/g, """); }
 function formatAuthor(name) { const raw = String(name || ""); if (raw.trim().toLowerCase() === "kinqsy") { return '<span class="author-badge">✦ kinqsy</span>'; } return escapeHtml(raw); }
 async function loadComments(postId) { const { data, error } = await supabaseClient .from("comments") .select("*") .eq("post_id", postId) .order("created_at", { ascending: true });
 if (error) {
@@ -54,7 +54,7 @@ function bindReactions(root) { root.querySelectorAll(".reactions").forEach(funct
 
         btn.onclick = async function () {
             if (localStorage.getItem(key)) {
-                alert("Ты уже реагировала на это");
+                alert("Уже есть реакция");
                 return;
             }
 
@@ -79,31 +79,17 @@ function bindReactions(root) { root.querySelectorAll(".reactions").forEach(funct
     });
 });
 }
-async function loadNotes() { const feed = document.getElementById("feed"); if (!feed) return;
-feed.innerHTML = '<div class="empty">loading...</div>';
-
-const { data, error } = await supabaseClient
-    .from("posts")
-    .select("*")
-    .eq("category", "notes")
-    .order("created_at", { ascending: false });
-
-if (error) {
-    feed.innerHTML = '<div class="empty">Supabase error: ' + error.message + '</div>';
-    console.error(error);
-    return;
-}
-
-if (!data || data.length === 0) {
+async function renderNotes(posts) { const feed = document.getElementById("feed"); if (!feed) return;
+if (!posts.length) {
     feed.innerHTML = '<div class="empty">no notes yet.</div>';
     return;
 }
 
 feed.innerHTML = "";
-
-for (const post of data) {
+        for (const post of posts) {
     const article = document.createElement("article");
     article.className = "post";
+    article.id = "post-" + post.id;
 
     let mediaHtml = "";
     if (post.media_url) {
@@ -175,5 +161,51 @@ for (const post of data) {
     bindReactions(article);
     feed.appendChild(article);
 }
+
+if (location.hash) {
+    var el = document.querySelector(location.hash);
+    if (el) {
+        setTimeout(function () {
+            el.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 150);
+    }
 }
-loadNotes();
+}
+async function loadNotes() { const feed = document.getElementById("feed"); if (!feed) return;
+feed.innerHTML = '<div class="empty">loading...</div>';
+
+const { data, error } = await supabaseClient
+    .from("posts")
+    .select("*")
+    .eq("category", "notes")
+    .order("created_at", { ascending: false });
+
+if (error) {
+    feed.innerHTML = '<div class="empty">Supabase error: ' + error.message + '</div>';
+    console.error(error);
+    return;
+}
+
+window.__allNotes = data || [];
+await renderNotes(window.__allNotes);
+}
+function setupSearch() { const input = document.getElementById("notes-search"); if (!input) return;
+input.addEventListener("input", function () {
+    const q = input.value.trim().toLowerCase();
+    const all = window.__allNotes || [];
+
+    if (!q) {
+        renderNotes(all);
+        return;
+    }
+
+    const filtered = all.filter(function (p) {
+        const title = String(p.title || "").toLowerCase();
+        const content = String(p.content || "").toLowerCase();
+        return title.indexOf(q) !== -1 || content.indexOf(q) !== -1;
+    });
+
+    renderNotes(filtered);
+});
+}
+loadNotes(); setupSearch();            
