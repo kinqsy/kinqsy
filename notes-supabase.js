@@ -1,5 +1,11 @@
 const SUPABASE_URL = "https://rgkfegdtxaojceknnzlr.supabase.co"; const SUPABASE_KEY = "sb_publishable_uK7zrVyq8AlHpoj13pGQ6g_q3L47Akw"; const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-function escapeHtml(text) { return String(text || "") .replace(/&/g, "&") .replace(/</g, "<") .replace(/>/g, ">") .replace(/"/g, """); }
+function escapeHtml(text) {
+    return String(text || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+}
 function formatAuthor(name) { const raw = String(name || ""); if (raw.trim().toLowerCase() === "kinqsy") { return '<span class="author-badge">✦ kinqsy</span>'; } return escapeHtml(raw); }
 function dayKey(dateStr) { const d = new Date(dateStr); const y = d.getFullYear(); const m = String(d.getMonth() + 1).padStart(2, "0"); const day = String(d.getDate()).padStart(2, "0"); return y + "-" + m + "-" + day; }
 async function loadComments(postId) { const { data, error } = await supabaseClient .from("comments") .select("*") .eq("post_id", postId) .order("created_at", { ascending: true });
