@@ -353,6 +353,89 @@
 
     <a href="#top" class="back-to-top-fixed" aria-label="Back to top">↑</a>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = "https://rgkfegdtxaojceknnzlr.supabase.co";
+const SUPABASE_KEY = "sb_publishable_uK7zrVyq8AlHpoj13pGQ6g_q3L47Akw";
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+function escapeHtml(text) {
+    return String(text || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+}
+
+function pageForCategory(category) {
+    if (category === "dreams") return "dreams.html";
+    if (category === "quotes") return "quotes.html";
+    return "notes.html";
+}
+
+function excerpt(text) {
+    const t = String(text || "").trim();
+    if (t.length <= 120) return t;
+    return t.slice(0, 120) + "…";
+}
+
+async function loadHome() {
+    const counter = document.getElementById("post-counter");
+    const latest = document.getElementById("latest-posts");
+    if (!counter || !latest) return;
+
+    const { data, error, count } = await supabaseClient
+        .from("posts")
+        .select("id, title, content, category, created_at", { count: "exact" })
+        .order("created_at", { ascending: false });
+
+    if (error) {
+        counter.textContent = "couldn't load posts";
+        latest.textContent = error.message;
+        console.error(error);
+        return;
+    }
+
+    const posts = data || [];
+    counter.textContent = "posts I probably shouldn't have published: " + (count != null ? count : posts.length);
+    window.__allPosts = posts;
+
+    const top = posts.slice(0, 5);
+    if (!top.length) {
+        latest.innerHTML = '<div class="home-card-text">no posts yet.</div>';
+        return;
+    }
+
+    latest.innerHTML = top.map(function (p) {
+        const href = pageForCategory(p.category);
+        const title = p.title && p.title.trim() ? p.title : "(untitled)";
+        return (
+            '<a class="home-card" href="' + href + '">' +
+                '<div class="home-card-meta">' + escapeHtml(p.category || "notes") +
+                    " · " + new Date(p.created_at).toLocaleDateString("en-GB") +
+                "</div>" +
+                '<div class="home-card-title">' + escapeHtml(title) + "</div>" +
+                '<div class="home-card-text">' + escapeHtml(excerpt(p.content)) + "</div>" +
+            "</a>"
+        );
+    }).join("");
+}
+
+var openBtn = document.getElementById("open-something");
+if (openBtn) {
+    openBtn.addEventListener("click", function () {
+        const posts = window.__allPosts || [];
+        if (!posts.length) {
+            alert("Пока нечего открывать");
+            return;
+        }
+        const p = posts[Math.floor(Math.random() * posts.length)];
+        window.location.href = pageForCategory(p.category);
+    });
+}
+
+loadHome();
+</script>
     <script>
     (function () {
         var star = document.getElementById("admin-star");
