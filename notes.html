@@ -11,10 +11,10 @@
         html, body { margin: 0; padding: 0; min-height: 100%; }
 
         body {
-            background: #1a0f14 url("notes-bg.jpg") center center / cover no-repeat fixed;
-            color: #000;
-            font-family: Georgia, "Times New Roman", serif;
-        }
+        background: #000;
+        color: #000;
+        font-family: Georgia, "Times New Roman", serif;
+    }
 
         .top-menu {
             position: fixed;
@@ -47,9 +47,12 @@
         .top-menu .star:hover { opacity: 1; }
 
         .notes-page {
-            min-height: 100vh;
-            padding: 100px 20px 80px;
-        }
+        min-height: calc(100vh - 42px);
+        margin-top: 42px;
+        padding: 58px 20px 80px;
+        background: #1a0f14 url("notes-bg.jpg") center center / cover no-repeat;
+        border-radius: 0 0 30px 30px;
+    }
 
         .notes-title {
             max-width: 900px;
@@ -289,29 +292,33 @@
         gap: 10px;
         align-items: center;
     }
-    .notes-search input[type="search"] {
-        flex: 1;
-        min-width: 180px;
-        padding: 12px 16px;
-        border-radius: 999px;
-        border: 1px solid rgba(0,0,0,.15);
-        background: rgba(255,255,255,.55);
-        font-family: Georgia, serif;
-        font-size: 15px;
-    }
     .notes-search input[type="date"] {
-        padding: 10px 12px;
+        padding: 10px 14px;
         border-radius: 999px;
-        border: 1px solid rgba(0,0,0,.15);
-        background: rgba(255,255,255,.55);
+        border: 1px solid rgba(226, 183, 198, 0.9);
+        background: #ffffff;
+        color: #885069;
         font-family: Georgia, serif;
         font-size: 14px;
+        font-weight: bold;
+        accent-color: #e2b7c6;
+        color-scheme: light;
+    }
+    .notes-search input[type="date"]::-webkit-calendar-picker-indicator {
+        cursor: pointer;
+        opacity: 0.7;
+        filter: hue-rotate(300deg) saturate(0.8);
+    }
+    .notes-search input[type="date"]:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(226, 183, 198, 0.45);
     }
     .notes-search button {
         padding: 10px 14px;
-        border: 0;
+        border: 1px solid rgba(226, 183, 198, 0.9);
         border-radius: 999px;
-        background: rgba(255,255,255,.45);
+        background: #ffffff;
+        color: #885069;
         font-family: Arial, sans-serif;
         font-size: 13px;
         font-weight: bold;
