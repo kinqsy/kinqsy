@@ -292,6 +292,40 @@
         gap: 10px;
         align-items: center;
     }
+    .notes-search input[type="search"] {
+        flex: 1;
+        min-width: 160px;
+        max-width: 320px;
+        height: 38px;
+        padding: 0 16px;
+        border-radius: 999px;
+        border: 1px solid rgba(226, 183, 198, 0.85);
+        background: rgba(255, 255, 255, 0.72);
+        color: #3a2030;
+        font-family: Georgia, serif;
+        font-size: 14px;
+        box-shadow: none;
+        outline: none;
+        -webkit-appearance: none;
+        appearance: none;
+    }
+    .notes-search input[type="search"]::placeholder {
+        color: rgba(58, 32, 48, 0.45);
+        font-style: italic;
+    }
+    .notes-search input[type="search"]:focus {
+        border-color: #e2b7c6;
+        background: rgba(255, 255, 255, 0.9);
+        box-shadow: 0 0 0 3px rgba(226, 183, 198, 0.35);
+    }
+    /* убрать крестик/дефолтный вид в Chrome */
+    .notes-search input[type="search"]::-webkit-search-decoration,
+    .notes-search input[type="search"]::-webkit-search-cancel-button,
+    .notes-search input[type="search"]::-webkit-search-results-button,
+    .notes-search input[type="search"]::-webkit-search-results-decoration {
+        -webkit-appearance: none;
+        appearance: none;
+    }
     .notes-search input[type="date"] {
         padding: 10px 14px;
         border-radius: 999px;
