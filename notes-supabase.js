@@ -1,6 +1,7 @@
 const SUPABASE_URL = "https://rgkfegdtxaojceknnzlr.supabase.co"; const SUPABASE_KEY = "sb_publishable_uK7zrVyq8AlHpoj13pGQ6g_q3L47Akw"; const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 function escapeHtml(text) { return String(text || "") .replace(/&/g, "&") .replace(/</g, "<") .replace(/>/g, ">") .replace(/"/g, """); }
 function formatAuthor(name) { const raw = String(name || ""); if (raw.trim().toLowerCase() === "kinqsy") { return '<span class="author-badge">✦ kinqsy</span>'; } return escapeHtml(raw); }
+function dayKey(dateStr) { const d = new Date(dateStr); const y = d.getFullYear(); const m = String(d.getMonth() + 1).padStart(2, "0"); const day = String(d.getDate()).padStart(2, "0"); return y + "-" + m + "-" + day; }
 async function loadComments(postId) { const { data, error } = await supabaseClient .from("comments") .select("*") .eq("post_id", postId) .order("created_at", { ascending: true });
 if (error) {
     console.error(error);
@@ -29,7 +30,7 @@ const parts = [];
 for (const c of comments) {
     const counts = await countReactions({ comment_id: c.id });
     parts.push(
-        '<div class="comment" data-comment-id="' + c.id + '">' +
+        '<div class="comment">' +
             '<div class="comment-meta">' +
                 formatAuthor(c.author_name) +
                 " · " +
@@ -86,7 +87,8 @@ if (!posts.length) {
 }
 
 feed.innerHTML = "";
-        for (const post of posts) {
+
+for (const post of posts) {
     const article = document.createElement("article");
     article.className = "post";
     article.id = "post-" + post.id;
@@ -171,6 +173,28 @@ if (location.hash) {
     }
 }
 }
+function applyFilters() { const all = window.__allNotes || []; const qInput = document.getElementById("notes-search"); const dInput = document.getElementById("notes-date");
+const q = qInput ? qInput.value.trim().toLowerCase() : "";
+const day = dInput ? dInput.value : "";
+
+let list = all;
+
+if (day) {
+    list = list.filter(function (p) {
+        return dayKey(p.created_at) === day;
+    });
+}
+
+if (q) {
+    list = list.filter(function (p) {
+        const title = String(p.title || "").toLowerCase();
+        const content = String(p.content || "").toLowerCase();
+        return title.indexOf(q) !== -1 || content.indexOf(q) !== -1;
+    });
+}
+
+renderNotes(list);
+}
 async function loadNotes() { const feed = document.getElementById("feed"); if (!feed) return;
 feed.innerHTML = '<div class="empty">loading...</div>';
 
@@ -187,25 +211,16 @@ if (error) {
 }
 
 window.__allNotes = data || [];
-await renderNotes(window.__allNotes);
+applyFilters();
 }
-function setupSearch() { const input = document.getElementById("notes-search"); if (!input) return;
-input.addEventListener("input", function () {
-    const q = input.value.trim().toLowerCase();
-    const all = window.__allNotes || [];
-
-    if (!q) {
-        renderNotes(all);
-        return;
-    }
-
-    const filtered = all.filter(function (p) {
-        const title = String(p.title || "").toLowerCase();
-        const content = String(p.content || "").toLowerCase();
-        return title.indexOf(q) !== -1 || content.indexOf(q) !== -1;
+function setupFilters() { const qInput = document.getElementById("notes-search"); const dInput = document.getElementById("notes-date"); const clearBtn = document.getElementById("notes-date-clear");
+if (qInput) qInput.addEventListener("input", applyFilters);
+if (dInput) dInput.addEventListener("change", applyFilters);
+if (clearBtn) {
+    clearBtn.addEventListener("click", function () {
+        if (dInput) dInput.value = "";
+        applyFilters();
     });
-
-    renderNotes(filtered);
-});
 }
-loadNotes(); setupSearch();            
+}
+loadNotes(); setupFilters();
