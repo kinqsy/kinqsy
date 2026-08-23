@@ -274,7 +274,6 @@
                 border-radius: 0 0 20px 20px;
             }
             .hero-actions { left: 12px; bottom: 20px; }
-            <section class="home-latest" id="latest-posts">loading…</section>
         .home-feed { padding: 28px 14px 16px; }
             .site-title {
                 top: 35px;
@@ -317,18 +316,13 @@
     <h1 class="site-title">KINQSY.LOL</h1>
     <div class="tagline">things I probably shouldn't publish</div>
     <div class="hero-actions">
-        <button type="button" class="hero-btn" id="open-something">open something</button>
-        <div class="post-counter" id="post-counter">loading…</div>
-    </div>
-</main>
-
-<section class="home-feed">
-    <h2>latest</h2>
-    <div id="latest-posts">loading…</div>
-</section>
-
+    <button type="button" class="hero-btn" id="open-something">open something</button>
+    <div class="post-counter" id="post-counter">loading…</div>
+</div>
+<section class="home-latest" id="latest-posts">loading…</section>
+    </main>
 <div class="support-line">
-    support the diary · <a href="about.html">about</a>
+    support the diary · <a href="https://boosty.to/kinqsy/donate" target="_blank" rel="noopener noreferrer">boosty</a>
     <!-- потом можешь заменить about.html на ссылку доната -->
 </div>
 
@@ -407,25 +401,24 @@ async function loadHome() {
     window.__allPosts = posts;
 
     const top = posts.slice(0, 3);
-    const href = pageForCategory(p.category) + "#post-" + p.id;
-    if (!top.length) {
-        latest.innerHTML = '<div class="home-card-text">no posts yet.</div>';
-        return;
-    }
+if (!top.length) {
+    latest.innerHTML = '<div class="home-card-text">no posts yet.</div>';
+    return;
+}
 
-    latest.innerHTML = top.map(function (p) {
-        const href = pageForCategory(p.category);
-        const title = p.title && p.title.trim() ? p.title : "(untitled)";
-        return (
-            '<a class="home-card" href="' + href + '">' +
-                '<div class="home-card-meta">' + escapeHtml(p.category || "notes") +
-                    " · " + new Date(p.created_at).toLocaleDateString("en-GB") +
-                "</div>" +
-                '<div class="home-card-title">' + escapeHtml(title) + "</div>" +
-                '<div class="home-card-text">' + escapeHtml(excerpt(p.content)) + "</div>" +
-            "</a>"
-        );
-    }).join("");
+latest.innerHTML = top.map(function (p) {
+    const href = pageForCategory(p.category) + "#post-" + p.id;
+    const title = p.title && p.title.trim() ? p.title : "(untitled)";
+    return (
+        '<a class="home-card" href="' + href + '">' +
+            '<div class="home-card-meta">' + escapeHtml(p.category || "notes") +
+                " · " + new Date(p.created_at).toLocaleDateString("en-GB") +
+            "</div>" +
+            '<div class="home-card-title">' + escapeHtml(title) + "</div>" +
+            '<div class="home-card-text">' + escapeHtml(excerpt(p.content)) + "</div>" +
+        "</a>"
+    );
+}).join("");
 }
 
 var openBtn = document.getElementById("open-something");
@@ -437,7 +430,7 @@ if (openBtn) {
             return;
         }
         const p = posts[Math.floor(Math.random() * posts.length)];
-        window.location.href = pageForCategory(p.category);
+        window.location.href = pageForCategory(p.category) + "#post-" + p.id;
     });
 }
 
