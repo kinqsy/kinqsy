@@ -162,6 +162,98 @@
             opacity: 0.9;
         }
 
+        .hero-grain {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 1;
+        opacity: 0.14;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        background-size: 180px 180px;
+        mix-blend-mode: soft-light;
+    }
+
+    .hero-actions {
+        position: absolute;
+        left: 16px;
+        bottom: 28px;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+    .hero-btn {
+        border: 0;
+        border-radius: 999px;
+        padding: 12px 20px;
+        background: rgba(246, 220, 232, 0.9);
+        color: #3a2030;
+        font-family: Georgia, serif;
+        font-size: 15px;
+        font-weight: bold;
+        cursor: pointer;
+        text-decoration: none;
+        box-shadow: 0 8px 24px rgba(0,0,0,.25);
+    }
+    .hero-btn:hover { opacity: 0.92; transform: translateY(-1px); }
+    .post-counter {
+        color: #f6dce8;
+        font-size: 13px;
+        font-style: italic;
+        text-shadow: 0 2px 10px rgba(0,0,0,.45);
+    }
+
+    .home-feed {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 40px 20px 20px;
+    }
+    .home-feed h2 {
+        margin: 0 0 18px;
+        font-size: 28px;
+        letter-spacing: -1px;
+        color: #f1b9d0;
+    }
+    .home-card {
+        display: block;
+        text-decoration: none;
+        color: #f6dce8;
+        padding: 18px 20px;
+        margin-bottom: 14px;
+        border-radius: 16px;
+        background: rgba(255,255,255,.06);
+        border: 1px solid rgba(255,255,255,.12);
+    }
+    .home-card:hover { background: rgba(255,255,255,.1); }
+    .home-card-meta {
+        font-family: Arial, sans-serif;
+        font-size: 11px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        opacity: 0.6;
+        margin-bottom: 6px;
+    }
+    .home-card-title {
+        font-size: 20px;
+        margin-bottom: 6px;
+    }
+    .home-card-text {
+        font-size: 15px;
+        line-height: 1.5;
+        opacity: 0.85;
+    }
+    .support-line {
+        text-align: center;
+        padding: 8px 16px 18px;
+        background: #000;
+        color: #f1b9d0;
+        font-size: 13px;
+    }
+    .support-line a {
+        color: #f6dce8;
+        font-weight: bold;
+    }
         @media (max-width: 700px) {
             .top-menu {
                 padding: 0 8px;
@@ -176,6 +268,8 @@
                 min-height: 80vh;
                 border-radius: 0 0 20px 20px;
             }
+            .hero-actions { left: 12px; bottom: 20px; }
+        .home-feed { padding: 28px 14px 16px; }
             .site-title {
                 top: 35px;
                 left: 5px;
@@ -213,9 +307,24 @@
     </nav>
 
     <main class="hero">
-        <h1 class="site-title">KINQSY.LOL</h1>
-        <div class="tagline">things I probably shouldn't publish</div>
-    </main>
+    <div class="hero-grain" aria-hidden="true"></div>
+    <h1 class="site-title">KINQSY.LOL</h1>
+    <div class="tagline">things I probably shouldn't publish</div>
+    <div class="hero-actions">
+        <button type="button" class="hero-btn" id="open-something">open something</button>
+        <div class="post-counter" id="post-counter">loading…</div>
+    </div>
+</main>
+
+<section class="home-feed">
+    <h2>latest</h2>
+    <div id="latest-posts">loading…</div>
+</section>
+
+<div class="support-line">
+    support the diary · <a href="about.html">about</a>
+    <!-- потом можешь заменить about.html на ссылку доната -->
+</div>
 
     <footer>
         <div class="copyright">© 2026 kinqsy.lol</div>
