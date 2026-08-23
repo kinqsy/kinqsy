@@ -21,7 +21,7 @@
             top: 0; left: 0;
             width: 100%;
             height: 42px;
-            background: #885069;
+            background: #f0c9d6;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -267,8 +267,8 @@
             width: 44px;
             height: 44px;
             border-radius: 50%;
-            background: #885069;
-            color: #f6dce8;
+            background: #f0c9d6;
+            color: #3a2030;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -284,15 +284,38 @@
         .notes-search {
         max-width: 900px;
         margin: 0 auto 22px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
     }
-    .notes-search input {
-        width: 100%;
+    .notes-search input[type="search"] {
+        flex: 1;
+        min-width: 180px;
         padding: 12px 16px;
         border-radius: 999px;
         border: 1px solid rgba(0,0,0,.15);
         background: rgba(255,255,255,.55);
         font-family: Georgia, serif;
         font-size: 15px;
+    }
+    .notes-search input[type="date"] {
+        padding: 10px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(0,0,0,.15);
+        background: rgba(255,255,255,.55);
+        font-family: Georgia, serif;
+        font-size: 14px;
+    }
+    .notes-search button {
+        padding: 10px 14px;
+        border: 0;
+        border-radius: 999px;
+        background: rgba(255,255,255,.45);
+        font-family: Arial, sans-serif;
+        font-size: 13px;
+        font-weight: bold;
+        cursor: pointer;
     }
     .author-badge {
         color: #6e4057;
@@ -352,6 +375,8 @@
         <div class="notes-subtitle">things I probably shouldn't publish</div>
     <div class="notes-search">
         <input id="notes-search" type="search" placeholder="search notes..." autocomplete="off">
+        <input id="notes-date" type="date">
+        <button type="button" id="notes-date-clear">all dates</button>
     </div>
     <section class="feed" id="feed"></section>
     </main>
