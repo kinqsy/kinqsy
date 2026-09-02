@@ -299,6 +299,100 @@
                 height: 40px;
             }
         }
+        .menu-login {
+        margin-left: 8px;
+        padding: 4px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(0,0,0,.2);
+        background: rgba(255,255,255,.35);
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        font-family: Georgia, serif;
+    }
+    .auth-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 2000;
+        background: rgba(20, 10, 16, 0.45);
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    .auth-overlay.open { display: flex; }
+    .auth-modal {
+        width: 100%;
+        max-width: 360px;
+        padding: 24px;
+        border-radius: 20px;
+        border: 1px solid rgba(255,255,255,.4);
+        background: rgba(255,255,255,.22);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        box-shadow: 0 20px 50px rgba(0,0,0,.25);
+        color: #2a1822;
+    }
+    .auth-modal h2 {
+        margin: 0 0 16px;
+        font-size: 22px;
+        font-weight: normal;
+    }
+    .auth-modal label {
+        display: block;
+        font-size: 12px;
+        font-weight: bold;
+        margin: 10px 0 4px;
+        font-family: Arial, sans-serif;
+    }
+    .auth-modal input {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,.5);
+        background: rgba(255,255,255,.55);
+        font-family: Georgia, serif;
+        font-size: 15px;
+    }
+    .auth-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 16px;
+        flex-wrap: wrap;
+    }
+    .auth-actions button {
+        flex: 1;
+        min-width: 100px;
+        padding: 10px 14px;
+        border: 0;
+        border-radius: 999px;
+        background: #f0c9d6;
+        color: #3a2030;
+        font-weight: bold;
+        cursor: pointer;
+        font-family: Arial, sans-serif;
+    }
+    .auth-actions button.secondary {
+        background: rgba(255,255,255,.4);
+    }
+    .auth-error {
+        margin-top: 10px;
+        font-size: 13px;
+        color: #7a2030;
+        min-height: 1.2em;
+    }
+    .auth-code {
+        margin-top: 14px;
+        padding: 12px;
+        border-radius: 12px;
+        background: rgba(255,255,255,.35);
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        display: none;
+    }
+    .auth-code strong {
+        letter-spacing: 1px;
+    }
     </style>
 </head>
 <body id="top">
@@ -310,7 +404,9 @@
         <a href="quotes.html">quotation/definition</a>
         <a href="about.html">about</a>
         <span class="star" id="admin-star">★</span>
-    </nav>
+    <button type="button" class="menu-login" id="open-auth">войти</button>
+</nav>
+
 
     <main class="hero">
     <div class="hero-grain" aria-hidden="true"></div>
@@ -351,6 +447,24 @@
 
         <div></div>
     </footer>
+
+    <div class="auth-overlay" id="auth-overlay" aria-hidden="true">
+    <div class="auth-modal">
+        <h2>вход</h2>
+        <label for="auth-email">email</label>
+        <input id="auth-email" type="email" autocomplete="email">
+        <label for="auth-password">пароль</label>
+        <input id="auth-password" type="password" autocomplete="current-password">
+        <div class="auth-actions">
+            <button type="button" id="auth-login">войти</button>
+            <button type="button" id="auth-signup" class="secondary">регистрация</button>
+            <button type="button" id="auth-close" class="secondary">закрыть</button>
+        </div>
+        <div class="auth-error" id="auth-error"></div>
+        <div class="auth-code" id="auth-code"></div>
+    </div>
+</div>
+
 
     <a href="#top" class="back-to-top-fixed" aria-label="Back to top">↑</a>
 
@@ -437,6 +551,82 @@ if (openBtn) {
 
 loadHome();
 </script>
+    const authOverlay = document.getElementById("auth-overlay");
+const authError = document.getElementById("auth-error");
+const authCode = document.getElementById("auth-code");
+const openAuthBtn = document.getElementById("open-auth");
+
+function openAuth() {
+    if (!authOverlay) return;
+    authOverlay.classList.add("open");
+    authOverlay.setAttribute("aria-hidden", "false");
+    authError.textContent = "";
+}
+
+function closeAuth() {
+    if (!authOverlay) return;
+    authOverlay.classList.remove("open");
+    authOverlay.setAttribute("aria-hidden", "true");
+}
+
+async function showFriendCode(userId) {
+    const { data, error } = await supabaseClient
+        .from("profiles")
+        .select("friend_code, username")
+        .eq("id", userId)
+        .maybeSingle();
+
+    if (error || !data) {
+        authCode.style.display = "block";
+        authCode.textContent = "профиль не найден";
+        return;
+    }
+
+    authCode.style.display = "block";
+    authCode.innerHTML = "привет, <strong>" + escapeHtml(data.username || "") +
+        "</strong><br>код дружбы: <strong>" + escapeHtml(data.friend_code || "") + "</strong>";
+    if (openAuthBtn) openAuthBtn.textContent = "профиль";
+}
+
+if (openAuthBtn) openAuthBtn.addEventListener("click", openAuth);
+document.getElementById("auth-close").addEventListener("click", closeAuth);
+authOverlay.addEventListener("click", function (e) {
+    if (e.target === authOverlay) closeAuth();
+});
+
+document.getElementById("auth-login").addEventListener("click", async function () {
+    authError.textContent = "";
+    const email = document.getElementById("auth-email").value.trim();
+    const password = document.getElementById("auth-password").value;
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email: email, password: password });
+    if (error) {
+        authError.textContent = error.message;
+        return;
+    }
+    await showFriendCode(data.user.id);
+});
+
+document.getElementById("auth-signup").addEventListener("click", async function () {
+    authError.textContent = "";
+    const email = document.getElementById("auth-email").value.trim();
+    const password = document.getElementById("auth-password").value;
+    const { data, error } = await supabaseClient.auth.signUp({ email: email, password: password });
+    if (error) {
+        authError.textContent = error.message;
+        return;
+    }
+    if (data.user) {
+        authError.textContent = "аккаунт создан (проверь почту, если включено подтверждение)";
+        await showFriendCode(data.user.id);
+    }
+});
+
+supabaseClient.auth.getSession().then(function (res) {
+    if (res.data && res.data.session) {
+        showFriendCode(res.data.session.user.id);
+    }
+});
+
     <script>
     (function () {
         var star = document.getElementById("admin-star");
