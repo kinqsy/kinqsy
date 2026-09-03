@@ -65,8 +65,17 @@ function bindReactions(root) { root.querySelectorAll(".reactions").forEach(funct
                 return;
             }
 
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) {
+                alert("Сначала войди (★)");
+                return;
+            }
+
             const reaction = btn.getAttribute("data-reaction");
-            const payload = { reaction: reaction };
+            const payload = {
+                reaction: reaction,
+                user_id: session.user.id
+            };
             if (kind === "post") payload.post_id = Number(id);
             if (kind === "comment") payload.comment_id = Number(id);
 
