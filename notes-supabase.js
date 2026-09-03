@@ -195,8 +195,15 @@ const day = dInput ? dInput.value : "";
 let list = all;
 
 if (day) {
+    var parts = day.trim().split(".");
+    var want = "";
+    if (parts.length === 3) {
+        want = parts[2] + "-" + parts[1].padStart(2, "0") + "-" + parts[0].padStart(2, "0");
+    } else {
+        want = day.trim();
+    }
     list = list.filter(function (p) {
-        return dayKey(p.created_at) === day;
+        return dayKey(p.created_at) === want;
     });
 }
 
