@@ -26,16 +26,18 @@
         left: 0;
         width: 100%;
         height: 42px;
-        background: rgba(255, 255, 255, 0.18);
-        backdrop-filter: blur(18px);
-        -webkit-backdrop-filter: blur(18px);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.28);
+        background: rgba(240, 201, 214, 0.35);
+        backdrop-filter: blur(22px) saturate(160%);
+        -webkit-backdrop-filter: blur(22px) saturate(160%);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+        box-shadow: 0 4px 24px rgba(110, 64, 87, 0.12);
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 18px;
         z-index: 1000;
     }
+
 
         .top-menu a {
             color: #050505;
@@ -186,10 +188,10 @@
         inset: 0;
         pointer-events: none;
         z-index: 1;
-        opacity: 0.22;
-        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-        background-size: 160px 160px;
-        mix-blend-mode: soft-light;
+        opacity: 0.45;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        background-size: 220px 220px;
+        mix-blend-mode: overlay;
     }
 
 
@@ -403,6 +405,43 @@
     .auth-code strong {
         letter-spacing: 1px;
     }
+        .home-quotes {
+        position: absolute;
+        right: 24px;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 2;
+        max-width: 280px;
+        padding: 18px 20px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        color: #f6dce8;
+        text-shadow: 0 2px 10px rgba(0,0,0,.35);
+    }
+    .home-quotes blockquote {
+        margin: 0;
+        font-family: Georgia, serif;
+        font-size: 16px;
+        font-style: italic;
+        line-height: 1.45;
+    }
+    .home-quotes cite {
+        display: block;
+        margin-top: 12px;
+        font-size: 12px;
+        font-style: normal;
+        opacity: 0.8;
+        font-family: Arial, sans-serif;
+    }
+    @media (max-width: 700px) {
+        .home-quotes {
+            display: none;
+        }
+    }
+
     </style>
 </head>
 <body id="top">
