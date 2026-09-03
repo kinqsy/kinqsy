@@ -109,6 +109,11 @@ if (!posts.length) {
     return;
 }
 
+                                   article.dataset.postId = String(post.id);
+article.dataset.userId = post.user_id ? String(post.user_id) : "";
+
+bindPostOwnerActions(article, post);
+
 feed.innerHTML = "";
 
 for (const post of posts) {
@@ -255,4 +260,34 @@ if (clearBtn) {
     });
 }
 }
+var activePostMenu = null;
+async function canEditPost(post) { var { data: { session } } = await supabaseClient.auth.getSession(); if (!session) return false; if (post.user_id && post.user_id === session.user.id) return true; if (typeof OWNER_ID !== "undefined" && session.user.id === OWNER_ID) return true; return false; }
+function hidePostMenu() { var menu = document.getElementById("post-menu"); if (menu) menu.classList.remove("open"); activePostMenu = null; }
+function showPostMenu(x, y, post) { var menu = document.getElementById("post-menu"); if (!menu) return; activePostMenu = post; menu.style.left = Math.min(x, window.innerWidth - 160) + "px"; menu.style.top = Math.min(y, window.innerHeight - 100) + "px"; menu.classList.add("open"); }
+function bindPostOwnerActions(article, post) { var timer = null;
+async function tryOpen(e) {
+    if (e.target.closest("a, button, input, textarea, form, .reactions")) return;
+    if (!(await canEditPost(post))) return;
+    e.preventDefault();
+    var x = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
+    var y = (e.touches && e.touches[0]) ? e.touches[0].clientY : e.clientY;
+    showPostMenu(x, y, post);
+}
+
+// ПК — ЛКМ
+article.addEventListener("click", function (e) {
+    if (e.button !== 0) return;
+    tryOpen(e);
+});
+
+// Мобилка — зажатие
+article.addEventListener("touchstart", function (e) {
+    timer = setTimeout(function () { tryOpen(e); }, 550);
+}, { passive: true });
+article.addEventListener("touchend", function () { clearTimeout(timer); });
+article.addEventListener("touchmove", function () { clearTimeout(timer); });
+}
+document.addEventListener("click", function (e) { var menu = document.getElementById("post-menu"); if (menu && menu.classList.contains("open") && !e.target.closest("#post-menu") && !e.target.closest(".post")) { hidePostMenu(); } });
+document.getElementById("post-menu-delete").onclick = async function () { if (!activePostMenu) return; if (!confirm("Удалить пост?")) return; var { error } = await supabaseClient.from("posts").delete().eq("id", activePostMenu.id); hidePostMenu(); if (error) { alert(error.message); return; } loadNotes(); };
+document.getElementById("post-menu-edit").onclick = async function () { if (!activePostMenu) return; var post = activePostMenu; hidePostMenu(); var title = prompt("Заголовок", post.title  ""); if (title === null) return; var content = prompt("Текст", post.content  ""); if (content === null) return; var { error } = await supabaseClient.from("posts").update({ title: title, content: content }).eq("id", post.id); if (error) { alert(error.message); return; } loadNotes(); };
 loadNotes(); setupFilters();
