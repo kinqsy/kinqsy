@@ -510,7 +510,8 @@
             <button type="button" id="auth-login">войти</button>
             <button type="button" id="auth-signup" class="secondary">регистрация</button>
             <button type="button" id="auth-close" class="secondary">закрыть</button>
-        </div>
+        <button type="button" id="auth-logout" class="secondary" style="display:none">выйти</button>
+    </div>
         <div class="auth-error" id="auth-error"></div>
         <div class="auth-code" id="auth-code"></div>
     </div>
@@ -631,23 +632,59 @@ async function showFriendCode(userId) {
         return;
     }
     authCode.style.display = "block";
-    authCode.innerHTML = "привет, <strong>" + escapeHtml(data.username || "") +
-        "</strong><br>код дружбы: <strong>" + escapeHtml(data.friend_code || "") + "</strong>";
+authCode.innerHTML = "привет, <strong>" + escapeHtml(data.username || "") +
+    "</strong><br>код дружбы: <strong>" + escapeHtml(data.friend_code || "") + "</strong>";
+
+var modal = document.querySelector(".auth-modal");
+if (modal) {
+    var title = modal.querySelector("h2");
+    if (title) title.textContent = "профиль";
+}
+var email = document.getElementById("auth-email");
+var pass = document.getElementById("auth-password");
+var loginBtn = document.getElementById("auth-login");
+var signupBtn = document.getElementById("auth-signup");
+var logoutBtn = document.getElementById("auth-logout");
+if (email) email.style.display = "none";
+if (pass) pass.style.display = "none";
+if (loginBtn) loginBtn.style.display = "none";
+if (signupBtn) signupBtn.style.display = "none";
+if (logoutBtn) logoutBtn.style.display = "";
+var labels = document.querySelectorAll(".auth-modal label");
+for (var i = 0; i < labels.length; i++) labels[i].style.display = "none";
+
+async function loadExternalQuote() { var textEl = document.getElementById("home-quote-text"); var authorEl = document.getElementById("home-quote-author"); if (!textEl || !authorEl) return;
+var quotes = [
+    { t: "Будь собой; все остальные роли уже заняты.", a: "Оскар Уайльд" },
+    { t: "Какое бы дело мы ни затевали, время всегда кажется неподходящим, и никогда не бывает абсолютно благоприятных обстоятельств. Тот, кто ждёт идеального случая, так никогда и не начнёт дела, а если и начнёт, то зачастую его ожидает печальный конец.", a: "Никколо Макиавелли" },
+    { t: "Мы в ответе за тех, кого приручили.", a: "Антуан де Сент-Экзюпери" },
+    { t: "Жизнь — это то, что с тобой происходит, пока ты строишь другие планы.", a: "Джон Леннон" },
+    { t: "В определённый момент нашей жизни мы теряем контроль над тем, что с нами происходит, и нашей жизнью начинает управлять только судьба. Это — величайшая ложь в мире.", a: "Паоло Коэльо" },
+    { t: "Лучший способ что-то узнать — это сделать", a: "Ричард Брэнсон" },
+    { t: "Иногда молчание — самый честный ответ.", a: " Далай-лама" },
+    { t: "Если хочешь понять жизнь, то перестань верить тому, что говорят и пишут, а наблюдай и чувствуй.", a: "Антон Чехов" },
+    { t: "Мало людей мыслят, но все хотят иметь мнение.", a: "Джордж Беркли" },
+    { t: "Я давно поняла: то, что дано тебе природой, и есть лучшее для тебя. Это твоя индивидуальность. При желании всё недостатки можно превратить в достоинства.", a: "Кейт Мосс" },
+    { t: "Единственным критерием истины является опыт.", a: "Леонардо Да Винчи" },
+    { t: "Как неправильно для женщины ждать, что мужчина построит мир, который она хочет, вместо того чтобы создавать его самой.", a: "Мэрилин Монро" },
+    { t: "Возможно, вам придётся сражаться в битве более одного раза, чтобы выиграть.", a: "Маргарет Тэтчер" },
+    { t: "Либо напиши что-нибудь стоящее, либо делай что-нибудь, о чём стоит написать.", a: "Бенджамин Франклин" },
+    { t: "Наши представления о том, как всё должно быть, мешают нам наслаждаться тем, как всё есть.", a: "Анджелина Джоли" },
+    { t: "Каждый год мы разные люди. Я не думаю, что всю жизнь мы остаёмся одним и тем же человеком.", a: "Стивен Спилберг" },
+    { t: "Умение сказать именно то, что нужно и именно так, чтобы вас слушали и понимали, есть великое уменье, которое даётся очень немногим, но которым никто не имеет права пренебрегать.", a: "Михаил Салтыков-Щедрин" },
+    { t: "Чересчур хорошая жизнь часто портит характер так же, как чересчур обильная еда портит желудок, и в этих случаях как тело, так и душу с успехом исцеляют лекарства не только неприятные, но даже противные на вкус.", a: "Чарльз Диккенс" },
+    { t: "Жизнь не намеревалась создать нас совершенными. Тому, кто совершенен, место только в музее.", a: "Эрих Мария Ремарк" },
+    { t: "Сомнение есть путь к истине: кто не сомневается — не видит, кто не видит — не понимает, кто не понимает — пребывает в слепоте и заблуждении.", a: "Абу Хамид аль-Газали" },
+    { t: "Не ограничивайте себя. Многие люди ограничивают себя до того, чем они, по их мнению, могут заниматься. Вы можете пойти так далеко, как позволяет ваш ум. Помните, вы можете достичь всего, во что вы верите.", a: "Мэри Кэй Эш" },
+    { t: "Как только вы вообразите, что не в состоянии выполнить определённое дело, с этого момента его осуществление становится для вас невозможным.", a: "Бенедикт Спиноза" }
+];
+
+var hourIndex = Math.floor(Date.now() / 3600000);
+var q = quotes[hourIndex % quotes.length];
+textEl.textContent = q.t;
+authorEl.textContent = q.a;
 }
 
-async function loadExternalQuote() {
-    var textEl = document.getElementById("home-quote-text");
-    var authorEl = document.getElementById("home-quote-author");
-    if (!textEl || !authorEl) return;
-    try {
-        var res = await fetch("https://api.quotable.io/random");
-        var q = await res.json();
-        textEl.textContent = q.content || "";
-        authorEl.textContent = q.author || "";
-    } catch (e) {
-        textEl.textContent = "things I probably shouldn't publish";
-        authorEl.textContent = "kinqsy";
-    }
 }
 
 document.getElementById("auth-close").addEventListener("click", closeAuth);
