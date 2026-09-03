@@ -460,6 +460,10 @@
     <div class="hero-grain" aria-hidden="true"></div>
     <h1 class="site-title">KINQSY.LOL</h1>
     <div class="tagline">things I probably shouldn't publish</div>
+    <aside class="home-quotes" id="home-quotes">
+        <blockquote id="home-quote-text">…</blockquote>
+        <cite id="home-quote-author"></cite>
+    </aside>
     <div class="hero-actions">
     <button type="button" class="hero-btn" id="open-something">open something</button>
     <div class="post-counter" id="post-counter">loading…</div>
@@ -467,10 +471,9 @@
 <section class="home-latest" id="latest-posts">loading…</section>
     </main>
 <div class="support-line">
-    support the diary · <a href="https://boosty.to/kinqsy/donate" target="_blank" rel="noopener noreferrer">boosty</a>
-    <!-- потом можешь заменить about.html на ссылку доната -->
+    <a href="https://boosty.to/kinqsy/donate" target="_blank" rel="noopener noreferrer">support the diary</a>
 </div>
-
+    
     <footer>
         <div class="copyright">© 2026 kinqsy.lol</div>
 
@@ -598,82 +601,90 @@ if (openBtn) {
 }
 
 loadHome();
-</script>
-    const authOverlay = document.getElementById("auth-overlay");
-const authError = document.getElementById("auth-error");
-const authCode = document.getElementById("auth-code");
-const openAuthBtn = document.getElementById("open-auth");
-
-function openAuth() {
+    function openAuth() {
+    var authOverlay = document.getElementById("auth-overlay");
+    var authError = document.getElementById("auth-error");
     if (!authOverlay) return;
     authOverlay.classList.add("open");
     authOverlay.setAttribute("aria-hidden", "false");
-    authError.textContent = "";
+    if (authError) authError.textContent = "";
 }
 
 function closeAuth() {
+    var authOverlay = document.getElementById("auth-overlay");
     if (!authOverlay) return;
     authOverlay.classList.remove("open");
     authOverlay.setAttribute("aria-hidden", "true");
 }
 
 async function showFriendCode(userId) {
-    const { data, error } = await supabaseClient
+    var authCode = document.getElementById("auth-code");
+    if (!authCode) return;
+    var { data, error } = await supabaseClient
         .from("profiles")
         .select("friend_code, username")
         .eq("id", userId)
         .maybeSingle();
-
     if (error || !data) {
         authCode.style.display = "block";
         authCode.textContent = "профиль не найден";
         return;
     }
-
     authCode.style.display = "block";
     authCode.innerHTML = "привет, <strong>" + escapeHtml(data.username || "") +
         "</strong><br>код дружбы: <strong>" + escapeHtml(data.friend_code || "") + "</strong>";
 }
 
-if (openAuthBtn) openAuthBtn.addEventListener("click", openAuth);
+async function loadExternalQuote() {
+    var textEl = document.getElementById("home-quote-text");
+    var authorEl = document.getElementById("home-quote-author");
+    if (!textEl || !authorEl) return;
+    try {
+        var res = await fetch("https://api.quotable.io/random");
+        var q = await res.json();
+        textEl.textContent = q.content || "";
+        authorEl.textContent = q.author || "";
+    } catch (e) {
+        textEl.textContent = "things I probably shouldn't publish";
+        authorEl.textContent = "kinqsy";
+    }
+}
+
 document.getElementById("auth-close").addEventListener("click", closeAuth);
-authOverlay.addEventListener("click", function (e) {
-    if (e.target === authOverlay) closeAuth();
+document.getElementById("auth-overlay").addEventListener("click", function (e) {
+    if (e.target === document.getElementById("auth-overlay")) closeAuth();
 });
 
 document.getElementById("auth-login").addEventListener("click", async function () {
+    var authError = document.getElementById("auth-error");
     authError.textContent = "";
-    const email = document.getElementById("auth-email").value.trim();
-    const password = document.getElementById("auth-password").value;
-    const { data, error } = await supabaseClient.auth.signInWithPassword({ email: email, password: password });
-    if (error) {
-        authError.textContent = error.message;
-        return;
-    }
+    var email = document.getElementById("auth-email").value.trim();
+    var password = document.getElementById("auth-password").value;
+    var { data, error } = await supabaseClient.auth.signInWithPassword({ email: email, password: password });
+    if (error) { authError.textContent = error.message; return; }
     await showFriendCode(data.user.id);
 });
 
 document.getElementById("auth-signup").addEventListener("click", async function () {
+    var authError = document.getElementById("auth-error");
     authError.textContent = "";
-    const email = document.getElementById("auth-email").value.trim();
-    const password = document.getElementById("auth-password").value;
-    const { data, error } = await supabaseClient.auth.signUp({ email: email, password: password });
-    if (error) {
-        authError.textContent = error.message;
-        return;
-    }
+    var email = document.getElementById("auth-email").value.trim();
+    var password = document.getElementById("auth-password").value;
+    var { data, error } = await supabaseClient.auth.signUp({ email: email, password: password });
+    if (error) { authError.textContent = error.message; return; }
     if (data.user) {
-        authError.textContent = "аккаунт создан (проверь почту, если включено подтверждение)";
+        authError.textContent = "аккаунт создан";
         await showFriendCode(data.user.id);
     }
 });
 
 supabaseClient.auth.getSession().then(function (res) {
-    if (res.data && res.data.session) {
-        showFriendCode(res.data.session.user.id);
-    }
+    if (res.data && res.data.session) showFriendCode(res.data.session.user.id);
 });
 
+loadExternalQuote();
+</script>
+    
     <script>
 (function () {
     var star = document.getElementById("admin-star");
