@@ -331,44 +331,52 @@
         gap: 10px;
         align-items: center;
     }
-    .notes-search input[type="search"],
-    .notes-search input[type="date"],
-    .notes-search button {
-        height: 40px;
-        padding: 0 16px;
-        border-radius: 999px;
-        border: 0;
-        background: rgba(255, 255, 255, 0.14);
-        color: #2a1822;
-        font-family: Georgia, serif;
-        font-size: 14px;
-        outline: none;
-        backdrop-filter: blur(18px) saturate(160%);
-        -webkit-backdrop-filter: blur(18px) saturate(160%);
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
-        -webkit-appearance: none;
-        appearance: none;
-    }
-    .notes-search input[type="search"] {
-        flex: 1;
-        min-width: 160px;
-        max-width: 320px;
-    }
-    .notes-search input[type="search"]::placeholder {
-        color: rgba(42, 24, 34, 0.45);
-        font-style: italic;
-    }
-    .notes-search button {
-        font-family: Arial, sans-serif;
-        font-size: 12px;
-        font-weight: bold;
-        cursor: pointer;
-        color: #3a2030;
-    }
-    .notes-search input[type="date"] {
-        color: #3a2030;
-        accent-color: #e2b7c6;
-    }
+    .notes-search {
+    max-width: 900px;
+    margin: 0 auto 22px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+.notes-search input[type="search"],
+.notes-search input[type="text"],
+.notes-search button {
+    height: 40px;
+    padding: 0 16px;
+    border-radius: 999px;
+    border: 0;
+    background: rgba(255, 255, 255, 0.14);
+    color: #2a1822;
+    font-family: Georgia, serif;
+    font-size: 14px;
+    outline: none;
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    -webkit-appearance: none;
+    appearance: none;
+}
+.notes-search input[type="search"] {
+    flex: 1;
+    min-width: 160px;
+    max-width: 320px;
+}
+.notes-search input[type="search"]::placeholder,
+.notes-search input[type="text"]::placeholder {
+    color: rgba(42, 24, 34, 0.45);
+    font-style: italic;
+}
+.notes-search input[type="text"] {
+    width: 130px;
+}
+.notes-search button {
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #3a2030;
+}
 
     .author-badge {
         color: #6e4057;
@@ -581,6 +589,11 @@
         <input id="compose-title" type="text">
         <label for="compose-content">текст</label>
         <textarea id="compose-content" rows="5" style="width:100%;border:0;border-radius:12px;padding:10px;background:rgba(255,255,255,.55);font-family:Georgia,serif"></textarea>
+        <label for="compose-media-url">ссылка на фото/gif</label>
+    <input id="compose-media-url" type="url" placeholder="https://...">
+    <label for="compose-media-file">или с устройства</label>
+    <input id="compose-media-file" type="file" accept="image/*,.gif">
+    <img id="compose-preview" alt="" style="display:none;max-width:100%;border-radius:12px;margin-top:8px">
         <div class="auth-actions">
             <button type="button" id="compose-publish">опубликовать</button>
             <button type="button" id="compose-close" class="secondary">закрыть</button>
