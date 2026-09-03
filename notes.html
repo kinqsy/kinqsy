@@ -123,6 +123,8 @@
         }
 
         .post {
+        user-select: none;
+        -webkit-user-select: none;
         position: relative;
         padding: 28px;
         border-radius: 22px;
@@ -145,8 +147,20 @@
             text-transform: uppercase;
             opacity: .6;
         }
-        .post-title { margin: 0 0 15px; font-size: 29px; }
-        .post-content { font-size: 17px; line-height: 1.65; }
+        .post-title {
+        margin: 0 0 15px;
+        font-size: 29px;
+        user-select: none;
+        -webkit-user-select: none;
+    }
+
+        .post-content {
+        font-size: 17px;
+        line-height: 1.65;
+        user-select: none;
+        -webkit-user-select: none;
+    }
+
         .post-media {
         margin: 14px 0 6px;
         border-radius: 16px;
@@ -610,6 +624,38 @@
     document.getElementById("auth-close").onclick = closeAuth;
     document.getElementById("compose-close").onclick = closeCompose;
 
+    var mediaUrlInput = document.getElementById("compose-media-url");
+var mediaFileInput = document.getElementById("compose-media-file");
+var preview = document.getElementById("compose-preview");
+
+mediaUrlInput.oninput = function () {
+    var u = mediaUrlInput.value.trim();
+    if (u) { preview.style.display = "block"; preview.src = u; }
+    else { preview.style.display = "none"; preview.src = ""; }
+};
+
+mediaFileInput.onchange = async function () {
+    var file = mediaFileInput.files && mediaFileInput.files[0];
+    if (!file) return;
+    var { data: { session } } = await sb.auth.getSession();
+    if (!session) {
+        document.getElementById("compose-error").textContent = "нужен вход";
+        return;
+    }
+    var ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+    var path = session.user.id + "/" + Date.now() + "." + ext;
+    var { error: upErr } = await sb.storage.from("media").upload(path, file, { upsert: true });
+    if (upErr) {
+        document.getElementById("compose-error").textContent = upErr.message;
+        return;
+    }
+    var { data } = sb.storage.from("media").getPublicUrl(path);
+    mediaUrlInput.value = data.publicUrl;
+    preview.style.display = "block";
+    preview.src = data.publicUrl;
+};
+
+
     document.getElementById("auth-login").onclick = async function () {
         var err = document.getElementById("auth-error");
         err.textContent = "";
@@ -641,13 +687,20 @@
         var content = document.getElementById("compose-content").value.trim();
         if (!title && !content) { err.textContent = "пустой пост"; return; }
 
-        var { error } = await sb.from("posts").insert({
-            title: title,
-            content: content,
-            category: "notes",
-            user_id: session.user.id,
-            visibility: "public"
-        });
+        var media_url = (document.getElementById("compose-media-url").value || "").trim();
+    var payload = {
+        title: title,
+        content: content,
+        category: "notes",
+        user_id: session.user.id,
+        visibility: "public"
+    };
+    if (media_url) {
+        payload.media_url = media_url;
+        payload.media_type = /\.gif(\?|$)/i.test(media_url) ? "gif" : "image";
+    }
+    var { error } = await sb.from("posts").insert(payload);
+
         if (error) { err.textContent = error.message; return; }
         closeCompose();
         location.reload();
