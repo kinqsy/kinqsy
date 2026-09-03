@@ -6,7 +6,15 @@ function escapeHtml(text) {
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;");
 }
-function formatAuthor(name) { const raw = String(name || ""); if (raw.trim().toLowerCase() === "kinqsy") { return '<span class="author-badge">✦ kinqsy</span>'; } return escapeHtml(raw); }
+function formatAuthor(name) { const raw = String(name || ""); const OWNER_ID = "4923abc5-5c86-48c2-904b-a267c2e21703";
+
+function formatAuthor(name, userId) {
+    if (userId && String(userId) === OWNER_ID) {
+        return '<span class="author-badge">✦ kinqsy</span>';
+    }
+    return escapeHtml(name || "гость");
+}
+    { return '<span class="author-badge">✦ kinqsy</span>'; } return escapeHtml(raw); }
 function dayKey(dateStr) { const d = new Date(dateStr); const y = d.getFullYear(); const m = String(d.getMonth() + 1).padStart(2, "0"); const day = String(d.getDate()).padStart(2, "0"); return y + "-" + m + "-" + day; }
 async function loadComments(postId) { const { data, error } = await supabaseClient .from("comments") .select("*") .eq("post_id", postId) .order("created_at", { ascending: true });
 if (error) {
@@ -155,11 +163,13 @@ for (const post of posts) {
 
         submitBtn.disabled = true;
 
-        const { error } = await supabaseClient.from("comments").insert({
-            post_id: post.id,
-            author_name: author_name,
-            content: content
-        });
+        const { data: { session } } = await supabaseClient.auth.getSession();
+const { error } = await supabaseClient.from("comments").insert({
+    post_id: post.id,
+    author_name: author_name,
+    content: content,
+    user_id: session ? session.user.id : null
+});
 
         submitBtn.disabled = false;
 
