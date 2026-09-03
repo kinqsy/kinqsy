@@ -123,39 +123,18 @@
         }
 
         .post {
-            position: relative;
-            padding: 28px;
-            border-radius: 22px;
-            background: linear-gradient(
-                145deg,
-                rgba(255,255,255,.42) 0%,
-                rgba(255,255,255,.16) 40%,
-                rgba(255,255,255,.1) 100%
-            );
-            border: 1px solid rgba(255,255,255,.7);
-            box-shadow:
-                0 18px 40px rgba(0,0,0,.2),
-                inset 0 1px 1px rgba(255,255,255,.9),
-                inset 0 -1px 1px rgba(0,0,0,.08);
-            backdrop-filter: blur(16px) saturate(160%);
-            -webkit-backdrop-filter: blur(16px) saturate(160%);
-            overflow: hidden;
-        }
-        .post::before {
-            content: "";
-            position: absolute;
-            top: -40%; left: -15%;
-            width: 130%; height: 70%;
-            background: linear-gradient(
-                110deg,
-                rgba(255,255,255,.7) 0%,
-                rgba(255,255,255,.2) 30%,
-                rgba(255,255,255,0) 60%
-            );
-            transform: rotate(-4deg);
-            pointer-events: none;
-        }
-        .post > * { position: relative; z-index: 2; }
+        position: relative;
+        padding: 28px;
+        border-radius: 22px;
+        background: rgba(255, 255, 255, 0.18);
+        border: 0;
+        box-shadow: none;
+        backdrop-filter: blur(16px) saturate(140%);
+        -webkit-backdrop-filter: blur(16px) saturate(140%);
+        overflow: hidden;
+    }
+    .post > * { position: relative; z-index: 2; }
+
 
         .post-date {
             margin-bottom: 12px;
@@ -172,6 +151,7 @@
         margin: 14px 0 6px;
         border-radius: 16px;
         overflow: hidden;
+        line-height: 0;
     }
     .post-media img {
         display: block;
@@ -179,10 +159,11 @@
         max-height: 550px;
         width: 100%;
         height: auto;
-        object-fit: contain;
+        object-fit: cover;
         margin: 0 auto;
         border-radius: 16px;
     }
+
 
         .post-footer {
             margin-top: 24px;
