@@ -265,26 +265,49 @@ function hidePostMenu() { var menu = document.getElementById("post-menu"); if (m
 function showPostMenu(x, y, post) { var menu = document.getElementById("post-menu"); if (!menu) return; activePostMenu = post; menu.style.left = Math.min(x, window.innerWidth - 160) + "px"; menu.style.top = Math.min(y, window.innerHeight - 100) + "px"; menu.classList.add("open"); }
 function bindPostOwnerActions(article, post) { var timer = null;
 async function tryOpen(e) {
-    if (e.target.closest("a, button, input, textarea, form, .reactions")) return;
+    if (e.target.closest("a, button, input, textarea, form, .reactions, .comment-form")) return;
     if (!(await canEditPost(post))) return;
+
     e.preventDefault();
-    var x = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
-    var y = (e.touches && e.touches[0]) ? e.touches[0].clientY : e.clientY;
+    e.stopPropagation();
+
+    var x, y;
+    if (e.touches && e.touches[0]) {
+        x = e.touches[0].clientX;
+        y = e.touches[0].clientY;
+    } else if (e.changedTouches && e.changedTouches[0]) {
+        x = e.changedTouches[0].clientX;
+        y = e.changedTouches[0].clientY;
+    } else {
+        x = e.clientX;
+        y = e.clientY;
+    }
     showPostMenu(x, y, post);
 }
 
-// ПК — ЛКМ
-article.addEventListener("click", function (e) {
-    if (e.button !== 0) return;
+// ПК — правый клик (своё меню, не браузерное)
+article.addEventListener("contextmenu", function (e) {
+    tryOpen(e);
+});
+
+// ПК — двойной ЛКМ (чтобы обычный клик не мешал)
+article.addEventListener("dblclick", function (e) {
     tryOpen(e);
 });
 
 // Мобилка — зажатие
 article.addEventListener("touchstart", function (e) {
-    timer = setTimeout(function () { tryOpen(e); }, 550);
-}, { passive: true });
-article.addEventListener("touchend", function () { clearTimeout(timer); });
-article.addEventListener("touchmove", function () { clearTimeout(timer); });
+    timer = setTimeout(function () {
+        tryOpen(e);
+    }, 550);
+}, { passive: false });
+
+article.addEventListener("touchend", function () {
+    clearTimeout(timer);
+});
+article.addEventListener("touchmove", function () {
+    clearTimeout(timer);
+});
 }
 document.addEventListener("click", function (e) { var menu = document.getElementById("post-menu"); if (menu && menu.classList.contains("open") && !e.target.closest("#post-menu") && !e.target.closest(".post")) { hidePostMenu(); } });
 var delBtn = document.getElementById("post-menu-delete");
