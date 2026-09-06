@@ -46,7 +46,7 @@ for (const c of comments) {
     parts.push(
         '<div class="comment">' +
             '<div class="comment-meta">' +
-                formatAuthor(c.author_name) +
+                formatAuthor(c.author_name, c.user_id) +
                 " · " +
                 new Date(c.created_at).toLocaleDateString("en-GB") +
             "</div>" +
@@ -109,10 +109,7 @@ if (!posts.length) {
     return;
 }
 
-                                   article.dataset.postId = String(post.id);
-article.dataset.userId = post.user_id ? String(post.user_id) : "";
-
-bindPostOwnerActions(article, post);
+                                   
 
 feed.innerHTML = "";
 
@@ -191,6 +188,9 @@ const { error } = await supabaseClient.from("comments").insert({
     });
 
     bindReactions(article);
+    article.dataset.postId = String(post.id);
+article.dataset.userId = post.user_id ? String(post.user_id) : "";
+bindPostOwnerActions(article, post);
     feed.appendChild(article);
 }
 
@@ -289,5 +289,19 @@ article.addEventListener("touchmove", function () { clearTimeout(timer); });
 }
 document.addEventListener("click", function (e) { var menu = document.getElementById("post-menu"); if (menu && menu.classList.contains("open") && !e.target.closest("#post-menu") && !e.target.closest(".post")) { hidePostMenu(); } });
 document.getElementById("post-menu-delete").onclick = async function () { if (!activePostMenu) return; if (!confirm("Удалить пост?")) return; var { error } = await supabaseClient.from("posts").delete().eq("id", activePostMenu.id); hidePostMenu(); if (error) { alert(error.message); return; } loadNotes(); };
-document.getElementById("post-menu-edit").onclick = async function () { if (!activePostMenu) return; var post = activePostMenu; hidePostMenu(); var title = prompt("Заголовок", post.title  ""); if (title === null) return; var content = prompt("Текст", post.content  ""); if (content === null) return; var { error } = await supabaseClient.from("posts").update({ title: title, content: content }).eq("id", post.id); if (error) { alert(error.message); return; } loadNotes(); };
+document.getElementById("post-menu-edit").onclick = async function () {
+    if (!activePostMenu) return;
+    var post = activePostMenu;
+    hidePostMenu();
+    var title = prompt("Заголовок", post.title || "");
+    if (title === null) return;
+    var content = prompt("Текст", post.content || "");
+    if (content === null) return;
+    var { error } = await supabaseClient.from("posts").update({
+        title: title,
+        content: content
+    }).eq("id", post.id);
+    if (error) { alert(error.message); return; }
+    loadNotes();
+};
 loadNotes(); setupFilters();
