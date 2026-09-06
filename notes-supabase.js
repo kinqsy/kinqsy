@@ -6,7 +6,7 @@ function escapeHtml(text) {
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;");
 }
-function formatAuthor(name) { const raw = String(name || ""); const OWNER_ID = "4923abc5-5c86-48c2-904b-a267c2e21703";
+const OWNER_ID = "4923abc5-5c86-48c2-904b-a267c2e21703";
 
 function formatAuthor(name, userId) {
     if (userId && String(userId) === OWNER_ID) {
@@ -14,7 +14,6 @@ function formatAuthor(name, userId) {
     }
     return escapeHtml(name || "гость");
 }
-    { return '<span class="author-badge">✦ kinqsy</span>'; } return escapeHtml(raw); }
 function dayKey(dateStr) { const d = new Date(dateStr); const y = d.getFullYear(); const m = String(d.getMonth() + 1).padStart(2, "0"); const day = String(d.getDate()).padStart(2, "0"); return y + "-" + m + "-" + day; }
 async function loadComments(postId) { const { data, error } = await supabaseClient .from("comments") .select("*") .eq("post_id", postId) .order("created_at", { ascending: true });
 if (error) {
@@ -288,20 +287,37 @@ article.addEventListener("touchend", function () { clearTimeout(timer); });
 article.addEventListener("touchmove", function () { clearTimeout(timer); });
 }
 document.addEventListener("click", function (e) { var menu = document.getElementById("post-menu"); if (menu && menu.classList.contains("open") && !e.target.closest("#post-menu") && !e.target.closest(".post")) { hidePostMenu(); } });
-document.getElementById("post-menu-delete").onclick = async function () { if (!activePostMenu) return; if (!confirm("Удалить пост?")) return; var { error } = await supabaseClient.from("posts").delete().eq("id", activePostMenu.id); hidePostMenu(); if (error) { alert(error.message); return; } loadNotes(); };
-document.getElementById("post-menu-edit").onclick = async function () {
-    if (!activePostMenu) return;
-    var post = activePostMenu;
-    hidePostMenu();
-    var title = prompt("Заголовок", post.title || "");
-    if (title === null) return;
-    var content = prompt("Текст", post.content || "");
-    if (content === null) return;
-    var { error } = await supabaseClient.from("posts").update({
-        title: title,
-        content: content
-    }).eq("id", post.id);
-    if (error) { alert(error.message); return; }
-    loadNotes();
-};
-loadNotes(); setupFilters();
+var delBtn = document.getElementById("post-menu-delete");
+var editBtn = document.getElementById("post-menu-edit");
+
+if (delBtn) {
+    delBtn.onclick = async function () {
+        if (!activePostMenu) return;
+        if (!confirm("Удалить пост?")) return;
+        var { error } = await supabaseClient.from("posts").delete().eq("id", activePostMenu.id);
+        hidePostMenu();
+        if (error) { alert(error.message); return; }
+        loadNotes();
+    };
+}
+
+if (editBtn) {
+    editBtn.onclick = async function () {
+        if (!activePostMenu) return;
+        var post = activePostMenu;
+        hidePostMenu();
+        var title = prompt("Заголовок", post.title || "");
+        if (title === null) return;
+        var content = prompt("Текст", post.content || "");
+        if (content === null) return;
+        var { error } = await supabaseClient.from("posts").update({
+            title: title,
+            content: content
+        }).eq("id", post.id);
+        if (error) { alert(error.message); return; }
+        loadNotes();
+    };
+}
+
+loadNotes();
+setupFilters();
