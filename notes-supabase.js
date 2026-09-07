@@ -130,9 +130,9 @@ for (const post of posts) {
         '<div class="post-date">' +
             new Date(post.created_at).toLocaleDateString("en-GB") +
         '</div>' +
-        '<h2 class="post-title">' + escapeHtml(post.title || "") + '</h2>' +
-        mediaHtml +
-        '<div class="post-content">' + escapeHtml(post.content || "") + '</div>' +
+        '<h2 class="post-title" style="font-family:' + escapeHtml(post.title_font ? post.title_font : "Georgia, serif") + ';color:' + escapeHtml(post.title_color ? post.title_color : "#1a0f14") + '">' + escapeHtml(post.title || "") + '</h2>' +
+    mediaHtml +
+    '<div class="post-content" style="font-family:' + escapeHtml(post.body_font ? post.body_font : "Georgia, serif") + ';color:' + escapeHtml(post.body_color ? post.body_color : "#1a0f14") + '">' + escapeHtml(post.content || "") + '</div>' +
         reactionsHtml(postCounts, "post", post.id) +
         '<div class="post-footer-row">' +
     '<div class="post-footer">comments · ' + comments.length + '</div>' +
