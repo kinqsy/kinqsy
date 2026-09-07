@@ -618,6 +618,67 @@ a, button, .star, .top-menu .star, input, textarea, .react-btn, .post-menu butto
     .post-menu button:hover { background: rgba(255, 255, 255, 0.35); }
     .post-menu button.danger { color: #7a2030; }
 
+        .auth-modal select {
+        width: 100%;
+        border: 0;
+        border-radius: 12px;
+        padding: 10px 12px;
+        background: rgba(255, 255, 255, 0.35);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        color: #2a1822;
+        font-size: 15px;
+        outline: none;
+        appearance: none;
+        -webkit-appearance: none;
+    }
+    .auth-modal select option {
+        background: #2a1822;
+        color: #f6dce8;
+        font-size: 15px;
+        padding: 8px;
+    }
+    .auth-modal input[type="color"] {
+        width: 48px;
+        height: 36px;
+        border: 0;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.35);
+        padding: 4px;
+        cursor: pointer;
+    }
+    .compose-preview-box {
+        margin-top: 14px;
+        padding: 16px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+    }
+    .compose-preview-box .prev-title {
+        margin: 0 0 10px;
+        font-size: 28px;
+        line-height: 1.15;
+        word-break: break-word;
+    }
+    .compose-preview-box .prev-body {
+        margin: 0;
+        font-size: 16px;
+        line-height: 1.5;
+        word-break: break-word;
+        white-space: pre-wrap;
+    }
+    .compose-style-row {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin: 8px 0;
+        flex-wrap: wrap;
+    }
+    .compose-style-row select {
+        flex: 1;
+        min-width: 160px;
+    }
     </style>
 </head>
 <body id="top">
