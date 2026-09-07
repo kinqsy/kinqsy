@@ -268,10 +268,18 @@ font-family: Arial, sans-serif;
             border-radius: 18px;
             backdrop-filter: blur(10px);
         }
-
-        <div class="support-line" style="position:relative;z-index:5;text-align:center;padding:10px 16px;background:#000">
-    <a href="https://boosty.to/kinqsy/donate" target="_blank" rel="noopener noreferrer" style="color:#f1b9d0;font-weight:bold;text-decoration:none">support the diary</a>
-</div>
+        .support-line {
+        position: relative;
+        z-index: 5;
+        text-align: center;
+        padding: 10px 16px;
+        background: #000;
+    }
+    .support-line a {
+        color: #f1b9d0;
+        font-weight: bold;
+        text-decoration: none;
+    }
         footer {
         position: relative;
         z-index: 5;
@@ -420,6 +428,10 @@ font-family: Arial, sans-serif;
         <section class="feed" id="feed"></section>
     </main>
 
+    <div class="support-line">
+    <a href="https://boosty.to/kinqsy/donate" target="_blank" rel="noopener noreferrer">support the diary</a>
+</div>
+
     <footer>
         <div>© 2026 kinqsy.lol</div>
         <div class="socials">
@@ -437,6 +449,11 @@ font-family: Arial, sans-serif;
     </footer>
 
     <a href="#top" class="back-to-top-fixed" aria-label="Back to top">↑</a>
+
+    <div class="post-menu" id="post-menu">
+    <button type="button" id="post-menu-edit">изменить</button>
+    <button type="button" id="post-menu-delete" class="danger">удалить</button>
+</div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
@@ -574,8 +591,9 @@ async function loadDreams() {
         footer.textContent = "comments · " + fresh.length;
     });
 
-    feed.appendChild(article);
-}
+    bindPostOwnerActions(article, post);
+feed.appendChild(article);
+} 
 }
        var OWNER_ID = "4923abc5-5c86-48c2-904b-a267c2e21703"; var activePostMenu = null;
 async function canEditPost(post) { var res = await supabaseClient.auth.getSession(); var session = res.data.session; if (!session) return false; if (post.user_id && String(post.user_id) === String(session.user.id)) return true; if (String(session.user.id) === String(OWNER_ID)) return true; return false; }
