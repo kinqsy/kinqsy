@@ -265,7 +265,8 @@ if (clearBtn) {
 var activePostMenu = null;
 async function canEditPost(post) { var { data: { session } } = await supabaseClient.auth.getSession(); if (!session) return false; if (post.user_id && String(post.user_id) === String(session.user.id)) return true; if (typeof OWNER_ID !== "undefined" && String(session.user.id) === String(OWNER_ID)) return true; return false; }
 function hidePostMenu() { var menu = document.getElementById("post-menu"); if (menu) menu.classList.remove("open"); activePostMenu = null; }
-function showPostMenuNearFooter(article, post) { var menu = document.getElementById("post-menu"); var footer = article.querySelector(".post-footer-row")  article.querySelector(".post-footer"); if (!menu  !footer) return;
+function showPostMenuNearFooter(article, post) { var menu = document.getElementById("post-menu"); 
+        function showPostMenuNearFooter(article, post) { var menu = document.getElementById("post-menu"); var footer = article.querySelector(".post-footer-row")  article.querySelector(".post-footer"); if (!menu  !footer) return;
 activePostMenu = post;
 menu.classList.add("open");
 
@@ -295,52 +296,7 @@ btn.addEventListener("click", function (e) {
     showPostMenuNearFooter(article, post);
 });
 }
-document.addEventListener("click", function (e) { var menu = document.getElementById("post-menu"); if (!menu || !menu.classList.contains("open")) return; if (e.target.closest("#post-menu")) return; if (e.target.closest(".post-owner-btn")) return; hidePostMenu(); });
-async function tryOpen(e) {
-    if (e.target.closest("a, button, input, textarea, form, .reactions, .comment-form")) return;
-    if (!(await canEditPost(post))) return;
-
-    e.preventDefault();
-    e.stopPropagation();
-
-    var x, y;
-    if (e.touches && e.touches[0]) {
-        x = e.touches[0].clientX;
-        y = e.touches[0].clientY;
-    } else if (e.changedTouches && e.changedTouches[0]) {
-        x = e.changedTouches[0].clientX;
-        y = e.changedTouches[0].clientY;
-    } else {
-        x = e.clientX;
-        y = e.clientY;
-    }
-    showPostMenu(x, y, post);
-}
-
-// ПК — правый клик (своё меню, не браузерное)
-article.addEventListener("contextmenu", function (e) {
-    tryOpen(e);
-});
-
-// ПК — двойной ЛКМ (чтобы обычный клик не мешал)
-article.addEventListener("dblclick", function (e) {
-    tryOpen(e);
-});
-
-// Мобилка — зажатие
-article.addEventListener("touchstart", function (e) {
-    timer = setTimeout(function () {
-        tryOpen(e);
-    }, 550);
-}, { passive: false });
-
-article.addEventListener("touchend", function () {
-    clearTimeout(timer);
-});
-article.addEventListener("touchmove", function () {
-    clearTimeout(timer);
-});
-}
+    
 document.addEventListener("click", function (e) { var menu = document.getElementById("post-menu"); if (menu && menu.classList.contains("open") && !e.target.closest("#post-menu") && !e.target.closest(".post")) { hidePostMenu(); } });
 var delBtn = document.getElementById("post-menu-delete");
 var editBtn = document.getElementById("post-menu-edit");
