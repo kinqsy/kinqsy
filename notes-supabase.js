@@ -265,7 +265,7 @@ if (clearBtn) {
 var activePostMenu = null;
 async function canEditPost(post) { var { data: { session } } = await supabaseClient.auth.getSession(); if (!session) return false; if (post.user_id && String(post.user_id) === String(session.user.id)) return true; if (typeof OWNER_ID !== "undefined" && String(session.user.id) === String(OWNER_ID)) return true; return false; }
 function hidePostMenu() { var menu = document.getElementById("post-menu"); if (menu) menu.classList.remove("open"); activePostMenu = null; }
-function showPostMenuNearFooter(article, post) { var menu = document.getElementById("post-menu"); var footer = article.querySelector(".post-footer-row")  article.querySelector(".post-footer"); if (!menu  !footer) return;
+function showPostMenuNearFooter(article, post) { var menu = document.getElementById("post-menu"); var footer = article.querySelector(".post-footer-row") || article.querySelector(".post-footer"); if (!menu || !footer) return;
 activePostMenu = post;
 menu.classList.add("open");
 
