@@ -119,15 +119,19 @@ a, button, .star, .top-menu .star, input, textarea, .react-btn, .post-menu butto
     }
 
     .notes-grain {
-        position: absolute;
-        inset: 0;
-        pointer-events: none;
-        z-index: 1;
-        opacity: 0.45;
-        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-        background-size: 220px 220px;
-        mix-blend-mode: overlay;
-    }
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.5;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 180px 180px;
+    mix-blend-mode: soft-light;
+}
+
 
 
         .notes-title {
@@ -694,71 +698,6 @@ a, button, .star, .top-menu .star, input, textarea, .react-btn, .post-menu butto
         <div class="auth-error" id="compose-error"></div>
     </div>
 </div>
-
-    var editOverlay = document.getElementById("edit-overlay");
-var editingPostId = null;
-
-function openEdit(post) {
-    editingPostId = post.id;
-    document.getElementById("edit-title").value = post.title ? post.title : "";
-    document.getElementById("edit-content").value = post.content ? post.content : "";
-    document.getElementById("edit-media-url").value = post.media_url ? post.media_url : "";
-    document.getElementById("edit-error").textContent = "";
-    editOverlay.classList.add("open");
-}
-function closeEdit() {
-    editOverlay.classList.remove("open");
-    editingPostId = null;
-}
-
-document.getElementById("edit-close").onclick = closeEdit;
-
-document.getElementById("edit-save").onclick = async function () {
-    var err = document.getElementById("edit-error");
-    err.textContent = "";
-    if (!editingPostId) return;
-
-    var title = document.getElementById("edit-title").value.trim();
-    var content = document.getElementById("edit-content").value.trim();
-    var media_url = document.getElementById("edit-media-url").value.trim();
-
-    var payload = { title: title, content: content };
-    if (media_url) {
-        payload.media_url = media_url;
-        payload.media_type = /\.gif(\?|$)/i.test(media_url) ? "gif" : "image";
-    } else {
-        payload.media_url = null;
-        payload.media_type = null;
-    }
-
-    var { error } = await sb.from("posts").update(payload).eq("id", editingPostId);
-    if (error) { err.textContent = error.message; return; }
-    closeEdit();
-    location.reload();
-};
-
-window.openNotesEdit = openEdit;
-    <div class="auth-overlay" id="edit-overlay">
-    <div class="auth-modal">
-        <h3>редактировать</h3>
-        <input id="edit-title" type="text" placeholder="заголовок">
-        <textarea id="edit-content" placeholder="текст" rows="6"></textarea>
-        <input id="edit-media-url" type="url" placeholder="ссылка на фото/gif (необязательно)">
-        <div class="auth-actions">
-            <button type="button" id="edit-save">сохранить</button>
-            <button type="button" id="edit-close" class="secondary">отмена</button>
-        </div>
-        <div class="auth-error" id="edit-error"></div>
-    </div>
-</div>
-    
-    <a href="#top" class="back-to-top-fixed" aria-label="Back to top">↑</a>
-
-    <div class="post-menu" id="post-menu">
-    <button type="button" id="post-menu-edit">изменить</button>
-    <button type="button" id="post-menu-delete" class="danger">удалить</button>
-</div>
-
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="./notes-supabase.js"></script>
     <script>
