@@ -309,20 +309,13 @@ document.addEventListener("click", function (e) { var menu = document.getElement
 var delBtn = document.getElementById("post-menu-delete"); var editBtn = document.getElementById("post-menu-edit");
 if (delBtn) { delBtn.onclick = async function () { if (!activePostMenu) return; if (!confirm("Удалить пост?")) return; var { error } = await supabaseClient.from("posts").delete().eq("id", activePostMenu.id); hidePostMenu(); if (error) { alert(error.message); return; } loadNotes(); }; }
 if (editBtn) {
-    editBtn.onclick = async function () {
+    editBtn.onclick = function () {
         if (!activePostMenu) return;
         var post = activePostMenu;
         hidePostMenu();
-        var title = prompt("Заголовок", post.title ? post.title : "");
-        if (title === null) return;
-        var content = prompt("Текст", post.content ? post.content : "");
-        if (content === null) return;
-        var { error } = await supabaseClient.from("posts").update({
-            title: title,
-            content: content
-        }).eq("id", post.id);
-        if (error) { alert(error.message); return; }
-        loadNotes();
+        if (typeof window.openNotesEdit === "function") {
+            window.openNotesEdit(post);
+        }
     };
 }
 loadNotes(); setupFilters();
