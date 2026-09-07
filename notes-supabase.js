@@ -116,6 +116,12 @@ for (const post of posts) {
     const article = document.createElement("article");
     article.className = "post";
     article.id = "post-" + post.id;
+    var bgKey = post.post_bg ? post.post_bg : "glass";
+if (bgKey === "pink") article.style.background = "rgba(240, 201, 214, 0.45)";
+else if (bgKey === "lilac") article.style.background = "rgba(200, 180, 220, 0.4)";
+else if (bgKey === "dark") article.style.background = "rgba(30, 20, 28, 0.55)";
+else if (bgKey === "cream") article.style.background = "rgba(255, 248, 240, 0.5)";
+else if (bgKey === "clear") article.style.background = "rgba(255, 255, 255, 0.08)";
 
     let mediaHtml = "";
     if (post.media_url) {
