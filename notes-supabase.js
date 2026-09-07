@@ -291,9 +291,21 @@ menu.style.left = left + "px";
 menu.style.top = top + "px";
 }
 function bindPostOwnerActions(article, post) { var btn = article.querySelector(".post-owner-btn"); if (!btn) return;
-canEditPost(post).then(function (ok) {
-    if (ok) btn.classList.add("show");
+btn.addEventListener("click", async function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    var ok = await canEditPost(post);
+    if (!ok) {
+        alert("Войди через ★");
+        return;
+    }
+    if (activePostMenu && String(activePostMenu.id) === String(post.id)) {
+        hidePostMenu();
+        return;
+    }
+    showPostMenuNearFooter(article, post);
 });
+}
 
 btn.addEventListener("click", function (e) {
     e.preventDefault();
