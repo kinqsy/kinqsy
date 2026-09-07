@@ -134,7 +134,10 @@ for (const post of posts) {
         mediaHtml +
         '<div class="post-content">' + escapeHtml(post.content || "") + '</div>' +
         reactionsHtml(postCounts, "post", post.id) +
-        '<div class="post-footer">comments · ' + comments.length + '</div>' +
+        '<div class="post-footer-row">' +
+    '<div class="post-footer">comments · ' + comments.length + '</div>' +
+    '<button type="button" class="post-owner-btn" aria-label="menu">⋯</button>' +
+'</div>' +
         '<div class="comments">' +
             '<div class="comments-list">' + commentsHtml + '</div>' +
             '<form class="comment-form">' +
@@ -260,10 +263,39 @@ if (clearBtn) {
 }
 }
 var activePostMenu = null;
-async function canEditPost(post) { var { data: { session } } = await supabaseClient.auth.getSession(); if (!session) return false; if (post.user_id && post.user_id === session.user.id) return true; if (typeof OWNER_ID !== "undefined" && session.user.id === OWNER_ID) return true; return false; }
+async function canEditPost(post) { var { data: { session } } = await supabaseClient.auth.getSession(); if (!session) return false; if (post.user_id && String(post.user_id) === String(session.user.id)) return true; if (typeof OWNER_ID !== "undefined" && String(session.user.id) === String(OWNER_ID)) return true; return false; }
 function hidePostMenu() { var menu = document.getElementById("post-menu"); if (menu) menu.classList.remove("open"); activePostMenu = null; }
-function showPostMenu(x, y, post) { var menu = document.getElementById("post-menu"); if (!menu) return; activePostMenu = post; menu.style.left = Math.min(x, window.innerWidth - 160) + "px"; menu.style.top = Math.min(y, window.innerHeight - 100) + "px"; menu.classList.add("open"); }
-function bindPostOwnerActions(article, post) { var timer = null;
+function showPostMenuNearFooter(article, post) { var menu = document.getElementById("post-menu"); var footer = article.querySelector(".post-footer-row")  article.querySelector(".post-footer"); if (!menu  !footer) return;
+activePostMenu = post;
+menu.classList.add("open");
+
+var rect = footer.getBoundingClientRect();
+var menuW = 160;
+var left = rect.right - menuW;
+var top = rect.top;
+if (left < 8) left = 8;
+if (left + menuW > window.innerWidth - 8) left = window.innerWidth - menuW - 8;
+if (top + 90 > window.innerHeight) top = Math.max(8, rect.bottom - 90);
+
+menu.style.left = left + "px";
+menu.style.top = top + "px";
+}
+function bindPostOwnerActions(article, post) { var btn = article.querySelector(".post-owner-btn"); if (!btn) return;
+canEditPost(post).then(function (ok) {
+    if (ok) btn.classList.add("show");
+});
+
+btn.addEventListener("click", function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (activePostMenu && String(activePostMenu.id) === String(post.id)) {
+        hidePostMenu();
+        return;
+    }
+    showPostMenuNearFooter(article, post);
+});
+}
+document.addEventListener("click", function (e) { var menu = document.getElementById("post-menu"); if (!menu || !menu.classList.contains("open")) return; if (e.target.closest("#post-menu")) return; if (e.target.closest(".post-owner-btn")) return; hidePostMenu(); });
 async function tryOpen(e) {
     if (e.target.closest("a, button, input, textarea, form, .reactions, .comment-form")) return;
     if (!(await canEditPost(post))) return;
