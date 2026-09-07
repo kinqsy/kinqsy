@@ -320,14 +320,16 @@ a, button, .star, .top-menu .star, input, textarea, .react-btn, .post-menu butto
         margin-top: 8px;
     }
         footer {
-            min-height: 110px;
-            background: #000;
-            color: #F1B9D0;
-            display: grid;
-            grid-template-columns: 1fr auto 1fr;
-            align-items: center;
-            padding: 20px 28px;
-        }
+        position: relative;
+        z-index: 5;
+        min-height: 110px;
+        background: #000;
+        color: #F1B9D0;
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        padding: 20px 28px;
+    }
         .socials {
             display: flex;
             gap: 16px;
@@ -464,10 +466,11 @@ a, button, .star, .top-menu .star, input, textarea, .react-btn, .post-menu butto
             .back-to-top-fixed { right: 16px; bottom: 16px; width: 40px; height: 40px; }
         }
         .support-line {
+        position: relative;
+        z-index: 5;
         text-align: center;
         padding: 10px 16px;
         background: #000;
-        font-size: 13px;
     }
     .support-line a {
         color: #f1b9d0;
@@ -569,18 +572,20 @@ a, button, .star, .top-menu .star, input, textarea, .react-btn, .post-menu butto
         margin-top: 8px;
     }
     .post-owner-btn {
-        border: 0;
-        background: rgba(255, 255, 255, 0.2);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border-radius: 999px;
-        width: 34px;
-        height: 34px;
-        font-size: 18px;
-        line-height: 1;
-        color: #2a1822;
-        display: none;
-    }
+    border: 0;
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 999px;
+    width: 34px;
+    height: 34px;
+    font-size: 18px;
+    line-height: 1;
+    color: #2a1822;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
     .post-owner-btn.show { display: inline-flex; align-items: center; justify-content: center; }
 
     .post-menu {
@@ -698,6 +703,28 @@ a, button, .star, .top-menu .star, input, textarea, .react-btn, .post-menu butto
         <div class="auth-error" id="compose-error"></div>
     </div>
 </div>
+    <div class="auth-overlay" id="edit-overlay">
+    <div class="auth-modal">
+        <h2>редактировать</h2>
+        <label for="edit-title">заголовок</label>
+        <input id="edit-title" type="text">
+        <label for="edit-content">текст</label>
+        <textarea id="edit-content" rows="6" style="width:100%;border:0;border-radius:12px;padding:10px;background:rgba(255,255,255,.55);font-family:Georgia,serif"></textarea>
+        <label for="edit-media-url">ссылка на фото/gif</label>
+        <input id="edit-media-url" type="url" placeholder="https://...">
+        <img id="edit-preview" alt="" style="display:none;max-width:100%;border-radius:12px;margin-top:8px">
+        <div class="auth-actions">
+            <button type="button" id="edit-save">сохранить</button>
+            <button type="button" id="edit-close" class="secondary">отмена</button>
+        </div>
+        <div class="auth-error" id="edit-error"></div>
+    </div>
+</div>
+
+<div class="post-menu" id="post-menu">
+    <button type="button" id="post-menu-edit">изменить</button>
+    <button type="button" id="post-menu-delete" class="danger">удалить</button>
+</div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="./notes-supabase.js"></script>
     <script>
@@ -708,6 +735,60 @@ a, button, .star, .top-menu .star, input, textarea, .react-btn, .post-menu butto
 
     var authOverlay = document.getElementById("auth-overlay");
     var composeOverlay = document.getElementById("compose-overlay");
+    var editOverlay = document.getElementById("edit-overlay");
+var editingPostId = null;
+
+function openEdit(post) {
+    editingPostId = post.id;
+    document.getElementById("edit-title").value = post.title ? post.title : "";
+    document.getElementById("edit-content").value = post.content ? post.content : "";
+    document.getElementById("edit-media-url").value = post.media_url ? post.media_url : "";
+    document.getElementById("edit-error").textContent = "";
+    var ep = document.getElementById("edit-preview");
+    if (post.media_url) {
+        ep.style.display = "block";
+        ep.src = post.media_url;
+    } else {
+        ep.style.display = "none";
+        ep.src = "";
+    }
+    editOverlay.classList.add("open");
+}
+function closeEdit() {
+    editOverlay.classList.remove("open");
+    editingPostId = null;
+}
+window.openNotesEdit = openEdit;
+
+document.getElementById("edit-close").onclick = closeEdit;
+
+document.getElementById("edit-media-url").oninput = function () {
+    var u = document.getElementById("edit-media-url").value.trim();
+    var ep = document.getElementById("edit-preview");
+    if (u) { ep.style.display = "block"; ep.src = u; }
+    else { ep.style.display = "none"; ep.src = ""; }
+};
+
+document.getElementById("edit-save").onclick = async function () {
+    var err = document.getElementById("edit-error");
+    err.textContent = "";
+    if (!editingPostId) return;
+    var title = document.getElementById("edit-title").value.trim();
+    var content = document.getElementById("edit-content").value.trim();
+    var media_url = document.getElementById("edit-media-url").value.trim();
+    var payload = { title: title, content: content };
+    if (media_url) {
+        payload.media_url = media_url;
+        payload.media_type = /\.gif(\?|$)/i.test(media_url) ? "gif" : "image";
+    } else {
+        payload.media_url = null;
+        payload.media_type = null;
+    }
+    var { error } = await sb.from("posts").update(payload).eq("id", editingPostId);
+    if (error) { err.textContent = error.message; return; }
+    closeEdit();
+    location.reload();
+};
 
     function openAuth() {
         authOverlay.classList.add("open");
