@@ -81,15 +81,17 @@ a, button, .star, .top-menu .star, input, textarea, .react-btn, .post-menu butto
         overflow: visible;
     }
     .notes-bg {
-        position: fixed;
-        top: 42px;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        z-index: 0;
-        background: #1a0f14 url("notes-bg.jpg") center center / cover no-repeat;
-        pointer-events: none;
-    }
+    position: fixed;
+    top: 42px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 0;
+    background: #1a0f14 url("notes-bg.jpg") center center / cover no-repeat;
+    pointer-events: none;
+    border-radius: 0 0 30px 30px;
+    overflow: hidden;
+}
     .notes-bg::before {
         content: "";
         position: absolute;
@@ -101,6 +103,8 @@ a, button, .star, .top-menu .star, input, textarea, .react-btn, .post-menu butto
         transform: scale(1.06);
     }
     .notes-grain {
+        border-radius: 0 0 30px 30px;
+    overflow: hidden;
         position: fixed;
         top: 42px;
         left: 0;
@@ -799,6 +803,15 @@ a, button, .star, .top-menu .star, input, textarea, .react-btn, .post-menu butto
     <input id="compose-title-color" type="color" value="#1a0f14">
     <label for="compose-body-color">цвет текста</label>
     <input id="compose-body-color" type="color" value="#1a0f14">
+        <label for="compose-post-bg">фон поста</label>
+    <select id="compose-post-bg">
+        <option value="glass">glass (по умолчанию)</option>
+        <option value="pink">пыльно-розовый</option>
+        <option value="lilac">сирень</option>
+        <option value="dark">тёмный</option>
+        <option value="cream">крем</option>
+        <option value="clear">почти прозрачный</option>
+    </select>
         <div class="compose-preview-box">
         <div class="prev-title" id="compose-live-title">заголовок…</div>
         <div class="prev-body" id="compose-live-body">текст…</div>
@@ -854,6 +867,19 @@ a, button, .star, .top-menu .star, input, textarea, .react-btn, .post-menu butto
     <input id="edit-title-color" type="color" value="#1a0f14">
     <label for="edit-body-color">цвет текста</label>
     <input id="edit-body-color" type="color" value="#1a0f14">
+        <label for="edit-post-bg">фон поста</label>
+    <select id="edit-post-bg">
+        <option value="glass">glass (по умолчанию)</option>
+        <option value="pink">пыльно-розовый</option>
+        <option value="lilac">сирень</option>
+        <option value="dark">тёмный</option>
+        <option value="cream">крем</option>
+        <option value="clear">почти прозрачный</option>
+    </select>
+    <div class="compose-preview-box" id="edit-preview-box">
+        <div class="prev-title" id="edit-live-title">заголовок…</div>
+        <div class="prev-body" id="edit-live-body">текст…</div>
+    </div>
         <label for="edit-media-url">ссылка на фото/gif</label>
         <input id="edit-media-url" type="url" placeholder="https://...">
         <img id="edit-preview" alt="" style="display:none;max-width:100%;border-radius:12px;margin-top:8px">
@@ -892,6 +918,8 @@ function openEdit(post) {
 document.getElementById("edit-body-font").value = post.body_font ? post.body_font : "Georgia, serif";
 document.getElementById("edit-title-color").value = post.title_color ? post.title_color : "#1a0f14";
 document.getElementById("edit-body-color").value = post.body_color ? post.body_color : "#1a0f14";
+    document.getElementById("edit-post-bg").value = post.post_bg ? post.post_bg : "glass";
+updateEditPreview();
     document.getElementById("edit-error").textContent = "";
     var ep = document.getElementById("edit-preview");
     if (post.media_url) {
@@ -1053,9 +1081,18 @@ mediaFileInput.onchange = async function () {
         closeCompose();
         location.reload();
     };
+    function postBgStyle(key) {
+    if (key === "pink") return "rgba(240, 201, 214, 0.45)";
+    if (key === "lilac") return "rgba(200, 180, 220, 0.4)";
+    if (key === "dark") return "rgba(30, 20, 28, 0.55)";
+    if (key === "cream") return "rgba(255, 248, 240, 0.5)";
+    if (key === "clear") return "rgba(255, 255, 255, 0.08)";
+    return "rgba(255, 255, 255, 0.18)";
+}
     function updateComposePreview() {
     var titleEl = document.getElementById("compose-live-title");
     var bodyEl = document.getElementById("compose-live-body");
+    var box = document.querySelector("#compose-overlay .compose-preview-box");
     if (!titleEl || !bodyEl) return;
     var title = document.getElementById("compose-title").value;
     var content = document.getElementById("compose-content").value;
@@ -1063,20 +1100,48 @@ mediaFileInput.onchange = async function () {
     var bodyFont = document.getElementById("compose-body-font").value;
     var titleColor = document.getElementById("compose-title-color").value;
     var bodyColor = document.getElementById("compose-body-color").value;
+    var bg = document.getElementById("compose-post-bg").value;
     titleEl.textContent = title ? title : "заголовок…";
     bodyEl.textContent = content ? content : "текст…";
     titleEl.style.fontFamily = titleFont;
     titleEl.style.color = titleColor;
     bodyEl.style.fontFamily = bodyFont;
     bodyEl.style.color = bodyColor;
+    if (box) box.style.background = postBgStyle(bg);
 }
-["compose-title", "compose-content", "compose-title-font", "compose-body-font", "compose-title-color", "compose-body-color"].forEach(function (id) {
+["compose-title", "compose-content", "compose-title-font", "compose-body-font", "compose-title-color", "compose-body-color", "compose-post-bg"].forEach(function (id) {
     var el = document.getElementById(id);
     if (!el) return;
     el.addEventListener("input", updateComposePreview);
     el.addEventListener("change", updateComposePreview);
 });
 updateComposePreview();
+    function updateEditPreview() {
+    var titleEl = document.getElementById("edit-live-title");
+    var bodyEl = document.getElementById("edit-live-body");
+    var box = document.getElementById("edit-preview-box");
+    if (!titleEl || !bodyEl) return;
+    var title = document.getElementById("edit-title").value;
+    var content = document.getElementById("edit-content").value;
+    var titleFont = document.getElementById("edit-title-font").value;
+    var bodyFont = document.getElementById("edit-body-font").value;
+    var titleColor = document.getElementById("edit-title-color").value;
+    var bodyColor = document.getElementById("edit-body-color").value;
+    var bg = document.getElementById("edit-post-bg").value;
+    titleEl.textContent = title ? title : "заголовок…";
+    bodyEl.textContent = content ? content : "текст…";
+    titleEl.style.fontFamily = titleFont;
+    titleEl.style.color = titleColor;
+    bodyEl.style.fontFamily = bodyFont;
+    bodyEl.style.color = bodyColor;
+    if (box) box.style.background = postBgStyle(bg);
+}
+["edit-title", "edit-content", "edit-title-font", "edit-body-font", "edit-title-color", "edit-body-color", "edit-post-bg"].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener("input", updateEditPreview);
+    el.addEventListener("change", updateEditPreview);
+});
 })();
 </script>
     
