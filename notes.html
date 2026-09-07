@@ -671,6 +671,11 @@ a, button, .star, input, textarea, .react-btn, .post-menu button, .menu-login, l
 
     <a href="#top" class="back-to-top-fixed" aria-label="Back to top">↑</a>
 
+    <div class="post-menu" id="post-menu">
+    <button type="button" id="post-menu-edit">изменить</button>
+    <button type="button" id="post-menu-delete" class="danger">удалить</button>
+</div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="./notes-supabase.js"></script>
     <script>
@@ -787,13 +792,6 @@ mediaFileInput.onchange = async function () {
     };
 })();
 </script>
-
-    <div class="post-menu" id="post-menu">
-    <button type="button" id="post-menu-edit">изменить</button>
-    <button type="button" id="post-menu-delete" class="danger">удалить</button>
-</div>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="./notes-supabase.js"></script>
     
 </body>
 </html>
