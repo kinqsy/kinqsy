@@ -66,13 +66,41 @@
         .top-menu .star:hover { opacity: 1; }
 
         .dreams-page {
+        position: relative;
+        isolation: isolate;
         min-height: calc(100vh - 42px);
         margin-top: 42px;
         padding: 58px 20px 80px;
         background: #1a0f14 url("dreams-bg.jpg") center center / cover no-repeat;
         border-radius: 0 0 30px 30px;
+        overflow: hidden;
     }
-
+    .dreams-page::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: inherit;
+        background-size: cover;
+        background-position: center;
+        filter: blur(14px);
+        transform: scale(1.06);
+        z-index: 0;
+        pointer-events: none;
+    }
+    .dreams-page > * {
+        position: relative;
+        z-index: 2;
+    }
+    .dreams-grain {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 1;
+        opacity: 0.45;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        background-size: 220px 220px;
+        mix-blend-mode: overlay;
+    }
         .dreams-header {
             max-width: 900px;
             margin: 0 auto 40px;
@@ -316,6 +344,7 @@ font-family: Arial, sans-serif;
     </nav>
 
     <main class="dreams-page">
+        <div class="dreams-grain" aria-hidden="true"></div>
         <div class="dreams-header">
             <h1 class="dreams-title">DREAMS</h1>
             <div class="dreams-subtitle">things I probably shouldn't publish</div>
@@ -415,68 +444,70 @@ async function loadDreams() {
     feed.innerHTML = "";
 
     for (const post of data) {
-        const article = document.createElement("article");
-        article.className = "post";
+    const article = document.createElement("article");
+    article.className = "post";
+    article.id = "post-" + post.id;
 
-        let mediaHtml = "";
-        if (post.media_url) {
-            mediaHtml = '<div class="post-media"><img src="' + post.media_url + '" alt=""></div>';
-        }
-
-        const comments = await loadComments(post.id);
-
-        article.innerHTML =
-            '<div class="post-date">' +
-                new Date(post.created_at).toLocaleDateString("en-GB") +
-            '</div>' +
-            '<h2 class="post-title">' + (post.title || "") + '</h2>' +
-            mediaHtml +
-            '<div class="post-content">' + (post.content || "") + '</div>' +
-            '<div class="post-footer-row">' +
-    '<div class="post-footer">comments · ' + comments.length + '</div>' +
-    '<button type="button" class="post-owner-btn" aria-label="menu">⋯</button>' +
-'</div>' +
-
-        const form = article.querySelector(".comment-form");
-        const list = article.querySelector(".comments-list");
-        const footer = article.querySelector(".post-footer");
-
-        form.addEventListener("submit", async function (e) {
-            e.preventDefault();
-
-            const nameInput = form.querySelector('[name="author_name"]');
-            const textInput = form.querySelector('[name="content"]');
-            const author_name = nameInput.value.trim();
-            const content = textInput.value.trim();
-            const submitBtn = form.querySelector("button");
-
-            if (!author_name || !content) {
-                alert("Напиши имя и комментарий");
-                return;
-            }
-
-            submitBtn.disabled = true;
-
-            const { error } = await supabaseClient.from("comments").insert({post_id: post.id,
-                author_name: author_name,
-                content: content
-            });
-
-            submitBtn.disabled = false;
-
-            if (error) {
-                alert("Ошибка: " + error.message);
-                return;
-            }
-
-            textInput.value = "";
-            const fresh = await loadComments(post.id);
-            list.innerHTML = renderComments(fresh);
-            footer.textContent = "comments · " + fresh.length;
-        });
-
-        feed.appendChild(article);
+    var mediaHtml = "";
+    if (post.media_url) {
+        mediaHtml = '<div class="post-media"><img src="' + post.media_url + '" alt=""></div>';
     }
+
+    const comments = await loadComments(post.id);
+
+    article.innerHTML =
+        '<div class="post-date">' +
+            new Date(post.created_at).toLocaleDateString("en-GB") +
+        '</div>' +
+        '<h2 class="post-title">' + escapeHtml(post.title || "") + '</h2>' +
+        mediaHtml +
+        '<div class="post-content">' + escapeHtml(post.content || "") + '</div>' +
+        '<div class="post-footer-row">' +
+            '<div class="post-footer">comments · ' + comments.length + '</div>' +
+            '<button type="button" class="post-owner-btn" aria-label="menu">⋯</button>' +
+        '</div>' +
+        '<div class="comments">' +
+            '<div class="comments-list">' + renderComments(comments) + '</div>' +
+            '<form class="comment-form">' +
+                '<input name="author_name" type="text" placeholder="имя" maxlength="40" required>' +
+                '<textarea name="content" placeholder="комментарий" maxlength="500" required></textarea>' +
+                '<button type="submit">отправить</button>' +
+            '</form>' +
+        '</div>';
+
+    const form = article.querySelector(".comment-form");
+    const list = article.querySelector(".comments-list");
+    const footer = article.querySelector(".post-footer");
+
+    form.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const nameInput = form.querySelector('[name="author_name"]');
+        const textInput = form.querySelector('[name="content"]');
+        const author_name = nameInput.value.trim();
+        const content = textInput.value.trim();
+        const submitBtn = form.querySelector("button");
+        if (!author_name || !content) {
+            alert("Напиши имя и комментарий");
+            return;
+        }
+        submitBtn.disabled = true;
+        const { error } = await supabaseClient.from("comments").insert({
+            post_id: post.id,
+            author_name: author_name,
+            content: content
+        });
+        submitBtn.disabled = false;
+        if (error) {
+            alert("Ошибка: " + error.message);
+            return;
+        }
+        textInput.value = "";
+        const fresh = await loadComments(post.id);
+        list.innerHTML = renderComments(fresh);
+        footer.textContent = "comments · " + fresh.length;
+    });
+
+    feed.appendChild(article);
 }
 
 loadDreams();
