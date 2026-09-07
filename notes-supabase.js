@@ -265,7 +265,13 @@ if (clearBtn) {
 var activePostMenu = null;
 async function canEditPost(post) { var { data: { session } } = await supabaseClient.auth.getSession(); if (!session) return false; if (post.user_id && String(post.user_id) === String(session.user.id)) return true; if (typeof OWNER_ID !== "undefined" && String(session.user.id) === String(OWNER_ID)) return true; return false; }
 function hidePostMenu() { var menu = document.getElementById("post-menu"); if (menu) menu.classList.remove("open"); activePostMenu = null; }
-function showPostMenuNearFooter(article, post) { var menu = document.getElementById("post-menu"); var footer = article.querySelector(".post-footer-row") || article.querySelector(".post-footer"); if (!menu || !footer) return;
+function showPostMenuNearFooter(article, post) { var menu = document.getElementById("post-menu"); if (!menu) return;
+var footer = article.querySelector(".post-footer-row");
+if (!footer) {
+    footer = article.querySelector(".post-footer");
+}
+if (!footer) return;
+
 activePostMenu = post;
 menu.classList.add("open");
 
@@ -274,8 +280,12 @@ var menuW = 160;
 var left = rect.right - menuW;
 var top = rect.top;
 if (left < 8) left = 8;
-if (left + menuW > window.innerWidth - 8) left = window.innerWidth - menuW - 8;
-if (top + 90 > window.innerHeight) top = Math.max(8, rect.bottom - 90);
+if (left + menuW > window.innerWidth - 8) {
+    left = window.innerWidth - menuW - 8;
+}
+if (top + 90 > window.innerHeight) {
+    top = Math.max(8, rect.bottom - 90);
+}
 
 menu.style.left = left + "px";
 menu.style.top = top + "px";
@@ -298,5 +308,21 @@ btn.addEventListener("click", function (e) {
 document.addEventListener("click", function (e) { var menu = document.getElementById("post-menu"); if (!menu || !menu.classList.contains("open")) return; if (e.target.closest("#post-menu")) return; if (e.target.closest(".post-owner-btn")) return; hidePostMenu(); });
 var delBtn = document.getElementById("post-menu-delete"); var editBtn = document.getElementById("post-menu-edit");
 if (delBtn) { delBtn.onclick = async function () { if (!activePostMenu) return; if (!confirm("Удалить пост?")) return; var { error } = await supabaseClient.from("posts").delete().eq("id", activePostMenu.id); hidePostMenu(); if (error) { alert(error.message); return; } loadNotes(); }; }
-if (editBtn) { editBtn.onclick = async function () { if (!activePostMenu) return; var post = activePostMenu; hidePostMenu(); var title = prompt("Заголовок", post.title  ""); if (title === null) return; var content = prompt("Текст", post.content  ""); if (content === null) return; var { error } = await supabaseClient.from("posts").update({ title: title, content: content }).eq("id", post.id); if (error) { alert(error.message); return; } loadNotes(); }; }
+if (editBtn) {
+    editBtn.onclick = async function () {
+        if (!activePostMenu) return;
+        var post = activePostMenu;
+        hidePostMenu();
+        var title = prompt("Заголовок", post.title ? post.title : "");
+        if (title === null) return;
+        var content = prompt("Текст", post.content ? post.content : "");
+        if (content === null) return;
+        var { error } = await supabaseClient.from("posts").update({
+            title: title,
+            content: content
+        }).eq("id", post.id);
+        if (error) { alert(error.message); return; }
+        loadNotes();
+    };
+}
 loadNotes(); setupFilters();
