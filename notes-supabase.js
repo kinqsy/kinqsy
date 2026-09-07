@@ -317,6 +317,7 @@ btn.addEventListener("click", function (e) {
     showPostMenuNearFooter(article, post);
 });
 }
+
 document.addEventListener("click", function (e) { var menu = document.getElementById("post-menu"); if (!menu || !menu.classList.contains("open")) return; if (e.target.closest("#post-menu")) return; if (e.target.closest(".post-owner-btn")) return; hidePostMenu(); });
 var delBtn = document.getElementById("post-menu-delete"); var editBtn = document.getElementById("post-menu-edit");
 if (delBtn) { delBtn.onclick = async function () { if (!activePostMenu) return; if (!confirm("Удалить пост?")) return; var { error } = await supabaseClient.from("posts").delete().eq("id", activePostMenu.id); hidePostMenu(); if (error) { alert(error.message); return; } loadNotes(); }; }
