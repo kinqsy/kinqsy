@@ -7,6 +7,21 @@
     <link rel="icon" href="favicon.png" type="image/png">
     <style>
         * { box-sizing: border-box; }
+        ::selection {
+        background: rgba(240, 201, 214, 0.9);
+        color: #3a2030;
+    }
+    ::-moz-selection {
+        background: rgba(240, 201, 214, 0.9);
+        color: #3a2030;
+    }
+    body, body * {
+        cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='%23f0c9d6' stroke='%233a2030' stroke-width='1.2' d='M4 3l12 7.5-5.2 1.4L13 21z'/%3E%3C/svg%3E") 4 2, auto;
+    }
+    a, button, .star, input, textarea, .react-btn, .post-menu button, .post-owner-btn {
+        cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath fill='%23f6dce8' stroke='%233a2030' stroke-width='1.3' d='M8 4l12 8-6 1.5L16 24l-3-7-5 2z'/%3E%3C/svg%3E") 5 2, pointer;
+    }
+
         html { scroll-behavior: smooth; }
         html, body { margin: 0; padding: 0; min-height: 100%; }
 
@@ -17,18 +32,22 @@
     }
 
         .top-menu {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%;
-            height: 42px;
-            background: #f0c9d6;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 18px;
-            z-index: 1000;
-            box-shadow: 0 2px 12px rgba(0,0,0,.18);
-        }
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 42px;
+        background: rgba(240, 201, 214, 0.35);
+        backdrop-filter: blur(22px) saturate(160%);
+        -webkit-backdrop-filter: blur(22px) saturate(160%);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+        box-shadow: 0 4px 24px rgba(110, 64, 87, 0.12);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        z-index: 1000;
+    }
         .top-menu a {
             color: #050505;
             text-decoration: none;
@@ -66,6 +85,8 @@
         }
 
         .dreams-title {
+            user-select: none;
+        -webkit-user-select: none;
             margin: 0 0 14px;
             color: #000;
             font-family: "Bodoni 72", Didot, "Bodoni MT", Georgia, serif;
@@ -77,6 +98,8 @@
         }
 
         .dreams-subtitle {
+            user-select: none;
+        -webkit-user-select: none;
             margin: 0;
             font-size: 17px;
             font-style: italic;
@@ -93,6 +116,8 @@
         }
 
         .post {
+            user-select: none;
+        -webkit-user-select: none;
             position: relative;
             padding: 28px;
             border-radius: 22px;
@@ -407,15 +432,10 @@ async function loadDreams() {
             '<h2 class="post-title">' + (post.title || "") + '</h2>' +
             mediaHtml +
             '<div class="post-content">' + (post.content || "") + '</div>' +
-            '<div class="post-footer">comments · ' + comments.length + '</div>' +
-            '<div class="comments">' +
-                '<div class="comments-list">' + renderComments(comments) + '</div>' +
-                '<form class="comment-form">' +
-                    '<input name="author_name" type="text" placeholder="имя" maxlength="40" required>' +
-                    '<textarea name="content" placeholder="комментарий" maxlength="500" required></textarea>' +
-                    '<button type="submit">отправить</button>' +
-                '</form>' +
-            '</div>';
+            '<div class="post-footer-row">' +
+    '<div class="post-footer">comments · ' + comments.length + '</div>' +
+    '<button type="button" class="post-owner-btn" aria-label="menu">⋯</button>' +
+'</div>' +
 
         const form = article.querySelector(".comment-form");
         const list = article.querySelector(".comments-list");
