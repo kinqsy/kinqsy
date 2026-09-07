@@ -766,7 +766,7 @@ a, button, .star, .top-menu .star, input, textarea, .react-btn, .post-menu butto
         <label for="compose-title">заголовок</label>
         <input id="compose-title" type="text">
         <label for="compose-content">текст</label>
-        <textarea id="compose-content" rows="5" style="width:100%;border:0;border-radius:12px;padding:10px;background:rgba(255,255,255,.55);font-family:Georgia,serif"></textarea>
+        <textarea id="compose-content" rows="5"></textarea>
         <label for="compose-title-font">шрифт заголовка</label>
     <select id="compose-title-font">
         <option value="Georgia, serif">Georgia</option>
@@ -799,6 +799,10 @@ a, button, .star, .top-menu .star, input, textarea, .react-btn, .post-menu butto
     <input id="compose-title-color" type="color" value="#1a0f14">
     <label for="compose-body-color">цвет текста</label>
     <input id="compose-body-color" type="color" value="#1a0f14">
+        <div class="compose-preview-box">
+        <div class="prev-title" id="compose-live-title">заголовок…</div>
+        <div class="prev-body" id="compose-live-body">текст…</div>
+    </div>
         <label for="compose-media-url">ссылка на фото/gif</label>
     <input id="compose-media-url" type="url" placeholder="https://...">
     <label for="compose-media-file">или с устройства</label>
@@ -817,7 +821,39 @@ a, button, .star, .top-menu .star, input, textarea, .react-btn, .post-menu butto
         <label for="edit-title">заголовок</label>
         <input id="edit-title" type="text">
         <label for="edit-content">текст</label>
-        <textarea id="edit-content" rows="6" style="width:100%;border:0;border-radius:12px;padding:10px;background:rgba(255,255,255,.55);font-family:Georgia,serif"></textarea>
+        <textarea id="edit-content" rows="6"></textarea>
+        <label for="edit-title-font">шрифт заголовка</label>
+    <select id="edit-title-font">
+        <option value="Georgia, serif">Georgia</option>
+        <option value="'Rubik Beastly', system-ui">Rubik Beastly</option>
+        <option value="'Poiret One', sans-serif">Poiret One</option>
+        <option value="'Kaisei Decol', serif">Kaisei Decol</option>
+        <option value="'Bad Script', cursive">Bad Script</option>
+        <option value="'Alumni Sans Collegiate One', sans-serif">Alumni Sans Collegiate One</option>
+        <option value="'Rubik 80s Fade', system-ui">Rubik 80s Fade</option>
+        <option value="'Climate Crisis', sans-serif">Climate Crisis</option>
+        <option value="'Press Start 2P', monospace">Press Start 2P</option>
+        <option value="'Amatic SC', cursive">Amatic SC</option>
+        <option value="'Shafarik', serif">Shafarik</option>
+    </select>
+    <label for="edit-body-font">шрифт текста</label>
+    <select id="edit-body-font">
+        <option value="Georgia, serif">Georgia</option>
+        <option value="'Rubik Beastly', system-ui">Rubik Beastly</option>
+        <option value="'Poiret One', sans-serif">Poiret One</option>
+        <option value="'Kaisei Decol', serif">Kaisei Decol</option>
+        <option value="'Bad Script', cursive">Bad Script</option>
+        <option value="'Alumni Sans Collegiate One', sans-serif">Alumni Sans Collegiate One</option>
+        <option value="'Rubik 80s Fade', system-ui">Rubik 80s Fade</option>
+        <option value="'Climate Crisis', sans-serif">Climate Crisis</option>
+        <option value="'Press Start 2P', monospace">Press Start 2P</option>
+        <option value="'Amatic SC', cursive">Amatic SC</option>
+        <option value="'Shafarik', serif">Shafarik</option>
+    </select>
+    <label for="edit-title-color">цвет заголовка</label>
+    <input id="edit-title-color" type="color" value="#1a0f14">
+    <label for="edit-body-color">цвет текста</label>
+    <input id="edit-body-color" type="color" value="#1a0f14">
         <label for="edit-media-url">ссылка на фото/gif</label>
         <input id="edit-media-url" type="url" placeholder="https://...">
         <img id="edit-preview" alt="" style="display:none;max-width:100%;border-radius:12px;margin-top:8px">
@@ -833,6 +869,7 @@ a, button, .star, .top-menu .star, input, textarea, .react-btn, .post-menu butto
     <button type="button" id="post-menu-edit">изменить</button>
     <button type="button" id="post-menu-delete" class="danger">удалить</button>
 </div>
+    <a href="#top" class="back-to-top-fixed" aria-label="Back to top">↑</a>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="./notes-supabase.js"></script>
     <script>
@@ -851,6 +888,10 @@ function openEdit(post) {
     document.getElementById("edit-title").value = post.title ? post.title : "";
     document.getElementById("edit-content").value = post.content ? post.content : "";
     document.getElementById("edit-media-url").value = post.media_url ? post.media_url : "";
+    document.getElementById("edit-title-font").value = post.title_font ? post.title_font : "Georgia, serif";
+document.getElementById("edit-body-font").value = post.body_font ? post.body_font : "Georgia, serif";
+document.getElementById("edit-title-color").value = post.title_color ? post.title_color : "#1a0f14";
+document.getElementById("edit-body-color").value = post.body_color ? post.body_color : "#1a0f14";
     document.getElementById("edit-error").textContent = "";
     var ep = document.getElementById("edit-preview");
     if (post.media_url) {
@@ -884,7 +925,14 @@ document.getElementById("edit-save").onclick = async function () {
     var title = document.getElementById("edit-title").value.trim();
     var content = document.getElementById("edit-content").value.trim();
     var media_url = document.getElementById("edit-media-url").value.trim();
-    var payload = { title: title, content: content };
+    var payload = {
+    title: title,
+    content: content,
+    title_font: document.getElementById("edit-title-font").value,
+    body_font: document.getElementById("edit-body-font").value,
+    title_color: document.getElementById("edit-title-color").value,
+    body_color: document.getElementById("edit-body-color").value
+};
     if (media_url) {
         payload.media_url = media_url;
         payload.media_type = /\.gif(\?|$)/i.test(media_url) ? "gif" : "image";
@@ -985,12 +1033,16 @@ mediaFileInput.onchange = async function () {
 
         var media_url = (document.getElementById("compose-media-url").value || "").trim();
     var payload = {
-        title: title,
-        content: content,
-        category: "notes",
-        user_id: session.user.id,
-        visibility: "public"
-    };
+    title: title,
+    content: content,
+    category: "notes",
+    user_id: session.user.id,
+    visibility: "public",
+    title_font: document.getElementById("compose-title-font").value,
+    body_font: document.getElementById("compose-body-font").value,
+    title_color: document.getElementById("compose-title-color").value,
+    body_color: document.getElementById("compose-body-color").value
+};
     if (media_url) {
         payload.media_url = media_url;
         payload.media_type = /\.gif(\?|$)/i.test(media_url) ? "gif" : "image";
@@ -1001,6 +1053,30 @@ mediaFileInput.onchange = async function () {
         closeCompose();
         location.reload();
     };
+    function updateComposePreview() {
+    var titleEl = document.getElementById("compose-live-title");
+    var bodyEl = document.getElementById("compose-live-body");
+    if (!titleEl || !bodyEl) return;
+    var title = document.getElementById("compose-title").value;
+    var content = document.getElementById("compose-content").value;
+    var titleFont = document.getElementById("compose-title-font").value;
+    var bodyFont = document.getElementById("compose-body-font").value;
+    var titleColor = document.getElementById("compose-title-color").value;
+    var bodyColor = document.getElementById("compose-body-color").value;
+    titleEl.textContent = title ? title : "заголовок…";
+    bodyEl.textContent = content ? content : "текст…";
+    titleEl.style.fontFamily = titleFont;
+    titleEl.style.color = titleColor;
+    bodyEl.style.fontFamily = bodyFont;
+    bodyEl.style.color = bodyColor;
+}
+["compose-title", "compose-content", "compose-title-font", "compose-body-font", "compose-title-color", "compose-body-color"].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener("input", updateComposePreview);
+    el.addEventListener("change", updateComposePreview);
+});
+updateComposePreview();
 })();
 </script>
     
