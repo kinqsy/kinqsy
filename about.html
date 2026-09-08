@@ -115,10 +115,10 @@
         background-size: 180px 180px;
         mix-blend-mode: soft-light;
     }
-    .about-page > * {
-        position: relative;
-        z-index: 2;
-    }
+    .about-page > *:not(.about-bg):not(.about-grain) {
+    position: relative;
+    z-index: 2;
+}
     .about-header-row {
         max-width: 900px;
         width: 100%;
@@ -295,16 +295,14 @@
         <span class="star" id="admin-star">★</span>
     </nav>
 
+    <div class="about-bg" aria-hidden="true"></div>
+<div class="about-grain" aria-hidden="true"></div>
     <main class="about-page">
     <div class="about-header-row">
         <h1 class="about-title">ABOUT</h1>
         <div class="about-avatar" data-avatar="1" id="about-avatar" aria-label="avatar"></div>
     </div>
     <div class="about-subtitle">things I probably shouldn't publish</div>
-
-        <div class="about-bg" aria-hidden="true"></div>
-<div class="about-grain" aria-hidden="true"></div>
-
     <div class="about-card">
         <div class="about-text">
             <p>лол</p>
@@ -334,9 +332,9 @@
     <a href="#top" class="back-to-top-fixed" aria-label="Back to top">↑</a>
 
     <script>
-    (function () {
-        var star = document.getElementById("admin-star");
-        if (!star) return;
+(function () {
+    var star = document.getElementById("admin-star");
+    if (star) {
         var clicks = 0;
         var timer = null;
         star.onclick = function () {
@@ -348,7 +346,25 @@
                 window.location.href = "admin.html";
             }
         };
-    })();
-    </script>
+    }
+
+    var avatar = document.getElementById("about-avatar");
+    if (!avatar) return;
+
+    var saved = localStorage.getItem("kinqsy_about_avatar");
+    if (saved === "1" || saved === "2" || saved === "3" || saved === "4") {
+        avatar.setAttribute("data-avatar", saved);
+    }
+
+    avatar.addEventListener("click", function () {
+        var cur = parseInt(avatar.getAttribute("data-avatar") || "1", 10);
+        var next = cur + 1;
+        if (next > 4) next = 1;
+        avatar.setAttribute("data-avatar", String(next));
+        localStorage.setItem("kinqsy_about_avatar", String(next));
+    });
+})();
+</script>
+
 </body>
 </html>
