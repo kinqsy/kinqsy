@@ -126,15 +126,26 @@
     position: relative;
     z-index: 2;
 }
-    .about-header-row {
-    max-width: 900px;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 28px;
-}
+    <div class="about-header-row">
+    <div class="about-user-left">
+        <p class="about-nick" id="about-nick" data-field="nickname">kinqsy</p>
+        <p class="about-status" id="about-status" data-field="status_text">—</p>
+        <p class="about-presence" id="about-presence" data-field="presence">онлайн</p>
+    </div>
+    <div class="about-avatar" data-avatar="1" id="about-avatar" aria-label="avatar"></div>
+    <div class="about-rating" id="about-rating-box">
+        <span class="about-rating-label">репутация</span>
+        <div class="about-rep-bar">
+            <span class="about-rep-marker" id="about-rep-marker" style="left: 50%"></span>
+        </div>
+        <span class="about-rep-title" id="about-rep-title">нейтральная</span>
+        <span class="about-rep-num" id="about-rep-num">0</span>
+        <div class="about-rating-tip">
+            Оценка складывается из ваших поступков и поведения на сайте.
+        </div>
+    </div>
+</div>
+
 .about-user-left {
     flex: 1;
     min-width: 0;
@@ -159,7 +170,7 @@
 }
 .about-rating {
     flex-shrink: 0;
-    min-width: 72px;
+    width: 140px;
     text-align: center;
     padding: 10px 12px;
     border-radius: 14px;
@@ -167,6 +178,8 @@
     border: 1px solid rgba(255, 255, 255, 0.35);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
+    cursor: help;
+    position: relative;
 }
 .about-rating-label {
     display: block;
@@ -176,13 +189,88 @@
     letter-spacing: 1px;
     text-transform: uppercase;
     opacity: 0.7;
+    margin-bottom: 6px;
 }
-.about-rating-value {
+.about-rep-bar {
+    position: relative;
+    height: 10px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #7a2030 0%, #c4b8be 50%, #4a7c59 100%);
+    overflow: hidden;
+}
+.about-rep-marker {
+    position: absolute;
+    top: -3px;
+    width: 4px;
+    height: 16px;
+    margin-left: -2px;
+    border-radius: 2px;
+    background: #1a0f14;
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.5);
+    transition: left 0.25s ease;
+}
+.about-rep-title {
     display: block;
-    margin-top: 4px;
-    font-size: 22px;
+    margin-top: 8px;
+    font-size: 11px;
     font-weight: bold;
+    line-height: 1.2;
     color: #1a0f14;
+}
+.about-rep-num {
+    display: block;
+    margin-top: 2px;
+    font-size: 12px;
+    opacity: 0.75;
+}
+.about-rating-tip {
+    display: none;
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 8px);
+    width: 220px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(26, 15, 20, 0.92);
+    color: #f6dce8;
+    font-size: 12px;
+    line-height: 1.35;
+    text-align: left;
+    z-index: 20;
+    pointer-events: none;
+}
+.about-rating:hover .about-rating-tip {
+    display: block;
+}
+.about-nick.editable,
+.about-status.editable,
+.about-presence.editable {
+    cursor: pointer;
+    border-bottom: 1px dashed transparent;
+}
+.about-nick.editable:hover,
+.about-status.editable:hover,
+.about-presence.editable:hover {
+    border-bottom-color: rgba(26, 15, 20, 0.4);
+}
+.about-presence {
+    margin: 4px 0 0;
+    font-size: 12px;
+    font-family: Arial, sans-serif;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    opacity: 0.9;
+}
+.about-inline-input {
+    width: 100%;
+    max-width: 220px;
+    font: inherit;
+    color: inherit;
+    background: rgba(255,255,255,0.45);
+    border: 1px solid rgba(255,255,255,0.5);
+    border-radius: 8px;
+    padding: 4px 8px;
+    box-sizing: border-box;
 }
     .about-avatar {
         cursor: pointer;
@@ -407,7 +495,6 @@
             <span class="about-rating-value" id="about-rating">0</span>
         </div>
     </div>
-    <div class="about-subtitle">things I probably shouldn't publish</div>
     <div class="about-card">
         <div class="about-text">
             <p>лол</p>
