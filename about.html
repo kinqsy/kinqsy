@@ -7,6 +7,22 @@
     <link rel="icon" href="favicon.png" type="image/png">
     <style>
         * { box-sizing: border-box; }
+        ::selection {
+        background: rgba(240, 201, 214, 0.9);
+        color: #3a2030;
+    }
+    ::-moz-selection {
+        background: rgba(240, 201, 214, 0.9);
+        color: #3a2030;
+    }
+    body, body * {
+        user-select: none;
+        -webkit-user-select: none;
+    }
+    input, textarea {
+        user-select: text;
+        -webkit-user-select: text;
+    }
         html { scroll-behavior: smooth; }
         html, body { margin: 0; padding: 0; min-height: 100%; }
 
@@ -17,18 +33,22 @@
         }
 
         .top-menu {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%;
-            height: 42px;
-            background: #885069;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 18px;
-            z-index: 1000;
-            box-shadow: 0 2px 12px rgba(0,0,0,.18);
-        }
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 42px;
+        background: rgba(240, 201, 214, 0.35);
+        backdrop-filter: blur(22px) saturate(160%);
+        -webkit-backdrop-filter: blur(22px) saturate(160%);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        z-index: 1000;
+        box-shadow: 0 4px 24px rgba(110, 64, 87, 0.12);
+    }
         .top-menu a {
             color: #050505;
             text-decoration: none;
@@ -47,12 +67,89 @@
         .top-menu .star:hover { opacity: 1; }
 
         .about-page {
-            min-height: 100vh;
-            padding: 100px 20px 80px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+        position: relative;
+        isolation: isolate;
+        min-height: calc(100vh - 42px);
+        margin-top: 42px;
+        padding: 58px 20px 80px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background: transparent;
+        border-radius: 0 0 30px 30px;
+    }
+    .about-bg {
+        position: fixed;
+        top: 42px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 0;
+        background: #1a0f14 url("about-bg.jpg") center center / cover no-repeat;
+        pointer-events: none;
+        border-radius: 0 0 30px 30px;
+        overflow: hidden;
+    }
+    .about-bg::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: inherit;
+        background-size: cover;
+        background-position: center;
+        filter: blur(14px);
+        transform: scale(1.06);
+    }
+    .about-grain {
+        position: fixed;
+        top: 42px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1;
+        pointer-events: none;
+        opacity: 0.45;
+        border-radius: 0 0 30px 30px;
+        overflow: hidden;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        background-size: 180px 180px;
+        mix-blend-mode: soft-light;
+    }
+    .about-page > * {
+        position: relative;
+        z-index: 2;
+    }
+    .about-header-row {
+        max-width: 900px;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        margin-bottom: 12px;
+    }
+    .about-avatar {
+        width: 96px;
+        height: 96px;
+        flex-shrink: 0;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        background-size: cover;
+        background-position: center;
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+    .about-avatar[data-avatar="1"] {
+        background-image: linear-gradient(145deg, #f0c9d6, #885069);
+    }
+    .about-avatar[data-avatar="2"] {
+        background-image: linear-gradient(145deg, #c8b4dc, #4a3060);
+    }
+    .about-avatar[data-avatar="3"] {
+        background-image: linear-gradient(145deg, #1a0f14, #6e4057);
+    }
+    .about-avatar[data-avatar="4"] {
+        background-image: linear-gradient(145deg, #fff8f0, #d4a5b8);
+    }
 
         .about-title {
             max-width: 900px;
@@ -64,6 +161,8 @@
             font-weight: 400;
             line-height: .8;
             letter-spacing: -5px;
+            margin: 0;
+            user-select: none;
             text-shadow: 0 2px 0 rgba(255,255,255,.35), 0 8px 24px rgba(0,0,0,.25);
         }
 
@@ -137,23 +236,26 @@
         .socials svg { width: 22px; height: 22px; fill: currentColor; }
 
         .back-to-top-fixed {
-            position: fixed;
-            right: 22px;
-            bottom: 22px;
-            z-index: 999;
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: #885069;
-            color: #f6dce8;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            font-size: 18px;
-            font-weight: bold;
-            box-shadow: 0 8px 24px rgba(0,0,0,.35);
-        }
+        position: fixed;
+        right: 22px;
+        bottom: 22px;
+        z-index: 999;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        background: rgba(255, 255, 255, 0.14);
+        color: #f6dce8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        font-size: 18px;
+        font-weight: bold;
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
         .back-to-top-fixed:hover {
             transform: translateY(-2px);
             opacity: 0.9;
@@ -190,16 +292,24 @@
     </nav>
 
     <main class="about-page">
+    <div class="about-header-row">
         <h1 class="about-title">ABOUT</h1>
-        <div class="about-subtitle">things I probably shouldn't publish</div>
+        <div class="about-avatar" data-avatar="1" id="about-avatar" aria-label="avatar"></div>
+    </div>
+    <div class="about-subtitle">things I probably shouldn't publish</div>
 
-        <div class="about-card">
-            <div class="about-text">
-                <p>No bio. No fun facts.</p>
-                <p>Sorry about the translator.</p>
-            </div>
+        <div class="about-bg" aria-hidden="true"></div>
+<div class="about-grain" aria-hidden="true"></div>
+
+    <div class="about-card">
+        <div class="about-text">
+            <p>лол</p>
+            <p>кек</p>
+            <p>чебурек</p>
         </div>
-    </main>
+    </div>
+</main>
+
 
     <footer>
         <div>© 2026 kinqsy.lol</div>
