@@ -538,13 +538,13 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>
+        <script>
 (function () {
     var SUPABASE_URL = "https://rgkfegdtxaojceknnzlr.supabase.co";
     var SUPABASE_KEY = "sb_publishable_uK7zrVyq8AlHpoj13pGQ6g_q3L47Akw";
     var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // UUID владельца сайта из Authentication → Users (твой аккаунт)
+    // твой UUID из Authentication → Users
     var OWNER_ID = "4923abc5-5c86-48c2-904b-a267c2e21703";
 
     var presenceLabels = {
@@ -588,23 +588,26 @@
             setReputation(0);
             return;
         }
-        document.getElementById("about-nick").textContent = data.nickname || "guest";
+        document.getElementById("about-nick").textContent = data.display_name || "guest";
         document.getElementById("about-status").textContent = data.status_text || "—";
         var pr = data.presence || "online";
         var pel = document.getElementById("about-presence");
         pel.setAttribute("data-presence", pr);
         pel.textContent = presenceLabels[pr] || "онлайн";
-        var av = document.getElementById("about-avatar");
-        av.setAttribute("data-avatar", String(data.avatar_id || 1));
+        document.getElementById("about-avatar").setAttribute("data-avatar", String(data.avatar_id || 1));
         setReputation(data.rating);
-        var t = document.getElementById("about-text");
-        if (data.about_text) t.textContent = data.about_text;
+        if (data.about_text) {
+            document.getElementById("about-text").textContent = data.about_text;
+        }
     }
 
     async function loadPublicProfile() {
         if (OWNER_ID && OWNER_ID.indexOf("PASTE") === -1) {
-            var res = await sb.from("profiles").select("*").eq("user_id", OWNER_ID).maybeSingle();
-            if (res.data) { applyProfile(res.data); return; }
+            var res = await sb.from("profiles").select("*").eq("id", OWNER_ID).maybeSingle();
+            if (res.data) {
+                applyProfile(res.data);
+                return;
+            }
         }
         var any = await sb.from("profiles").select("*").limit(1).maybeSingle();
         if (any.data) applyProfile(any.data);
@@ -633,15 +636,15 @@
 
             async function save() {
                 var val = input.value.trim().slice(0, maxLen || 64);
+                var row = { id: uid, updated_at: new Date().toISOString() };
                 if (field === "nickname") {
                     el.textContent = val || "guest";
-                    val = val || "guest";
+                    row.display_name = val || "guest";
                 } else {
                     el.textContent = val || "—";
+                    row.status_text = val;
                 }
-                var row = { user_id: uid, updated_at: new Date().toISOString() };
-                row[field] = field === "status_text" ? (val === "—" ? "" : val) : val;
-                await sb.from("profiles").upsert(row, { onConflict: "user_id" });
+                await sb.from("profiles").upsert(row, { onConflict: "id" });
             }
             input.addEventListener("keydown", function (e) {
                 if (e.key === "Enter") { e.preventDefault(); save(); }
@@ -665,10 +668,10 @@
         el.setAttribute("data-presence", next);
         el.textContent = presenceLabels[next];
         await sb.from("profiles").upsert({
-            user_id: uid,
+            id: uid,
             presence: next,
             updated_at: new Date().toISOString()
-        }, { onConflict: "user_id" });
+        }, { onConflict: "id" });
     });
 
     document.getElementById("about-avatar").addEventListener("click", async function () {
@@ -679,10 +682,10 @@
         var next = cur >= 4 ? 1 : cur + 1;
         av.setAttribute("data-avatar", String(next));
         await sb.from("profiles").upsert({
-            user_id: uid,
+            id: uid,
             avatar_id: next,
             updated_at: new Date().toISOString()
-        }, { onConflict: "user_id" });
+        }, { onConflict: "id" });
     });
 
     var authOverlay = document.getElementById("auth-overlay");
@@ -693,11 +696,10 @@
     function openAboutEdit() { aboutOverlay.classList.add("open"); }
     function closeAboutEdit() { aboutOverlay.classList.remove("open"); }
 
-    // ★ — ОДИН клик
     document.getElementById("admin-star").onclick = async function () {
         var uid = await currentUserId();
         if (uid) {
-            var { data } = await sb.from("profiles").select("about_text").eq("user_id", uid).maybeSingle();
+            var { data } = await sb.from("profiles").select("about_text").eq("id", uid).maybeSingle();
             document.getElementById("edit-about").value = data && data.about_text ? data.about_text : "";
             document.getElementById("about-error").textContent = "";
             openAboutEdit();
@@ -720,7 +722,7 @@
         closeAuth();
         var uid = await currentUserId();
         if (uid) {
-            var { data } = await sb.from("profiles").select("about_text").eq("user_id", uid).maybeSingle();
+            var { data } = await sb.from("profiles").select("about_text").eq("id", uid).maybeSingle();
             document.getElementById("edit-about").value = data && data.about_text ? data.about_text : "";
             openAboutEdit();
         }
@@ -743,10 +745,10 @@
         if (!uid) { err.textContent = "нужен вход"; return; }
         var about = document.getElementById("edit-about").value.trim();
         var { error } = await sb.from("profiles").upsert({
-            user_id: uid,
+            id: uid,
             about_text: about,
             updated_at: new Date().toISOString()
-        }, { onConflict: "user_id" });
+        }, { onConflict: "id" });
         if (error) { err.textContent = error.message; return; }
         document.getElementById("about-text").textContent = about || "—";
         closeAboutEdit();
