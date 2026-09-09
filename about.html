@@ -449,12 +449,11 @@
 </head>
 <body id="top">
 
-    <nav class="top-menu">
-        <a href="index.html">home</a>
-        <a href="notes.html">notes</a>
-        <a href="dreams.html">dreams</a>
-        <a href="quotes.html">quotation/definition</a>
-        <a href="about.html">about</a>
+            <a href="index.html" id="nav-home">home</a>
+        <a href="notes.html" id="nav-notes">notes</a>
+        <a href="dreams.html" id="nav-dreams">dreams</a>
+        <a href="quotes.html" id="nav-quotes">quotation/definition</a>
+        <a href="about.html" id="nav-about">about</a>
         <span class="star" id="admin-star">★</span>
     </nav>
 
@@ -544,6 +543,32 @@
     var SUPABASE_KEY = "sb_publishable_uK7zrVyq8AlHpoj13pGQ6g_q3L47Akw";
     var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        var OWNER_SLUG = "kinqsy";
+
+    function getU() {
+        var u = new URLSearchParams(location.search).get("u");
+        return (u && u.trim()) ? u.trim() : OWNER_SLUG;
+    }
+
+    function menuUrl(page) {
+        return page + "?u=" + encodeURIComponent(getU());
+    }
+
+    function fixMenu() {
+        var map = {
+            "nav-home": "index.html",
+            "nav-notes": "notes.html",
+            "nav-dreams": "dreams.html",
+            "nav-quotes": "quotes.html",
+            "nav-about": "about.html"
+        };
+        Object.keys(map).forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el) el.href = menuUrl(map[id]);
+        });
+    }
+
+    var viewedProfileId = null;
     // твой UUID из Authentication → Users
     var OWNER_ID = "4923abc5-5c86-48c2-904b-a267c2e21703";
 
