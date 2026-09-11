@@ -267,6 +267,33 @@
             .top-menu { justify-content: flex-start; overflow-x: auto; padding: 0 8px; gap: 12px; }
             footer { grid-template-columns: 1fr; gap: 14px; text-align: center; }
         }
+    
+        .auth-mode-tabs {
+            display: flex; gap: 8px; margin: 0 0 14px;
+        }
+        .auth-mode {
+            flex: 1; padding: 12px 10px; border: 0; border-radius: 999px;
+            background: rgba(255,255,255,0.3); color: #2a1822;
+            font-family: Arial, sans-serif; font-weight: bold; font-size: 14px;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        .auth-mode.active { background: #f0c9d6; }
+        .auth-modal input {
+            font-size: 16px !important; /* iOS no zoom */
+            min-height: 44px;
+        }
+        .auth-actions button {
+            min-height: 48px;
+            font-size: 16px;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        .auth-overlay {
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+        }
+
     </style>
 </head>
 <body id="top">
@@ -389,15 +416,22 @@
     <a href="#top" class="back-to-top-fixed" aria-label="Наверх">↑</a>
 
     <div class="auth-overlay" id="auth-overlay">
-        <div class="auth-modal">
-            <h2>вход</h2>
-            <label for="auth-email">email</label>
-            <input id="auth-email" type="email" autocomplete="username">
+        <div class="auth-modal" id="auth-modal">
+            <h2 id="auth-title">вход</h2>
+            <div class="auth-mode-tabs">
+                <button type="button" class="auth-mode active" id="mode-login" data-mode="login">вход</button>
+                <button type="button" class="auth-mode" id="mode-signup" data-mode="signup">регистрация</button>
+            </div>
+            <div id="signup-only" style="display:none">
+                <label for="auth-nick">ник</label>
+                <input id="auth-nick" type="text" maxlength="32" placeholder="например mary" autocomplete="nickname">
+            </div>
+            <label for="auth-email">почта</label>
+            <input id="auth-email" type="email" inputmode="email" autocomplete="email" placeholder="you@mail.com">
             <label for="auth-password">пароль</label>
-            <input id="auth-password" type="password" autocomplete="current-password">
+            <input id="auth-password" type="password" autocomplete="current-password" placeholder="минимум 6 символов">
             <div class="auth-actions">
-                <button type="button" id="auth-login">войти</button>
-                <button type="button" id="auth-signup" class="secondary">регистрация</button>
+                <button type="button" id="auth-submit">войти</button>
                 <button type="button" id="auth-close" class="secondary">закрыть</button>
             </div>
             <div class="auth-error" id="auth-error"></div>
@@ -820,47 +854,101 @@
     document.getElementById("auth-close").onclick = closeAuth;
     document.getElementById("about-close").onclick = closeAboutEdit;
 
-    document.getElementById("auth-login").onclick = async function () {
-        var err = document.getElementById("auth-error");
-        err.textContent = "";
-        var { error } = await sb.auth.signInWithPassword({
-            email: document.getElementById("auth-email").value.trim(),
-            password: document.getElementById("auth-password").value
-        });
-        if (error) { err.textContent = error.message; return; }
-        closeAuth();
-        var uid = await currentUserId();
-        var { data: prof } = await sb.from("profiles").select("display_name, about_text").eq("id", uid).maybeSingle();
-        if (prof && prof.display_name && getU().toLowerCase() !== String(prof.display_name).toLowerCase()) {
-            location.href = "about.html?u=" + encodeURIComponent(prof.display_name);
-            return;
-        }
-        await loadPublicProfile();
-        if (await canEditThisProfile()) {
-            document.getElementById("edit-about").value = prof && prof.about_text ? prof.about_text : "";
-            openAboutEdit();
-        }
+    var authMode = "login";
+    function setAuthMode(mode) {
+        authMode = mode;
+        var isSignup = mode === "signup";
+        document.getElementById("auth-title").textContent = isSignup ? "регистрация" : "вход";
+        document.getElementById("signup-only").style.display = isSignup ? "block" : "none";
+        document.getElementById("auth-submit").textContent = isSignup ? "создать аккаунт" : "войти";
+        document.getElementById("mode-login").classList.toggle("active", !isSignup);
+        document.getElementById("mode-signup").classList.toggle("active", isSignup);
+        document.getElementById("auth-error").textContent = "";
+        document.getElementById("auth-password").autocomplete = isSignup ? "new-password" : "current-password";
+    }
+    document.getElementById("mode-login").onclick = function (e) {
+        e.preventDefault(); e.stopPropagation();
+        setAuthMode("login");
+    };
+    document.getElementById("mode-signup").onclick = function (e) {
+        e.preventDefault(); e.stopPropagation();
+        setAuthMode("signup");
     };
 
-    document.getElementById("auth-signup").onclick = async function () {
+    document.getElementById("auth-submit").onclick = async function (e) {
+        e.preventDefault();
+        e.stopPropagation();
         var err = document.getElementById("auth-error");
         err.textContent = "";
         var email = document.getElementById("auth-email").value.trim();
         var password = document.getElementById("auth-password").value;
+        if (!email || !password) {
+            err.textContent = "введи почту и пароль";
+            return;
+        }
+        if (password.length < 6) {
+            err.textContent = "пароль минимум 6 символов";
+            return;
+        }
+
+        if (authMode === "login") {
+            err.textContent = "входим…";
+            var res = await sb.auth.signInWithPassword({ email: email, password: password });
+            if (res.error) { err.textContent = res.error.message; return; }
+            closeAuth();
+            var uid = await currentUserId();
+            var { data: prof } = await sb.from("profiles").select("display_name, about_text").eq("id", uid).maybeSingle();
+            if (prof && prof.display_name && getU().toLowerCase() !== String(prof.display_name).toLowerCase()) {
+                location.href = "about.html?u=" + encodeURIComponent(prof.display_name);
+                return;
+            }
+            await loadPublicProfile();
+            if (await canEditThisProfile()) {
+                document.getElementById("edit-about").value = prof && prof.about_text ? prof.about_text : "";
+                openAboutEdit();
+            }
+            return;
+        }
+
+        // signup
+        var nick = document.getElementById("auth-nick").value.trim().slice(0, 32);
+        if (!nick) {
+            err.textContent = "придумай ник";
+            return;
+        }
+        if (!/^[a-zA-Z0-9_\u0400-\u04FF.-]{2,32}$/.test(nick)) {
+            err.textContent = "ник: 2–32 символа, буквы/цифры/_/.";
+            return;
+        }
+        err.textContent = "создаём…";
         var { data, error } = await sb.auth.signUp({ email: email, password: password });
         if (error) { err.textContent = error.message; return; }
-        err.textContent = "аккаунт создан — подтверди почту, потом войди";
         if (data && data.user) {
-            var nick = email.split("@")[0].slice(0, 32) || "user";
             var code = "KQ-" + Math.random().toString(36).slice(2, 8).toUpperCase();
-            await sb.from("profiles").upsert({
+            var up = await sb.from("profiles").upsert({
                 id: data.user.id,
                 display_name: nick,
                 friend_code: code,
                 updated_at: new Date().toISOString()
             }, { onConflict: "id" });
+            if (up.error) {
+                err.textContent = "аккаунт есть, профиль: " + up.error.message;
+            } else {
+                err.textContent = "готово. ник @" + nick + " · код " + code + " · подтверди почту, если просят, потом «вход»";
+            }
+        } else {
+            err.textContent = "проверь почту для подтверждения, потом войди";
         }
+        setAuthMode("login");
     };
+
+    // stop overlay click from eating taps on modal
+    document.getElementById("auth-modal").addEventListener("click", function (e) {
+        e.stopPropagation();
+    });
+    document.getElementById("auth-overlay").addEventListener("click", function (e) {
+        if (e.target === document.getElementById("auth-overlay")) closeAuth();
+    });
 
     document.getElementById("about-save").onclick = async function () {
         var err = document.getElementById("about-error");
