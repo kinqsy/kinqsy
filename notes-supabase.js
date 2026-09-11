@@ -8,6 +8,42 @@ function escapeHtml(text) {
 }
 const OWNER_ID = "4923abc5-5c86-48c2-904b-a267c2e21703";
 
+const OWNER_SLUG = "kinqsy";
+function getU() {
+    var u = new URLSearchParams(location.search).get("u");
+    return (u && u.trim()) ? u.trim() : OWNER_SLUG;
+}
+function menuUrl(page) {
+    return page + "?u=" + encodeURIComponent(getU());
+}
+function fixMenu() {
+    var map = {
+        "nav-home": "index.html",
+        "nav-notes": "notes.html",
+        "nav-dreams": "dreams.html",
+        "nav-quotes": "quotes.html",
+        "nav-about": "about.html"
+    };
+    Object.keys(map).forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.href = menuUrl(map[id]);
+    });
+}
+var viewedUserId = null;
+async function resolveViewedUser() {
+    fixMenu();
+    var slug = getU();
+    var label = document.getElementById("notes-user-label");
+    if (label) label.textContent = "notes · @" + slug;
+    var res = await supabaseClient.from("profiles").select("id, display_name").ilike("display_name", slug).maybeSingle();
+    if (!res.data && slug.toLowerCase() === OWNER_SLUG) {
+        res = await supabaseClient.from("profiles").select("id, display_name").eq("id", OWNER_ID).maybeSingle();
+    }
+    viewedUserId = res.data ? res.data.id : (slug.toLowerCase() === OWNER_SLUG ? OWNER_ID : null);
+    return viewedUserId;
+}
+
+
 function formatAuthor(name, userId) {
     if (userId && String(userId) === OWNER_ID) {
         return '<span class="author-badge">✦ kinqsy</span>';
@@ -240,23 +276,48 @@ if (q) {
 
 renderNotes(list);
 }
-async function loadNotes() { const feed = document.getElementById("feed"); if (!feed) return;
-feed.innerHTML = '<div class="empty">loading...</div>';
+async function loadNotes() {
+    const feed = document.getElementById("feed");
+    if (!feed) return;
+    feed.innerHTML = '<div class="empty">loading...</div>';
 
-const { data, error } = await supabaseClient
-    .from("posts")
-    .select("*")
-    .eq("category", "notes")
-    .order("created_at", { ascending: false });
+    const uid = await resolveViewedUser();
+    if (!uid) {
+        feed.innerHTML = '<div class="empty">профиль не найден</div>';
+        window.__allNotes = [];
+        applyFilters();
+        return;
+    }
 
-if (error) {
-    feed.innerHTML = '<div class="empty">Supabase error: ' + error.message + '</div>';
-    console.error(error);
-    return;
-}
+    let { data, error } = await supabaseClient
+        .from("posts")
+        .select("*")
+        .eq("category", "notes")
+        .eq("user_id", uid)
+        .order("created_at", { ascending: false });
 
-window.__allNotes = data || [];
-applyFilters();
+    if (error) {
+        feed.innerHTML = '<div class="empty">Supabase error: ' + error.message + '</div>';
+        console.error(error);
+        return;
+    }
+
+    // старые посты без user_id — только в дневнике kinqsy
+    if ((!data || !data.length) && getU().toLowerCase() === OWNER_SLUG) {
+        const all = await supabaseClient
+            .from("posts")
+            .select("*")
+            .eq("category", "notes")
+            .order("created_at", { ascending: false });
+        if (!all.error) {
+            data = (all.data || []).filter(function (p) {
+                return !p.user_id || String(p.user_id) === String(uid);
+            });
+        }
+    }
+
+    window.__allNotes = data || [];
+    applyFilters();
 }
 function setupFilters() { const qInput = document.getElementById("notes-search"); const dInput = document.getElementById("notes-date"); const clearBtn = document.getElementById("notes-date-clear");
 if (qInput) qInput.addEventListener("input", applyFilters);
