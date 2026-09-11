@@ -7,441 +7,265 @@
     <link rel="icon" href="favicon.png" type="image/png">
     <style>
         * { box-sizing: border-box; }
-        ::selection {
-            background: rgba(240, 201, 214, 0.9);
-            color: #3a2030;
-        }
-        ::-moz-selection {
-            background: rgba(240, 201, 214, 0.9);
-            color: #3a2030;
-        }
+        ::selection { background: rgba(240, 201, 214, 0.9); color: #3a2030; }
         body, body * {
-            user-select: none;
-            -webkit-user-select: none;
+            user-select: none; -webkit-user-select: none;
             cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='%23f0c9d6' stroke='%233a2030' stroke-width='1.2' d='M4 3l12 7.5-5.2 1.4L13 21z'/%3E%3C/svg%3E") 4 2, auto;
         }
-        input, textarea, select {
-            user-select: text;
-            -webkit-user-select: text;
+        input, textarea {
+            user-select: text; -webkit-user-select: text;
         }
-        a, button, .star, .top-menu .star, input, textarea, select,
-        .about-avatar, .about-nick, .about-status, .about-presence {
+        a, button, .star, .about-avatar, .about-nick, .about-status, .about-presence, .editable {
             cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath fill='%23f6dce8' stroke='%233a2030' stroke-width='1.3' d='M8 4l12 8-6 1.5L16 24l-3-7-5 2z'/%3E%3C/svg%3E") 5 2, pointer !important;
         }
         html { scroll-behavior: smooth; }
         html, body { margin: 0; padding: 0; min-height: 100%; }
-        body {
-            background: #000;
-            color: #000;
-            font-family: Georgia, "Times New Roman", serif;
-        }
+        body { background: #000; color: #000; font-family: Georgia, "Times New Roman", serif; }
+
         .top-menu {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%;
-            height: 42px;
+            position: fixed; top: 0; left: 0; width: 100%; height: 42px;
             background: rgba(240, 201, 214, 0.35);
             backdrop-filter: blur(22px) saturate(160%);
             -webkit-backdrop-filter: blur(22px) saturate(160%);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.35);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 18px;
-            z-index: 1000;
-            box-shadow: 0 4px 24px rgba(110, 64, 87, 0.12);
+            border-bottom: 1px solid rgba(255,255,255,0.35);
+            display: flex; align-items: center; justify-content: center; gap: 18px;
+            z-index: 1000; box-shadow: 0 4px 24px rgba(110, 64, 87, 0.12);
         }
-        .top-menu a {
-            color: #050505;
-            text-decoration: none;
-            font-size: 21px;
-            font-weight: bold;
-        }
+        .top-menu a { color: #050505; text-decoration: none; font-size: 21px; font-weight: bold; white-space: nowrap; }
         .top-menu a:hover { text-decoration: underline; }
-        .top-menu .star {
-            color: #111;
-            font-size: 18px;
-            opacity: 0.75;
-            margin-left: 6px;
-            user-select: none;
-        }
+        .top-menu .star { color: #111; font-size: 18px; opacity: 0.75; margin-left: 6px; }
         .top-menu .star:hover { opacity: 1; }
 
         .about-bg {
-            position: fixed;
-            top: 42px; left: 0; right: 0; bottom: 0;
-            z-index: 0;
+            position: fixed; top: 42px; left: 0; right: 0; bottom: 0; z-index: 0;
             background: #1a0f14 url("about-bg.jpg") center center / cover no-repeat;
-            pointer-events: none;
-            border-radius: 0 0 30px 30px;
-            overflow: hidden;
+            pointer-events: none; border-radius: 0 0 30px 30px; overflow: hidden;
         }
         .about-bg::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: inherit;
-            background-size: cover;
-            background-position: center;
-            filter: blur(14px);
-            transform: scale(1.06);
+            content: ""; position: absolute; inset: 0;
+            background: inherit; background-size: cover; background-position: center;
+            filter: blur(14px); transform: scale(1.06);
         }
         .about-grain {
-            position: fixed;
-            top: 42px; left: 0; right: 0; bottom: 0;
-            z-index: 1;
-            pointer-events: none;
-            opacity: 0.45;
-            border-radius: 0 0 30px 30px;
-            overflow: hidden;
+            position: fixed; top: 42px; left: 0; right: 0; bottom: 0; z-index: 1;
+            pointer-events: none; opacity: 0.42; border-radius: 0 0 30px 30px;
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-            background-size: 180px 180px;
-            mix-blend-mode: soft-light;
+            background-size: 180px 180px; mix-blend-mode: soft-light;
         }
+
         .about-page {
-            position: relative;
-            isolation: isolate;
-            min-height: calc(100vh - 42px);
-            margin-top: 42px;
-            padding: 58px 20px 80px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background: transparent;
-            border-radius: 0 0 30px 30px;
+            position: relative; z-index: 2;
+            min-height: calc(100vh - 42px); margin-top: 42px;
+            padding: 48px 16px 80px; border-radius: 0 0 30px 30px;
+            max-width: 720px; margin-left: auto; margin-right: auto;
         }
-        .about-page > * { position: relative; z-index: 2; }
         .about-title {
-            max-width: 900px;
-            width: 100%;
-            margin: 0 0 8px;
-            color: #000;
-            font-family: "Bodoni 72", Didot, "Bodoni MT", Georgia, serif;
-            font-size: clamp(70px, 11vw, 150px);
-            font-weight: 400;
-            line-height: .8;
-            letter-spacing: -5px;
-            text-shadow: 0 2px 0 rgba(255,255,255,.35), 0 8px 24px rgba(0,0,0,.25);
+            margin: 0 0 6px; font-family: "Bodoni 72", Didot, "Bodoni MT", Georgia, serif;
+            font-size: clamp(52px, 12vw, 96px); font-weight: 400; line-height: 0.85; letter-spacing: -4px;
+            text-shadow: 0 2px 0 rgba(255,255,255,.3), 0 8px 24px rgba(0,0,0,.22);
         }
-        .about-subtitle {
-            max-width: 900px;
-            width: 100%;
-            margin: 0 0 28px;
-            font-size: 17px;
-            font-style: italic;
-            font-weight: bold;
-            text-shadow: 0 2px 10px rgba(0,0,0,.2);
+        .page-subtitle { margin: 0 0 28px; font-size: 15px; font-style: italic; font-weight: bold; }
+
+        .glass {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.35);
+            backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+            border-radius: 20px;
+            box-shadow: 0 12px 32px rgba(0,0,0,.12);
         }
-        .about-header-row {
-            max-width: 900px;
-            width: 100%;
-            display: flex;
-            flex-direction: row;
-            flex-wrap: nowrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            margin-bottom: 28px;
-        }
-        .about-user-left {
-            flex: 1;
-            min-width: 0;
-            text-align: left;
-        }
-        .about-nick {
-            margin: 0;
-            font-size: clamp(22px, 4vw, 34px);
-            font-weight: bold;
-            line-height: 1.15;
-            word-break: break-word;
-            color: #1a0f14;
-            text-shadow: 0 1px 0 rgba(255,255,255,.35);
-        }
-        .about-status {
-            margin: 6px 0 0;
-            font-size: 14px;
-            font-style: italic;
-            opacity: 0.85;
-            word-break: break-word;
-            color: #2a1822;
-        }
-        .about-presence {
-            margin: 4px 0 0;
-            font-size: 12px;
-            font-family: Arial, sans-serif;
-            font-weight: bold;
-            letter-spacing: 0.5px;
-            opacity: 0.9;
-        }
-        .about-nick.editable:hover,
-        .about-status.editable:hover,
-        .about-presence.editable:hover {
-            border-bottom: 1px dashed rgba(26, 15, 20, 0.45);
-        }
-        .about-inline-input {
-            width: 100%;
-            max-width: 240px;
-            font: inherit;
-            color: inherit;
-            background: rgba(255,255,255,0.45);
-            border: 1px solid rgba(255,255,255,0.5);
-            border-radius: 8px;
-            padding: 4px 8px;
+
+        .profile-card { padding: 22px; margin-bottom: 16px; }
+        .profile-top {
+            display: grid;
+            grid-template-columns: 96px 1fr auto;
+            gap: 16px; align-items: center;
         }
         .about-avatar {
-            width: 96px;
-            height: 96px;
-            flex-shrink: 0;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.35);
-            background-color: rgba(255, 255, 255, 0.15);
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
+            width: 96px; height: 96px; border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.4);
+            background-color: rgba(255,255,255,0.15);
+            background-size: cover; background-position: center;
         }
-        .about-avatar[data-avatar="1"] {
-            background-image: url("https://raw.githubusercontent.com/kinqsy/kinqsy/main/avatar-1.jpg");
+        .about-avatar[data-avatar="1"] { background-image: url("https://raw.githubusercontent.com/kinqsy/kinqsy/main/avatar-1.jpg"); }
+        .about-avatar[data-avatar="2"] { background-image: url("https://raw.githubusercontent.com/kinqsy/kinqsy/main/avatar-2.jpg"); }
+        .about-avatar[data-avatar="3"] { background-image: url("https://raw.githubusercontent.com/kinqsy/kinqsy/main/avatar-3.jpg"); }
+        .about-avatar[data-avatar="4"] { background-image: url("https://raw.githubusercontent.com/kinqsy/kinqsy/main/avatar-4.jpg"); }
+
+        .about-nick {
+            margin: 0; font-size: clamp(22px, 5vw, 32px); font-weight: bold;
+            color: #1a0f14; word-break: break-word;
         }
-        .about-avatar[data-avatar="2"] {
-            background-image: url("https://raw.githubusercontent.com/kinqsy/kinqsy/main/avatar-2.jpg");
+        .about-status { margin: 6px 0 0; font-size: 14px; font-style: italic; opacity: 0.85; }
+        .about-presence {
+            margin: 4px 0 0; font-size: 12px; font-family: Arial, sans-serif; font-weight: bold;
         }
-        .about-avatar[data-avatar="3"] {
-            background-image: url("https://raw.githubusercontent.com/kinqsy/kinqsy/main/avatar-3.jpg");
+        .about-nick.editable:hover, .about-status.editable:hover, .about-presence.editable:hover {
+            border-bottom: 1px dashed rgba(26,15,20,0.4);
         }
-        .about-avatar[data-avatar="4"] {
-            background-image: url("https://raw.githubusercontent.com/kinqsy/kinqsy/main/avatar-4.jpg");
+        .about-inline-input {
+            width: 100%; max-width: 220px; font: inherit; color: inherit;
+            background: rgba(255,255,255,0.45); border: 1px solid rgba(255,255,255,0.5);
+            border-radius: 8px; padding: 4px 8px;
         }
 
         .about-rating {
-            flex-shrink: 0;
-            width: 150px;
-            text-align: center;
-            padding: 10px 12px;
-            border-radius: 14px;
-            background: rgba(255, 255, 255, 0.22);
-            border: 1px solid rgba(255, 255, 255, 0.35);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            cursor: help;
-            position: relative;
+            width: 140px; text-align: center; padding: 10px;
+            border-radius: 14px; background: rgba(255,255,255,0.18);
+            border: 1px solid rgba(255,255,255,0.3); position: relative;
         }
         .about-rating-label {
-            display: block;
-            font-size: 10px;
-            font-family: Arial, sans-serif;
-            font-weight: bold;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            opacity: 0.7;
-            margin-bottom: 6px;
+            display: block; font-size: 10px; font-family: Arial, sans-serif;
+            font-weight: bold; letter-spacing: 1px; text-transform: uppercase; opacity: 0.7;
         }
         .about-rep-bar {
-            position: relative;
-            height: 10px;
-            border-radius: 999px;
+            position: relative; height: 8px; margin-top: 8px; border-radius: 999px;
             background: linear-gradient(90deg, #7a2030 0%, #c4b8be 50%, #4a7c59 100%);
         }
         .about-rep-marker {
-            position: absolute;
-            top: -3px;
-            width: 4px;
-            height: 16px;
-            margin-left: -2px;
-            border-radius: 2px;
-            background: #1a0f14;
-            box-shadow: 0 0 0 2px rgba(255,255,255,0.5);
-            left: 50%;
-            transition: left 0.25s ease;
+            position: absolute; top: -3px; width: 4px; height: 14px; margin-left: -2px;
+            border-radius: 2px; background: #1a0f14; left: 50%;
+            box-shadow: 0 0 0 2px rgba(255,255,255,0.45);
         }
-        .about-rep-num {
-            display: block;
-            margin-top: 10px;
-            font-size: 28px;
-            font-weight: bold;
-            line-height: 1;
-            color: #1a0f14;
+        .about-rep-num { display: block; margin-top: 8px; font-size: 24px; font-weight: bold; }
+        .about-rep-title { display: block; font-size: 11px; font-weight: bold; }
+
+        .profile-stats {
+            display: flex; gap: 16px; margin-top: 16px; padding-top: 14px;
+            border-top: 1px solid rgba(255,255,255,0.25);
+            font-family: Arial, sans-serif; font-size: 12px; opacity: 0.85;
         }
-        .about-rep-title {
-            display: block;
-            margin-top: 4px;
-            font-size: 12px;
-            font-weight: bold;
-            color: #1a0f14;
+        .profile-stats strong { font-size: 16px; color: #1a0f14; }
+
+        .section {
+            padding: 18px 20px; margin-bottom: 14px;
         }
-        .about-rating-tip {
+        .section h2 {
+            margin: 0 0 10px; font-size: 12px; font-family: Arial, sans-serif;
+            letter-spacing: 1.5px; text-transform: uppercase; opacity: 0.7;
+        }
+        .section-body {
+            font-size: 16px; line-height: 1.55; font-style: italic;
+            white-space: pre-wrap; word-break: break-word; min-height: 1.2em;
+        }
+        .section-hint {
+            margin-top: 8px; font-size: 12px; font-family: Arial, sans-serif; opacity: 0.55;
+        }
+        .placeholder-tags {
+            display: flex; flex-wrap: wrap; gap: 8px;
+        }
+        .tag {
+            padding: 6px 12px; border-radius: 999px;
+            background: rgba(255,255,255,0.28); border: 1px solid rgba(255,255,255,0.35);
+            font-size: 13px; font-family: Arial, sans-serif;
+        }
+        .ach-row, .friends-row, .showcase-row, .faves-row {
+            display: flex; flex-wrap: wrap; gap: 10px;
+        }
+        .ach-chip {
+            padding: 8px 12px; border-radius: 12px;
+            background: rgba(255,255,255,0.25); font-size: 13px; font-family: Arial, sans-serif;
+        }
+        .friend-slot {
+            width: 56px; text-align: center; font-size: 11px; font-family: Arial, sans-serif;
+        }
+        .friend-avatar {
+            width: 56px; height: 56px; border-radius: 12px;
+            background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.35);
+            margin-bottom: 4px; overflow: hidden;
+            background-size: cover; background-position: center;
+        }
+        .friend-avatar.empty {
+            display: flex; align-items: center; justify-content: center;
+            color: rgba(26,15,20,0.4); font-size: 20px;
+        }
+        .friend-name { word-break: break-all; opacity: 0.85; }
+
+        .friend-tools { margin-top: 14px; display: none; gap: 8px; flex-wrap: wrap; align-items: center; }
+        .friend-tools.show { display: flex; }
+        .friend-tools input {
+            flex: 1; min-width: 140px; padding: 10px 12px; border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.5); background: rgba(255,255,255,0.35);
+            font-family: Georgia, serif;
+        }
+        .friend-tools button, .ghost-btn {
+            padding: 10px 14px; border: 0; border-radius: 999px;
+            background: #f0c9d6; color: #3a2030; font-weight: bold;
+            font-family: Arial, sans-serif; font-size: 13px;
+        }
+        .ghost-btn { background: rgba(255,255,255,0.35); }
+        .friend-code-box {
+            margin-top: 10px; padding: 10px 12px; border-radius: 12px;
+            background: rgba(255,255,255,0.25); font-family: Arial, sans-serif; font-size: 13px;
             display: none;
-            position: absolute;
-            right: 0;
-            bottom: calc(100% + 8px);
-            width: 230px;
-            padding: 10px 12px;
-            border-radius: 12px;
-            background: rgba(26, 15, 20, 0.92);
-            color: #f6dce8;
-            font-size: 12px;
-            line-height: 1.35;
-            text-align: left;
-            z-index: 20;
-            pointer-events: none;
         }
-        .about-rating:hover .about-rating-tip { display: block; }
+        .friend-code-box.show { display: block; }
+        .friend-code-box strong { letter-spacing: 1px; }
+        .pending-list { margin-top: 12px; font-size: 13px; font-family: Arial, sans-serif; }
+        .pending-item {
+            display: flex; justify-content: space-between; align-items: center; gap: 8px;
+            padding: 8px 0; border-top: 1px solid rgba(255,255,255,0.2);
+        }
+        .pending-item button { padding: 6px 10px; font-size: 12px; }
 
-        .about-card {
-            max-width: 900px;
-            width: 100%;
-            padding: 36px 32px;
-            border-radius: 22px;
-            background: linear-gradient(180deg, rgba(255,255,255,.18) 0%, rgba(255,255,255,.06) 100%);
-            border: 1px solid rgba(255,255,255,.35);
-            box-shadow: 0 16px 40px rgba(0,0,0,.15);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-        }
-        .about-text {
-            margin: 0;
-            font-size: 22px;
-            line-height: 1.6;
-            font-style: italic;
-            white-space: pre-wrap;
-            word-break: break-word;
+        .fave-slot {
+            width: 72px; height: 100px; border-radius: 10px;
+            background: rgba(255,255,255,0.22); border: 1px dashed rgba(255,255,255,0.4);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-family: Arial, sans-serif; opacity: 0.7; text-align: center; padding: 6px;
         }
 
+        .support-line { position: relative; z-index: 5; text-align: center; padding: 16px; background: #000; }
+        .support-line a { color: #F1B9D0; text-decoration: none; font-size: 14px; }
         footer {
-            position: relative;
-            z-index: 5;
-            min-height: 110px;
-            background: #000;
-            color: #F1B9D0;
-            display: grid;
-            grid-template-columns: 1fr auto 1fr;
-            align-items: center;
-            padding: 20px 28px;
+            position: relative; z-index: 5; min-height: 100px; background: #000; color: #F1B9D0;
+            display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 18px 24px;
         }
-        .socials {
-            display: flex;
-            gap: 16px;
-            justify-content: center;
-            align-items: center;
-        }
-        .socials a {
-            width: 28px; height: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #F1B9D0;
-            text-decoration: none;
-        }
-        .socials a:hover { opacity: 0.8; transform: scale(1.08); }
+        .socials { display: flex; gap: 16px; justify-content: center; }
+        .socials a { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: #F1B9D0; }
         .socials svg { width: 22px; height: 22px; fill: currentColor; }
 
         .back-to-top-fixed {
-            position: fixed;
-            right: 22px; bottom: 22px;
-            z-index: 999;
-            width: 44px; height: 44px;
-            border-radius: 50%;
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            background: rgba(255, 255, 255, 0.14);
-            color: #f6dce8;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            font-size: 18px;
-            font-weight: bold;
+            position: fixed; right: 22px; bottom: 22px; z-index: 999;
+            width: 44px; height: 44px; border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.25);
+            background: rgba(255,255,255,0.14); color: #f6dce8;
+            display: flex; align-items: center; justify-content: center;
+            text-decoration: none; font-size: 18px; font-weight: bold;
             backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
         }
 
         .auth-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            z-index: 2000;
-            background: rgba(20, 10, 16, 0.45);
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
+            display: none; position: fixed; inset: 0; z-index: 2000;
+            background: rgba(20,10,16,0.45); align-items: center; justify-content: center; padding: 16px;
         }
         .auth-overlay.open { display: flex; }
         .auth-modal {
-            width: min(92vw, 420px);
-            max-height: 88vh;
-            overflow-y: auto;
-            padding: 24px;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            background: rgba(255, 255, 255, 0.22);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
-            color: #2a1822;
+            width: min(94vw, 420px); max-height: 90vh; overflow-y: auto; padding: 22px;
+            border-radius: 20px; border: 1px solid rgba(255,255,255,0.4);
+            background: rgba(255,255,255,0.22); backdrop-filter: blur(16px); color: #2a1822;
         }
-        .auth-modal h2 {
-            margin: 0 0 16px;
-            font-size: 22px;
-            font-weight: normal;
-        }
-        .auth-modal label {
-            display: block;
-            font-size: 12px;
-            font-weight: bold;
-            margin: 10px 0 4px;
-            font-family: Arial, sans-serif;
-        }
-        .auth-modal input,
-        .auth-modal textarea {
-            display: block;
-            width: 100%;
-            padding: 10px 12px;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            background: rgba(255, 255, 255, 0.35);
-            font-family: Georgia, serif;
-            font-size: 15px;
+        .auth-modal h2 { margin: 0 0 12px; font-weight: normal; }
+        .auth-modal label { display: block; font-size: 12px; font-weight: bold; margin: 10px 0 4px; font-family: Arial, sans-serif; }
+        .auth-modal input, .auth-modal textarea {
+            width: 100%; padding: 10px 12px; border-radius: 12px;
+            border: 1px solid rgba(255,255,255,.5); background: rgba(255,255,255,.35);
+            font-family: Georgia, serif; font-size: 15px;
         }
         .auth-modal textarea { min-height: 120px; resize: vertical; }
-        .auth-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 16px;
-            flex-wrap: wrap;
-        }
+        .auth-actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
         .auth-actions button {
-            flex: 1;
-            min-width: 100px;
-            padding: 10px 14px;
-            border: 0;
-            border-radius: 999px;
-            background: #f0c9d6;
-            color: #3a2030;
-            font-weight: bold;
-            font-family: Arial, sans-serif;
+            flex: 1; min-width: 90px; padding: 10px 12px; border: 0; border-radius: 999px;
+            background: #f0c9d6; color: #3a2030; font-weight: bold; font-family: Arial, sans-serif;
         }
-        .auth-actions button.secondary {
-            background: rgba(255, 255, 255, 0.4);
-        }
-        .auth-error {
-            margin-top: 10px;
-            font-size: 13px;
-            color: #7a2030;
-            min-height: 1.2em;
-        }
+        .auth-actions button.secondary { background: rgba(255,255,255,.4); }
+        .auth-error { margin-top: 10px; font-size: 13px; color: #7a2030; min-height: 1.2em; }
 
-        @media (max-width: 700px) {
-            .top-menu {
-                padding: 0 8px;
-                gap: 11px;
-                justify-content: flex-start;
-                overflow-x: auto;
-            }
-            .about-page { padding: 85px 12px 50px; }
-            .about-title { font-size: clamp(55px, 17vw, 100px); letter-spacing: -4px; }
-            .about-header-row { flex-wrap: wrap; justify-content: center; }
-            .about-user-left { text-align: center; flex: 1 1 100%; }
-            .about-card { padding: 24px 20px; }
-            .about-text { font-size: 18px; }
-            footer { grid-template-columns: 1fr; gap: 18px; text-align: center; }
+        @media (max-width: 600px) {
+            .profile-top { grid-template-columns: 80px 1fr; }
+            .about-rating { grid-column: 1 / -1; width: 100%; }
+            .about-avatar { width: 80px; height: 80px; }
+            .top-menu { justify-content: flex-start; overflow-x: auto; padding: 0 8px; gap: 12px; }
+            footer { grid-template-columns: 1fr; gap: 14px; text-align: center; }
         }
     </style>
 </head>
@@ -461,32 +285,90 @@
 
     <main class="about-page">
         <h1 class="about-title">ABOUT</h1>
-        <div class="about-subtitle">things I probably shouldn't publish</div>
+        <div class="page-subtitle">things I probably shouldn't publish</div>
 
-        <div class="about-header-row">
-            <div class="about-user-left">
-                <p class="about-nick" id="about-nick">kinqsy</p>
-                <p class="about-status" id="about-status">—</p>
-                <p class="about-presence" id="about-presence" data-presence="online">онлайн</p>
-            </div>
-            <div class="about-avatar" data-avatar="1" id="about-avatar" aria-label="avatar"></div>
-            <div class="about-rating" id="about-rating-box">
-                <span class="about-rating-label">рейтинг</span>
-                <div class="about-rep-bar">
-                    <span class="about-rep-marker" id="about-rep-marker"></span>
+        <section class="glass profile-card">
+            <div class="profile-top">
+                <div class="about-avatar" data-avatar="1" id="about-avatar" aria-label="avatar"></div>
+                <div>
+                    <p class="about-nick" id="about-nick">kinqsy</p>
+                    <p class="about-status" id="about-status">—</p>
+                    <p class="about-presence" id="about-presence" data-presence="online">онлайн</p>
                 </div>
-                <span class="about-rep-num" id="about-rep-num">0</span>
-                <span class="about-rep-title" id="about-rep-title">нейтральная</span>
-                <div class="about-rating-tip">
-                    Оценка складывается из ваших поступков и поведения на сайте.
+                <div class="about-rating">
+                    <span class="about-rating-label">рейтинг</span>
+                    <div class="about-rep-bar"><span class="about-rep-marker" id="about-rep-marker"></span></div>
+                    <span class="about-rep-num" id="about-rep-num">0</span>
+                    <span class="about-rep-title" id="about-rep-title">нейтральная</span>
                 </div>
             </div>
-        </div>
+            <div class="profile-stats">
+                <div><strong id="stat-ach">0</strong><br>achievements</div>
+                <div><strong id="stat-friends">0</strong> / 5<br>friends</div>
+            </div>
+        </section>
 
-        <div class="about-card">
-            <div class="about-text" id="about-text">о себе — нажми ★ чтобы войти и редактировать</div>
-        </div>
+        <section class="glass section">
+            <h2>About</h2>
+            <div class="section-body" id="about-text">нажми ★ чтобы войти и написать о себе</div>
+            <div class="section-hint">до 1000 символов · без анкеты</div>
+        </section>
+
+        <section class="glass section">
+            <h2>Interests</h2>
+            <div class="placeholder-tags" id="interests-box">
+                <span class="tag">скоро</span>
+            </div>
+            <div class="section-hint">теги вроде fashion · music · films</div>
+        </section>
+
+        <section class="glass section">
+            <h2>Achievements</h2>
+            <div class="ach-row" id="ach-box">
+                <span class="ach-chip">0 / 50 unlocked</span>
+            </div>
+            <div class="section-hint">витрина значков · позже</div>
+        </section>
+
+        <section class="glass section">
+            <h2>Showcase</h2>
+            <div class="showcase-row">
+                <div class="fave-slot">slot 1</div>
+                <div class="fave-slot">slot 2</div>
+                <div class="fave-slot">slot 3</div>
+                <div class="fave-slot">slot 4</div>
+                <div class="fave-slot">slot 5</div>
+            </div>
+            <div class="section-hint">любимая работа · ачивка · коллекция · позже</div>
+        </section>
+
+        <section class="glass section">
+            <h2>My favourites</h2>
+            <div class="section-hint" style="margin-top:0;margin-bottom:10px">TOP 5 movies · music · books · games — скоро</div>
+            <div class="faves-row">
+                <div class="fave-slot">movies</div>
+                <div class="fave-slot">music</div>
+                <div class="fave-slot">books</div>
+                <div class="fave-slot">games</div>
+            </div>
+        </section>
+
+        <section class="glass section">
+            <h2>Friends</h2>
+            <div class="friends-row" id="friends-row"></div>
+            <div class="friend-code-box" id="my-code-box">твой код: <strong id="my-friend-code">—</strong></div>
+            <div class="friend-tools" id="friend-tools">
+                <input id="friend-code-input" type="text" placeholder="код дружбы (KQ-XXXXXX)" maxlength="16">
+                <button type="button" id="friend-add-btn">добавить</button>
+            </div>
+            <div class="pending-list" id="pending-list"></div>
+            <div class="section-hint">максимум 5 друзей · только по коду</div>
+        </section>
     </main>
+
+    <div class="support-line">
+        <a href="https://boosty.to/kinqsy/donate" target="_blank" rel="noopener noreferrer">support the diary</a>
+    </div>
 
     <footer>
         <div>© 2026 kinqsy.lol</div>
@@ -504,7 +386,7 @@
         <div></div>
     </footer>
 
-    <a href="#top" class="back-to-top-fixed" aria-label="Back to top">↑</a>
+    <a href="#top" class="back-to-top-fixed" aria-label="Наверх">↑</a>
 
     <div class="auth-overlay" id="auth-overlay">
         <div class="auth-modal">
@@ -525,8 +407,8 @@
     <div class="auth-overlay" id="about-edit-overlay">
         <div class="auth-modal">
             <h2>о себе</h2>
-            <label for="edit-about">текст (один пост, можно менять)</label>
-            <textarea id="edit-about" rows="6"></textarea>
+            <label for="edit-about">текст (до 1000 символов)</label>
+            <textarea id="edit-about" rows="7" maxlength="1000"></textarea>
             <div class="auth-actions">
                 <button type="button" id="about-save">сохранить</button>
                 <button type="button" id="about-close" class="secondary">закрыть</button>
@@ -544,15 +426,18 @@
 
     var OWNER_SLUG = "kinqsy";
     var OWNER_ID = "4923abc5-5c86-48c2-904b-a267c2e21703";
+    var MAX_FRIENDS = 5;
     var viewedProfileId = null;
+    var viewedProfile = null;
 
     var presenceLabels = {
-        online: "онлайн",
-        offline: "оффлайн",
-        invisible: "невидимка",
-        sleep: "сплю"
+        online: "онлайн", offline: "оффлайн", invisible: "невидимка", sleep: "сплю"
     };
     var presenceOrder = ["online", "offline", "invisible", "sleep"];
+
+    function escapeHtml(t) {
+        return String(t || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+    }
 
     function getU() {
         var u = new URLSearchParams(location.search).get("u");
@@ -564,16 +449,12 @@
     }
 
     function fixMenu() {
-        var map = {
-            "nav-home": "index.html",
-            "nav-notes": "notes.html",
-            "nav-dreams": "dreams.html",
-            "nav-quotes": "quotes.html",
-            "nav-about": "about.html"
-        };
-        Object.keys(map).forEach(function (id) {
-            var el = document.getElementById(id);
-            if (el) el.href = menuUrl(map[id]);
+        ["home","notes","dreams","quotes","about"].forEach(function (name) {
+            var el = document.getElementById("nav-" + name);
+            if (!el) return;
+            var page = name === "home" ? "index.html" : name + ".html";
+            if (name === "quotes") page = "quotes.html";
+            el.href = menuUrl(page);
         });
     }
 
@@ -597,20 +478,29 @@
     function setReputation(score) {
         var s = Math.max(-100, Math.min(100, Number(score) || 0));
         var pct = ((s + 100) / 200) * 100;
-        var marker = document.getElementById("about-rep-marker");
-        var title = document.getElementById("about-rep-title");
-        var num = document.getElementById("about-rep-num");
-        if (marker) marker.style.left = pct + "%";
-        if (title) title.textContent = repTitle(s);
-        if (num) num.textContent = String(s);
+        document.getElementById("about-rep-marker").style.left = pct + "%";
+        document.getElementById("about-rep-title").textContent = repTitle(s);
+        document.getElementById("about-rep-num").textContent = String(s);
+    }
+
+    async function currentUserId() {
+        var { data: { session } } = await sb.auth.getSession();
+        return session ? session.user.id : null;
+    }
+
+    async function canEditThisProfile() {
+        var uid = await currentUserId();
+        return !!(uid && viewedProfileId && uid === viewedProfileId);
     }
 
     function applyProfile(data) {
         if (!data) {
             viewedProfileId = null;
+            viewedProfile = null;
             setReputation(0);
             return;
         }
+        viewedProfile = data;
         viewedProfileId = data.id || null;
         document.getElementById("about-nick").textContent = data.display_name || "guest";
         document.getElementById("about-status").textContent = data.status_text || "—";
@@ -621,54 +511,230 @@
         document.getElementById("about-avatar").setAttribute("data-avatar", String(data.avatar_id || 1));
         setReputation(data.rating);
         document.getElementById("about-text").textContent =
-            data.about_text || "о себе — нажми ★ чтобы войти и редактировать";
+            data.about_text || "нажми ★ чтобы войти и написать о себе";
+        if (data.friend_code) {
+            document.getElementById("my-friend-code").textContent = data.friend_code;
+        }
     }
 
     async function loadPublicProfile() {
         fixMenu();
         var slug = getU();
         var res = await sb.from("profiles").select("*").ilike("display_name", slug).maybeSingle();
-        if (!res.data && slug.toLowerCase() === OWNER_SLUG.toLowerCase() && OWNER_ID) {
+        if (!res.data && slug.toLowerCase() === OWNER_SLUG && OWNER_ID) {
             res = await sb.from("profiles").select("*").eq("id", OWNER_ID).maybeSingle();
         }
-        if (res.data) {
-            applyProfile(res.data);
-        } else {
+        if (res.data) applyProfile(res.data);
+        else {
             viewedProfileId = null;
             document.getElementById("about-nick").textContent = slug;
             document.getElementById("about-status").textContent = "—";
             document.getElementById("about-text").textContent = "профиль пока пустой";
             setReputation(0);
         }
+        await refreshOwnerTools();
+        await loadFriends();
     }
 
-    async function currentUserId() {
-        var { data: { session } } = await sb.auth.getSession();
-        return session ? session.user.id : null;
+    async function refreshOwnerTools() {
+        var mine = await canEditThisProfile();
+        var tools = document.getElementById("friend-tools");
+        var codeBox = document.getElementById("my-code-box");
+        if (mine) {
+            tools.classList.add("show");
+            codeBox.classList.add("show");
+            if (viewedProfile && viewedProfile.friend_code) {
+                document.getElementById("my-friend-code").textContent = viewedProfile.friend_code;
+            } else {
+                // ensure code exists
+                var uid = await currentUserId();
+                if (uid) {
+                    var code = "KQ-" + Math.random().toString(36).slice(2, 8).toUpperCase();
+                    var { data } = await sb.from("profiles").upsert({
+                        id: uid,
+                        friend_code: code,
+                        updated_at: new Date().toISOString()
+                    }, { onConflict: "id" }).select("friend_code").maybeSingle();
+                    if (data && data.friend_code) {
+                        document.getElementById("my-friend-code").textContent = data.friend_code;
+                    } else {
+                        document.getElementById("my-friend-code").textContent = code;
+                    }
+                }
+            }
+        } else {
+            tools.classList.remove("show");
+            // show code only on own profile
+            codeBox.classList.remove("show");
+        }
     }
 
-    async function canEditThisProfile() {
+    function renderFriendSlots(friends) {
+        var row = document.getElementById("friends-row");
+        row.innerHTML = "";
+        var n = friends.length;
+        document.getElementById("stat-friends").textContent = String(n);
+
+        for (var i = 0; i < MAX_FRIENDS; i++) {
+            var slot = document.createElement("div");
+            slot.className = "friend-slot";
+            if (friends[i]) {
+                var f = friends[i];
+                var av = f.avatar_id || 1;
+                slot.innerHTML =
+                    '<a href="about.html?u=' + encodeURIComponent(f.display_name || "") + '">' +
+                    '<div class="friend-avatar" style="background-image:url(https://raw.githubusercontent.com/kinqsy/kinqsy/main/avatar-' + av + '.jpg)"></div>' +
+                    '<div class="friend-name">@' + escapeHtml(f.display_name || "?") + '</div></a>';
+            } else {
+                slot.innerHTML = '<div class="friend-avatar empty">+</div><div class="friend-name">пусто</div>';
+            }
+            row.appendChild(slot);
+        }
+    }
+
+    async function loadFriends() {
+        var listEl = document.getElementById("pending-list");
+        listEl.innerHTML = "";
+        if (!viewedProfileId) {
+            renderFriendSlots([]);
+            return;
+        }
+
+        // accepted friends where this profile is involved
+        var { data: rows, error } = await sb
+            .from("friendships")
+            .select("*")
+            .or("requester_id.eq." + viewedProfileId + ",addressee_id.eq." + viewedProfileId);
+
+        if (error) {
+            // table may not exist yet
+            renderFriendSlots([]);
+            if (String(error.message).indexOf("friendships") !== -1) {
+                listEl.innerHTML = '<div class="section-hint">создай таблицу friendships (инструкция ниже)</div>';
+            }
+            return;
+        }
+
+        rows = rows || [];
+        var accepted = rows.filter(function (r) { return r.status === "accepted"; });
+        var pending = rows.filter(function (r) { return r.status === "pending"; });
+
+        var otherIds = accepted.map(function (r) {
+            return r.requester_id === viewedProfileId ? r.addressee_id : r.requester_id;
+        });
+
+        var friends = [];
+        if (otherIds.length) {
+            var { data: profs } = await sb.from("profiles").select("id, display_name, avatar_id").in("id", otherIds);
+            friends = profs || [];
+        }
+        renderFriendSlots(friends);
+
+        // pending UI only for owner
+        if (!(await canEditThisProfile())) return;
+
         var uid = await currentUserId();
-        if (!uid || !viewedProfileId) return false;
-        return uid === viewedProfileId;
+        var html = "";
+        for (var i = 0; i < pending.length; i++) {
+            var p = pending[i];
+            var fromMe = p.requester_id === uid;
+            var other = fromMe ? p.addressee_id : p.requester_id;
+            var { data: op } = await sb.from("profiles").select("display_name").eq("id", other).maybeSingle();
+            var name = op && op.display_name ? op.display_name : other.slice(0, 8);
+
+            if (fromMe) {
+                html += '<div class="pending-item"><span>заявка → @' + escapeHtml(name) + '</span>' +
+                    '<button type="button" class="ghost-btn" data-cancel="' + p.id + '">отменить</button></div>';
+            } else {
+                html += '<div class="pending-item"><span>@' + escapeHtml(name) + ' хочет в друзья</span>' +
+                    '<span><button type="button" data-accept="' + p.id + '">принять</button> ' +
+                    '<button type="button" class="ghost-btn" data-decline="' + p.id + '">нет</button></span></div>';
+            }
+        }
+        listEl.innerHTML = html || "";
+
+        listEl.querySelectorAll("[data-accept]").forEach(function (btn) {
+            btn.onclick = async function () {
+                var acceptedCount = accepted.length;
+                if (acceptedCount >= MAX_FRIENDS) {
+                    alert("Уже 5 друзей");
+                    return;
+                }
+                await sb.from("friendships").update({ status: "accepted" }).eq("id", btn.getAttribute("data-accept"));
+                loadFriends();
+            };
+        });
+        listEl.querySelectorAll("[data-decline]").forEach(function (btn) {
+            btn.onclick = async function () {
+                await sb.from("friendships").delete().eq("id", btn.getAttribute("data-decline"));
+                loadFriends();
+            };
+        });
+        listEl.querySelectorAll("[data-cancel]").forEach(function (btn) {
+            btn.onclick = async function () {
+                await sb.from("friendships").delete().eq("id", btn.getAttribute("data-cancel"));
+                loadFriends();
+            };
+        });
     }
+
+    document.getElementById("friend-add-btn").onclick = async function () {
+        var uid = await currentUserId();
+        if (!uid) return;
+        if (!(await canEditThisProfile())) return;
+
+        var code = document.getElementById("friend-code-input").value.trim().toUpperCase();
+        if (!code) { alert("Введи код"); return; }
+
+        var { data: target } = await sb.from("profiles").select("id, display_name, friend_code").ilike("friend_code", code).maybeSingle();
+        if (!target) { alert("Код не найден"); return; }
+        if (target.id === uid) { alert("Это твой код"); return; }
+
+        // count my accepted
+        var { data: myRows } = await sb.from("friendships").select("*")
+            .or("requester_id.eq." + uid + ",addressee_id.eq." + uid)
+            .eq("status", "accepted");
+        if ((myRows || []).length >= MAX_FRIENDS) {
+            alert("Максимум 5 друзей");
+            return;
+        }
+
+        // already?
+        var { data: existing } = await sb.from("friendships").select("*")
+            .or(
+                "and(requester_id.eq." + uid + ",addressee_id.eq." + target.id + ")," +
+                "and(requester_id.eq." + target.id + ",addressee_id.eq." + uid + ")"
+            );
+        if (existing && existing.length) {
+            alert("Уже есть заявка или дружба");
+            return;
+        }
+
+        var { error } = await sb.from("friendships").insert({
+            requester_id: uid,
+            addressee_id: target.id,
+            status: "pending"
+        });
+        if (error) { alert(error.message); return; }
+        document.getElementById("friend-code-input").value = "";
+        alert("Заявка отправлена @" + (target.display_name || ""));
+        loadFriends();
+    };
 
     function makeEditable(el, field, maxLen) {
         el.classList.add("editable");
         el.addEventListener("click", async function () {
             if (!(await canEditThisProfile())) return;
             var uid = await currentUserId();
-            if (!uid) return;
             if (el.querySelector("input")) return;
             var old = el.textContent;
             var input = document.createElement("input");
             input.className = "about-inline-input";
-            input.value = (old === "—") ? "" : old;
+            input.value = old === "—" ? "" : old;
             if (maxLen) input.maxLength = maxLen;
             el.textContent = "";
             el.appendChild(input);
             input.focus();
-
             async function save() {
                 var val = input.value.trim().slice(0, maxLen || 64);
                 var row = { id: uid, updated_at: new Date().toISOString() };
@@ -679,13 +745,12 @@
                     el.textContent = val || "—";
                     row.status_text = val;
                 }
-                var { error } = await sb.from("profiles").upsert(row, { onConflict: "id" });
-                if (error) console.error(error);
+                await sb.from("profiles").upsert(row, { onConflict: "id" });
                 await loadPublicProfile();
             }
             input.addEventListener("keydown", function (e) {
                 if (e.key === "Enter") { e.preventDefault(); save(); }
-                if (e.key === "Escape") { el.textContent = old; }
+                if (e.key === "Escape") el.textContent = old;
             });
             input.addEventListener("blur", save);
         });
@@ -698,55 +763,40 @@
     document.getElementById("about-presence").addEventListener("click", async function () {
         if (!(await canEditThisProfile())) return;
         var uid = await currentUserId();
-        if (!uid) return;
         var el = document.getElementById("about-presence");
         var cur = el.getAttribute("data-presence") || "online";
-        var i = presenceOrder.indexOf(cur);
-        var next = presenceOrder[(i + 1) % presenceOrder.length];
+        var next = presenceOrder[(presenceOrder.indexOf(cur) + 1) % presenceOrder.length];
         el.setAttribute("data-presence", next);
         el.textContent = presenceLabels[next];
-        await sb.from("profiles").upsert({
-            id: uid,
-            presence: next,
-            updated_at: new Date().toISOString()
-        }, { onConflict: "id" });
+        await sb.from("profiles").upsert({ id: uid, presence: next, updated_at: new Date().toISOString() }, { onConflict: "id" });
     });
 
     document.getElementById("about-avatar").addEventListener("click", async function () {
         if (!(await canEditThisProfile())) return;
         var uid = await currentUserId();
-        if (!uid) return;
         var av = document.getElementById("about-avatar");
         var cur = parseInt(av.getAttribute("data-avatar") || "1", 10);
         var next = cur >= 4 ? 1 : cur + 1;
         av.setAttribute("data-avatar", String(next));
-        await sb.from("profiles").upsert({
-            id: uid,
-            avatar_id: next,
-            updated_at: new Date().toISOString()
-        }, { onConflict: "id" });
+        await sb.from("profiles").upsert({ id: uid, avatar_id: next, updated_at: new Date().toISOString() }, { onConflict: "id" });
     });
 
     var authOverlay = document.getElementById("auth-overlay");
     var aboutOverlay = document.getElementById("about-edit-overlay");
-    function openAuth() { authOverlay.classList.add("open"); }
+    function openAuth() { authOverlay.classList.add("open"); document.getElementById("auth-error").textContent = ""; }
     function closeAuth() { authOverlay.classList.remove("open"); }
     function openAboutEdit() { aboutOverlay.classList.add("open"); }
     function closeAboutEdit() { aboutOverlay.classList.remove("open"); }
 
     document.getElementById("admin-star").onclick = async function () {
         var uid = await currentUserId();
-        if (!uid) {
-            document.getElementById("auth-error").textContent = "";
-            openAuth();
-            return;
-        }
+        if (!uid) { openAuth(); return; }
         if (!(await canEditThisProfile())) {
-            alert("Это дневник @" + getU() + ".\nСвой профиль: about.html?u=ТВОЙ_НИК");
+            alert("Это страница @" + getU() + ".\nСвоя: about.html?u=ТВОЙ_НИК");
             return;
         }
-        var { data } = await sb.from("profiles").select("about_text").eq("id", uid).maybeSingle();
-        document.getElementById("edit-about").value = data && data.about_text ? data.about_text : "";
+        document.getElementById("edit-about").value =
+            (viewedProfile && viewedProfile.about_text) ? viewedProfile.about_text : "";
         document.getElementById("about-error").textContent = "";
         openAboutEdit();
     };
@@ -757,19 +807,17 @@
     document.getElementById("auth-login").onclick = async function () {
         var err = document.getElementById("auth-error");
         err.textContent = "";
-        var email = document.getElementById("auth-email").value.trim();
-        var password = document.getElementById("auth-password").value;
-        var { error } = await sb.auth.signInWithPassword({ email: email, password: password });
+        var { error } = await sb.auth.signInWithPassword({
+            email: document.getElementById("auth-email").value.trim(),
+            password: document.getElementById("auth-password").value
+        });
         if (error) { err.textContent = error.message; return; }
         closeAuth();
         var uid = await currentUserId();
-        if (!uid) return;
         var { data: prof } = await sb.from("profiles").select("display_name, about_text").eq("id", uid).maybeSingle();
-        if (prof && prof.display_name) {
-            if (getU().toLowerCase() !== String(prof.display_name).toLowerCase()) {
-                location.href = "about.html?u=" + encodeURIComponent(prof.display_name);
-                return;
-            }
+        if (prof && prof.display_name && getU().toLowerCase() !== String(prof.display_name).toLowerCase()) {
+            location.href = "about.html?u=" + encodeURIComponent(prof.display_name);
+            return;
         }
         await loadPublicProfile();
         if (await canEditThisProfile()) {
@@ -803,18 +851,14 @@
         err.textContent = "";
         var uid = await currentUserId();
         if (!uid) { err.textContent = "нужен вход"; return; }
-        if (!(await canEditThisProfile())) {
-            err.textContent = "чужой профиль";
-            return;
-        }
-        var about = document.getElementById("edit-about").value.trim();
+        if (!(await canEditThisProfile())) { err.textContent = "чужой профиль"; return; }
+        var about = document.getElementById("edit-about").value.trim().slice(0, 1000);
         var { error } = await sb.from("profiles").upsert({
             id: uid,
             about_text: about,
             updated_at: new Date().toISOString()
         }, { onConflict: "id" });
         if (error) { err.textContent = error.message; return; }
-        document.getElementById("about-text").textContent = about || "—";
         closeAboutEdit();
         await loadPublicProfile();
     };
