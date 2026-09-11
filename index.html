@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,12 +8,24 @@
     <meta name="description" content="things I probably shouldn't publish">
     <style>
         * { box-sizing: border-box; }
-        html { scroll-behavior: smooth; }
-        html, body {
-            margin: 0;
-            padding: 0;
-            min-height: 100%;
+        ::selection {
+            background: rgba(240, 201, 214, 0.9);
+            color: #3a2030;
         }
+        body, body * {
+            user-select: none;
+            -webkit-user-select: none;
+            cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='%23f0c9d6' stroke='%233a2030' stroke-width='1.2' d='M4 3l12 7.5-5.2 1.4L13 21z'/%3E%3C/svg%3E") 4 2, auto;
+        }
+        input, textarea {
+            user-select: text;
+            -webkit-user-select: text;
+        }
+        a, button, .star, .site-title, .home-quotes {
+            cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath fill='%23f6dce8' stroke='%233a2030' stroke-width='1.3' d='M8 4l12 8-6 1.5L16 24l-3-7-5 2z'/%3E%3C/svg%3E") 5 2, pointer !important;
+        }
+        html { scroll-behavior: smooth; }
+        html, body { margin: 0; padding: 0; min-height: 100%; }
         body {
             background: #000;
             color: #000;
@@ -21,24 +33,21 @@
         }
 
         .top-menu {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 42px;
-        background: rgba(240, 201, 214, 0.35);
-        backdrop-filter: blur(22px) saturate(160%);
-        -webkit-backdrop-filter: blur(22px) saturate(160%);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.35);
-        box-shadow: 0 4px 24px rgba(110, 64, 87, 0.12);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 18px;
-        z-index: 1000;
-    }
-
-
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%;
+            height: 42px;
+            background: rgba(240, 201, 214, 0.35);
+            backdrop-filter: blur(22px) saturate(160%);
+            -webkit-backdrop-filter: blur(22px) saturate(160%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+            box-shadow: 0 4px 24px rgba(110, 64, 87, 0.12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+            z-index: 1000;
+        }
         .top-menu a {
             color: #050505;
             text-decoration: none;
@@ -47,16 +56,41 @@
             white-space: nowrap;
         }
         .top-menu a:hover { text-decoration: underline; }
-
         .top-menu .star {
             color: #111;
             font-size: 18px;
             opacity: 0.75;
             margin-left: 6px;
-            cursor: pointer;
             user-select: none;
         }
         .top-menu .star:hover { opacity: 1; }
+        .auth-chip {
+            position: fixed;
+            top: 50px;
+            right: 12px;
+            z-index: 1001;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.22);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            backdrop-filter: blur(12px);
+            font-size: 12px;
+            font-family: Arial, sans-serif;
+            color: #2a1822;
+            display: none;
+            align-items: center;
+            gap: 8px;
+        }
+        .auth-chip.show { display: flex; }
+        .auth-chip button {
+            border: 0;
+            background: rgba(240, 201, 214, 0.9);
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-size: 11px;
+            font-weight: bold;
+            color: #3a2030;
+        }
 
         .hero {
             isolation: isolate;
@@ -67,101 +101,208 @@
             background-size: cover;
             background-position: center center;
             background-repeat: no-repeat;
+            background-attachment: fixed;
             border-radius: 0 0 30px 30px;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px 180px;
         }
-
         .hero::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: inherit;
-        background-size: cover;
-        background-position: center;
-        filter: blur(14px);
-        transform: scale(1.06);
-        z-index: 0;
-        pointer-events: none;
-    }
-
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: inherit;
+            background-size: cover;
+            background-position: center;
+            filter: blur(12px);
+            transform: scale(1.05);
+            z-index: 0;
+        }
+        .hero-grain {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0.4;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            background-size: 180px 180px;
+            mix-blend-mode: soft-light;
+        }
+        .hero > *:not(.hero-grain) { position: relative; z-index: 2; }
 
         .site-title {
-            user-select: none;
-            -webkit-user-select: none;
-            position: absolute;
-            top: 28px;
-            left: 0;
             margin: 0;
-            color: #f6dce8;
-            font-family: "Bodoni 72", Didot, "Bodoni MT", "Times New Roman", serif;
-            font-size: clamp(70px, 10vw, 150px);
+            color: #000;
+            font-family: "Bodoni 72", Didot, "Bodoni MT", Georgia, serif;
+            font-size: clamp(48px, 12vw, 120px);
             font-weight: 400;
-            line-height: 0.9;
-            letter-spacing: -5px;
-            text-shadow:
-                0 3px 0 #6e4057,
-                0 10px 28px rgba(0, 0, 0, 0.55),
-                0 4px 12px rgba(0, 0, 0, 0.45),
-                0 0 40px rgba(0, 0, 0, 0.35);
-            z-index: 2;
+            line-height: 0.85;
+            letter-spacing: -4px;
+            text-shadow: 0 2px 0 rgba(255,255,255,.35), 0 10px 28px rgba(0,0,0,.28);
+            text-align: center;
         }
-
+        .site-title:hover { opacity: 0.85; }
         .tagline {
-            user-select: none;
-            -webkit-user-select: none;
-            position: absolute;
-            top: 165px;
-            left: 4px;
-            color: #f3dce6;
-            font-family: Georgia, "Times New Roman", serif;
-            font-size: clamp(16px, 1.8vw, 26px);
+            margin: 12px 0 8px;
+            font-size: 17px;
             font-style: italic;
             font-weight: bold;
-            text-shadow:
-                0 2px 0 rgba(110, 64, 87, 0.9),
-                0 6px 18px rgba(0, 0, 0, 0.5),
-                0 2px 8px rgba(0, 0, 0, 0.4);
-            z-index: 2;
+            text-align: center;
+            text-shadow: 0 2px 10px rgba(0,0,0,.2);
         }
+        .diary-label {
+            margin: 0 0 20px;
+            font-size: 13px;
+            font-family: Arial, sans-serif;
+            opacity: 0.75;
+            text-align: center;
+        }
+        .diary-label a {
+            color: #1a0f14;
+            font-weight: bold;
+        }
+
+        .home-quotes {
+            position: absolute;
+            right: 24px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 2;
+            max-width: 280px;
+            padding: 18px 20px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            color: #f6dce8;
+            text-shadow: 0 2px 10px rgba(0,0,0,.35);
+        }
+        .home-quotes blockquote {
+            margin: 0;
+            font-size: 16px;
+            font-style: italic;
+            line-height: 1.45;
+        }
+        .home-quotes cite {
+            display: block;
+            margin-top: 12px;
+            font-size: 12px;
+            font-style: normal;
+            opacity: 0.8;
+            font-family: Arial, sans-serif;
+        }
+        .home-quotes-hint {
+            margin-top: 10px;
+            font-size: 11px;
+            opacity: 0.7;
+            font-family: Arial, sans-serif;
+        }
+
+        .hero-actions {
+            position: absolute;
+            left: 16px;
+            bottom: 28px;
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: flex-start;
+        }
+        .hero-btn {
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 999px;
+            padding: 12px 22px;
+            background: rgba(255, 255, 255, 0.12);
+            color: #f6dce8;
+            font-family: Georgia, serif;
+            font-size: 15px;
+            font-weight: bold;
+            backdrop-filter: blur(20px) saturate(160%);
+            -webkit-backdrop-filter: blur(20px) saturate(160%);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 8px 28px rgba(0, 0, 0, 0.12);
+        }
+        .hero-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .post-counter {
+            color: #f6dce8;
+            font-size: 13px;
+            font-style: italic;
+            text-shadow: 0 2px 10px rgba(0,0,0,.45);
+        }
+
+        .home-latest {
+            position: absolute;
+            left: 16px;
+            right: 16px;
+            bottom: 150px;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 520px;
+        }
+        .home-card {
+            display: block;
+            text-decoration: none;
+            color: #2a1822;
+            padding: 14px 16px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.22);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        .home-card:hover { background: rgba(255, 255, 255, 0.32); }
+        .home-card-meta {
+            font-family: Arial, sans-serif;
+            font-size: 10px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            opacity: 0.65;
+            margin-bottom: 4px;
+        }
+        .home-card-title { font-size: 17px; margin-bottom: 4px; }
+        .home-card-text { font-size: 13px; line-height: 1.4; opacity: 0.9; }
+
+        .support-line {
+            text-align: center;
+            padding: 18px;
+            background: #000;
+        }
+        .support-line a {
+            color: #F1B9D0;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .support-line a:hover { text-decoration: underline; }
 
         footer {
             min-height: 110px;
             background: #000;
-            color: #f1b9d0;
+            color: #F1B9D0;
             display: grid;
             grid-template-columns: 1fr auto 1fr;
             align-items: center;
             padding: 20px 28px;
         }
-        .copyright {
-            font-size: 12px;
-            font-weight: bold;
-        }
         .socials {
             display: flex;
             gap: 16px;
             justify-content: center;
-            align-items: center;
         }
         .socials a {
-            width: 28px;
-            height: 28px;
+            width: 28px; height: 28px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #f1b9d0;
-            text-decoration: none;
-            transition: opacity 0.2s, transform 0.2s;
+            color: #F1B9D0;
         }
-        .socials a:hover {
-            opacity: 0.8;
-            transform: scale(1.08);
-        }
-        .socials svg {
-            width: 22px;
-            height: 22px;
-            fill: currentColor;
-        }
+        .socials svg { width: 22px; height: 22px; fill: currentColor; }
 
         .back-to-top-fixed {
             position: fixed;
@@ -171,575 +312,456 @@
             width: 44px;
             height: 44px;
             border-radius: 50%;
-            background: #e2b7c6;
-            color: #3a2030;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            background: rgba(255, 255, 255, 0.14);
+            color: #f6dce8;
             display: flex;
             align-items: center;
             justify-content: center;
             text-decoration: none;
             font-size: 18px;
             font-weight: bold;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
-            transition: opacity 0.2s, transform 0.2s;
-        }
-        .back-to-top-fixed:hover {
-            transform: translateY(-2px);
-            opacity: 0.9;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
         }
 
-        .hero-grain {
-        position: absolute;
-        inset: 0;
-        pointer-events: none;
-        z-index: 1;
-        opacity: 0.45;
-        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-        background-size: 220px 220px;
-        mix-blend-mode: overlay;
-    }
-
-
-    .hero-actions {
-    position: absolute;
-    left: 16px;
-    bottom: 28px;
-    z-index: 3;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    align-items: flex-start;
-}
-    .hero-btn {
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 999px;
-    padding: 12px 22px;
-    background: rgba(255, 255, 255, 0.12);
-    color: #f6dce8;
-    font-family: Georgia, serif;
-    font-size: 15px;
-    font-weight: bold;
-    cursor: pointer;
-    backdrop-filter: blur(20px) saturate(160%);
-    -webkit-backdrop-filter: blur(20px) saturate(160%);
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.35),
-        0 8px 28px rgba(0, 0, 0, 0.12);
-}
-.hero-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.25);
-}
-
-    .post-counter {
-        color: #f6dce8;
-        font-size: 13px;
-        font-style: italic;
-        text-shadow: 0 2px 10px rgba(0,0,0,.45);
-    }
-
-    
-    .home-feed h2 {
-        margin: 0 0 18px;
-        font-size: 28px;
-        letter-spacing: -1px;
-        color: #f1b9d0;
-    }
-
-        .home-latest {
-    position: absolute;
-    left: 16px;
-    right: 16px;
-    bottom: 150px;
-    z-index: 2;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    max-width: 520px;
-}
-.home-card {
-    display: block;
-    text-decoration: none;
-    color: #2a1822;
-    padding: 14px 16px;
-    border-radius: 16px;
-    background: rgba(255, 255, 255, 0.22);
-    border: 1px solid rgba(255, 255, 255, 0.35);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-}
-.home-card:hover { background: rgba(255, 255, 255, 0.32); }
-.home-card-meta {
-    font-family: Arial, sans-serif;
-    font-size: 10px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    opacity: 0.65;
-    margin-bottom: 4px;
-}
-.home-card-title { font-size: 17px; margin-bottom: 4px; }
-.home-card-text { font-size: 13px; line-height: 1.4; opacity: 0.9; }
-    .support-line {
-        text-align: center;
-        padding: 8px 16px 18px;
-        background: #000;
-        color: #f1b9d0;
-        font-size: 13px;
-    }
-    .support-line a {
-        color: #f6dce8;
-        font-weight: bold;
-    }
-        @media (max-width: 700px) {
-            .top-menu {
-                padding: 0 8px;
-                gap: 11px;
-                justify-content: flex-start;
-                overflow-x: auto;
-                scrollbar-width: none;
-            }
-            .top-menu::-webkit-scrollbar { display: none; }
-            .top-menu a { font-size: 16px; }
-            .hero {
-                min-height: 80vh;
-                border-radius: 0 0 20px 20px;
-            }
-            .hero-actions { left: 12px; bottom: 16px; z-index: 3; }
-        .home-latest { bottom: 130px; max-width: 100%; }
-        .home-feed { padding: 28px 14px 16px; }
-            .site-title {
-                top: 35px;
-                left: 5px;
-                font-size: clamp(55px, 17vw, 100px);
-                letter-spacing: -4px;
-            }
-            .tagline {
-                top: 145px;
-                left: 7px;
-                font-size: 15px;
-            }
-            footer {
-                grid-template-columns: 1fr;
-                gap: 18px;
-                text-align: center;
-            }
-            .back-to-top-fixed {
-                right: 16px;
-                bottom: 16px;
-                width: 40px;
-                height: 40px;
-            }
+        .auth-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            background: rgba(20, 10, 16, 0.45);
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
         }
-        
-    .auth-overlay {
-        display: none;
-        position: fixed;
-        inset: 0;
-        z-index: 2000;
-        background: rgba(20, 10, 16, 0.45);
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-    }
-    .auth-overlay.open { display: flex; }
-    .auth-modal {
-        width: 100%;
-        max-width: 360px;
-        padding: 24px;
-        border-radius: 20px;
-        border: 1px solid rgba(255,255,255,.4);
-        background: rgba(255,255,255,.22);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        box-shadow: 0 20px 50px rgba(0,0,0,.25);
-        color: #2a1822;
-    }
-    .auth-modal h2 {
-        margin: 0 0 16px;
-        font-size: 22px;
-        font-weight: normal;
-    }
-    .auth-modal label {
-        display: block;
-        font-size: 12px;
-        font-weight: bold;
-        margin: 10px 0 4px;
-        font-family: Arial, sans-serif;
-    }
-    .auth-modal input {
-        width: 100%;
-        padding: 10px 12px;
-        border-radius: 12px;
-        border: 1px solid rgba(255,255,255,.5);
-        background: rgba(255,255,255,.55);
-        font-family: Georgia, serif;
-        font-size: 15px;
-    }
-    .auth-actions {
-        display: flex;
-        gap: 10px;
-        margin-top: 16px;
-        flex-wrap: wrap;
-    }
-    .auth-actions button {
-        flex: 1;
-        min-width: 100px;
-        padding: 10px 14px;
-        border: 0;
-        border-radius: 999px;
-        background: #f0c9d6;
-        color: #3a2030;
-        font-weight: bold;
-        cursor: pointer;
-        font-family: Arial, sans-serif;
-    }
-    .auth-actions button.secondary {
-        background: rgba(255,255,255,.4);
-    }
-    .auth-error {
-        margin-top: 10px;
-        font-size: 13px;
-        color: #7a2030;
-        min-height: 1.2em;
-    }
-    .auth-code {
-        margin-top: 14px;
-        padding: 12px;
-        border-radius: 12px;
-        background: rgba(255,255,255,.35);
-        font-family: Arial, sans-serif;
-        font-size: 14px;
-        display: none;
-    }
-    .auth-code strong {
-        letter-spacing: 1px;
-    }
-        .home-quotes {
-        position: absolute;
-        right: 24px;
-        top: 50%;
-        transform: translateY(-50%);
-        z-index: 2;
-        max-width: 280px;
-        padding: 18px 20px;
-        border-radius: 18px;
-        background: rgba(255, 255, 255, 0.2);
-        border: 1px solid rgba(255, 255, 255, 0.35);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        color: #f6dce8;
-        text-shadow: 0 2px 10px rgba(0,0,0,.35);
-    }
-    .home-quotes blockquote {
-        margin: 0;
-        font-family: Georgia, serif;
-        font-size: 16px;
-        font-style: italic;
-        line-height: 1.45;
-    }
-    .home-quotes cite {
-        display: block;
-        margin-top: 12px;
-        font-size: 12px;
-        font-style: normal;
-        opacity: 0.8;
-        font-family: Arial, sans-serif;
-    }
-    @media (max-width: 700px) {
-        .home-quotes {
+        .auth-overlay.open { display: flex; }
+        .auth-modal {
+            width: min(92vw, 400px);
+            padding: 24px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.22);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            color: #2a1822;
+        }
+        .auth-modal h2 { margin: 0 0 14px; font-weight: normal; }
+        .auth-modal label {
+            display: block;
+            font-size: 12px;
+            font-weight: bold;
+            margin: 10px 0 4px;
+            font-family: Arial, sans-serif;
+        }
+        .auth-modal input {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,.5);
+            background: rgba(255,255,255,.35);
+            font-family: Georgia, serif;
+            font-size: 15px;
+        }
+        .auth-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+        .auth-actions button {
+            flex: 1;
+            min-width: 90px;
+            padding: 10px 14px;
+            border: 0;
+            border-radius: 999px;
+            background: #f0c9d6;
+            color: #3a2030;
+            font-weight: bold;
+            font-family: Arial, sans-serif;
+        }
+        .auth-actions button.secondary { background: rgba(255,255,255,.4); }
+        .auth-error {
+            margin-top: 10px;
+            font-size: 13px;
+            color: #7a2030;
+            min-height: 1.2em;
+        }
+        .auth-code {
+            margin-top: 12px;
+            padding: 10px;
+            border-radius: 12px;
+            background: rgba(255,255,255,.35);
+            font-size: 13px;
+            font-family: Arial, sans-serif;
             display: none;
         }
-    }
 
+        @media (max-width: 700px) {
+            .home-quotes { display: none; }
+            .top-menu {
+                justify-content: flex-start;
+                overflow-x: auto;
+                padding: 0 8px;
+                gap: 12px;
+            }
+            .site-title { font-size: clamp(40px, 14vw, 80px); }
+            footer { grid-template-columns: 1fr; gap: 16px; text-align: center; }
+        }
     </style>
 </head>
 <body id="top">
 
     <nav class="top-menu">
-        <a href="index.html">home</a>
-        <a href="notes.html">notes</a>
-        <a href="dreams.html">dreams</a>
-        <a href="quotes.html">quotation/definition</a>
-        <a href="about.html">about</a>
-        <span class="star" id="admin-star">★</span>
-</nav>
+        <a href="index.html" id="nav-home">home</a>
+        <a href="notes.html" id="nav-notes">notes</a>
+        <a href="dreams.html" id="nav-dreams">dreams</a>
+        <a href="quotes.html" id="nav-quotes">quotation/definition</a>
+        <a href="about.html" id="nav-about">about</a>
+        <span class="star" id="admin-star" title="вход">★</span>
+    </nav>
 
+    <div class="auth-chip" id="auth-chip">
+        <span id="auth-chip-text">вход…</span>
+        <button type="button" id="auth-logout">выйти</button>
+    </div>
 
     <main class="hero">
-    <div class="hero-grain" aria-hidden="true"></div>
-    <h1 class="site-title">KINQSY.LOL</h1>
-    <div class="tagline">things I probably shouldn't publish</div>
-    <aside class="home-quotes" id="home-quotes">
-        <blockquote id="home-quote-text">…</blockquote>
-        <cite id="home-quote-author"></cite>
-    </aside>
-    <div class="hero-actions">
-    <button type="button" class="hero-btn" id="open-something">open something</button>
-    <div class="post-counter" id="post-counter">loading…</div>
-</div>
-<section class="home-latest" id="latest-posts">loading…</section>
+        <div class="hero-grain" aria-hidden="true"></div>
+        <h1 class="site-title" id="site-title" title="к kinqsy">KINQSY.LOL</h1>
+        <div class="tagline">things I probably shouldn't publish</div>
+        <div class="diary-label" id="diary-label">дневник @kinqsy</div>
+
+        <aside class="home-quotes" id="home-quotes" title="нажми — предложить цитату">
+            <blockquote id="home-quote-text">…</blockquote>
+            <cite id="home-quote-author"></cite>
+            <div class="home-quotes-hint">нажми, чтобы предложить цитату</div>
+        </aside>
+
+        <div class="hero-actions">
+            <button type="button" class="hero-btn" id="open-something">open something</button>
+            <div class="post-counter" id="post-counter">loading…</div>
+        </div>
+        <section class="home-latest" id="latest-posts">loading…</section>
     </main>
-<div class="support-line">
-    <a href="https://boosty.to/kinqsy/donate" target="_blank" rel="noopener noreferrer">support the diary</a>
-</div>
-    
+
+    <div class="support-line">
+        <a href="https://boosty.to/kinqsy/donate" target="_blank" rel="noopener noreferrer">support the diary</a>
+    </div>
+
     <footer>
         <div class="copyright">© 2026 kinqsy.lol</div>
-
         <div class="socials">
             <a href="https://t.me/kinqsy_notes" target="_blank" rel="noopener noreferrer" aria-label="Telegram">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
-                </svg>
+                <svg viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
             </a>
             <a href="https://pin.it/7q2l8cx9W" target="_blank" rel="noopener noreferrer" aria-label="Pinterest">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.401.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.354-.629-2.758-1.379l-.749 2.848c-.269 1.045-1.004 2.352-1.498 3.146 1.123.345 2.306.535 3.55.535 6.607 0 11.985-5.365 11.985-11.987C23.97 5.39 18.592.026 11.985.026L12.017 0z"/>
-                </svg>
+                <svg viewBox="0 0 24 24"><path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.401.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.354-.629-2.758-1.379l-.749 2.848c-.269 1.045-1.004 2.352-1.498 3.146 1.123.345 2.306.535 3.55.535 6.607 0 11.985-5.365 11.985-11.987C23.97 5.39 18.592.026 11.985.026L12.017 0z"/></svg>
             </a>
-            <!-- YouTube -->
             <a href="https://youtube.com/@kinggggggggggggggggggggg" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                </svg>
+                <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
             </a>
         </div>
-
         <div></div>
     </footer>
 
-    <div class="auth-overlay" id="auth-overlay" aria-hidden="true">
-    <div class="auth-modal">
-        <h2>вход</h2>
-        <label for="auth-email">email</label>
-        <input id="auth-email" type="email" autocomplete="email">
-        <label for="auth-password">пароль</label>
-        <input id="auth-password" type="password" autocomplete="current-password">
-        <div class="auth-actions">
-            <button type="button" id="auth-login">войти</button>
-            <button type="button" id="auth-signup" class="secondary">регистрация</button>
-            <button type="button" id="auth-close" class="secondary">закрыть</button>
-        <button type="button" id="auth-logout" class="secondary" style="display:none">выйти</button>
-    </div>
-        <div class="auth-error" id="auth-error"></div>
-        <div class="auth-code" id="auth-code"></div>
-    </div>
-</div>
+    <a href="#top" class="back-to-top-fixed" aria-label="Наверх">↑</a>
 
-
-    <a href="#top" class="back-to-top-fixed" aria-label="Back to top">↑</a>
+    <div class="auth-overlay" id="auth-overlay">
+        <div class="auth-modal">
+            <h2>вход</h2>
+            <label for="auth-email">email</label>
+            <input id="auth-email" type="email" autocomplete="username">
+            <label for="auth-password">пароль</label>
+            <input id="auth-password" type="password" autocomplete="current-password">
+            <div class="auth-actions">
+                <button type="button" id="auth-login">войти</button>
+                <button type="button" id="auth-signup" class="secondary">регистрация</button>
+                <button type="button" id="auth-close" class="secondary">закрыть</button>
+            </div>
+            <div class="auth-error" id="auth-error"></div>
+            <div class="auth-code" id="auth-code"></div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-const SUPABASE_URL = "https://rgkfegdtxaojceknnzlr.supabase.co";
-const SUPABASE_KEY = "sb_publishable_uK7zrVyq8AlHpoj13pGQ6g_q3L47Akw";
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    <script>
+(function () {
+    var SUPABASE_URL = "https://rgkfegdtxaojceknnzlr.supabase.co";
+    var SUPABASE_KEY = "sb_publishable_uK7zrVyq8AlHpoj13pGQ6g_q3L47Akw";
+    var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-function escapeHtml(text) {
-    return String(text || "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;");
-}
+    var OWNER_SLUG = "kinqsy";
+    var OWNER_ID = "4923abc5-5c86-48c2-904b-a267c2e21703";
+    var viewedUserId = null;
+    var viewedSlug = OWNER_SLUG;
 
-function pageForCategory(category) {
-    if (category === "dreams") return "dreams.html";
-    if (category === "quotes") return "quotes.html";
-    return "notes.html";
-}
-
-function excerpt(text) {
-    const t = String(text || "").trim();
-    if (t.length <= 120) return t;
-    return t.slice(0, 120) + "…";
-}
-
-async function loadHome() {
-    const counter = document.getElementById("post-counter");
-    const latest = document.getElementById("latest-posts");
-    if (!counter || !latest) return;
-
-    const { data, error, count } = await supabaseClient
-        .from("posts")
-        .select("id, title, content, category, created_at", { count: "exact" })
-        .order("created_at", { ascending: false });
-
-    if (error) {
-        counter.textContent = "couldn't load posts";
-        latest.textContent = error.message;
-        console.error(error);
-        return;
+    function getU() {
+        var u = new URLSearchParams(location.search).get("u");
+        return (u && u.trim()) ? u.trim() : OWNER_SLUG;
     }
 
-    const posts = data || [];
-    counter.textContent = "posts I probably shouldn't have published: " + (count != null ? count : posts.length);
-    window.__allPosts = posts;
+    function menuUrl(page) {
+        return page + "?u=" + encodeURIComponent(getU());
+    }
 
-    const top = posts.slice(0, 3);
-if (!top.length) {
-    latest.innerHTML = '<div class="home-card-text">no posts yet.</div>';
-    return;
-}
+    function fixMenu() {
+        var map = {
+            "nav-home": "index.html",
+            "nav-notes": "notes.html",
+            "nav-dreams": "dreams.html",
+            "nav-quotes": "quotes.html",
+            "nav-about": "about.html"
+        };
+        Object.keys(map).forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el) el.href = menuUrl(map[id]);
+        });
+    }
 
-latest.innerHTML = top.map(function (p) {
-    const href = pageForCategory(p.category) + "#post-" + p.id;
-    const title = p.title && p.title.trim() ? p.title : "(untitled)";
-    return (
-        '<a class="home-card" href="' + href + '">' +
-            '<div class="home-card-meta">' + escapeHtml(p.category || "notes") +
-                " · " + new Date(p.created_at).toLocaleDateString("en-GB") +
-            "</div>" +
-            '<div class="home-card-title">' + escapeHtml(title) + "</div>" +
-            '<div class="home-card-text">' + escapeHtml(excerpt(p.content)) + "</div>" +
-        "</a>"
-    );
-}).join("");
-}
+    function escapeHtml(s) {
+        return String(s || "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;");
+    }
 
-var openBtn = document.getElementById("open-something");
-if (openBtn) {
-    openBtn.addEventListener("click", function () {
-        const posts = window.__allPosts || [];
+    function excerpt(t) {
+        t = String(t || "").trim();
+        if (t.length <= 90) return t;
+        return t.slice(0, 90) + "…";
+    }
+
+    function pageForCategory(cat) {
+        cat = String(cat || "notes").toLowerCase();
+        if (cat === "dreams" || cat === "dream") return menuUrl("dreams.html");
+        if (cat === "quotes" || cat === "quote" || cat === "quotation") return menuUrl("quotes.html");
+        return menuUrl("notes.html");
+    }
+
+    async function resolveProfile() {
+        viewedSlug = getU();
+        fixMenu();
+        document.getElementById("diary-label").innerHTML =
+            "дневник <strong>@" + escapeHtml(viewedSlug) + "</strong>" +
+            (viewedSlug.toLowerCase() !== OWNER_SLUG
+                ? ' · <a href="index.html">← kinqsy</a>'
+                : "");
+
+        var res = await sb.from("profiles").select("id, display_name").ilike("display_name", viewedSlug).maybeSingle();
+        if (!res.data && viewedSlug.toLowerCase() === OWNER_SLUG) {
+            res = await sb.from("profiles").select("id, display_name").eq("id", OWNER_ID).maybeSingle();
+        }
+        viewedUserId = res.data ? res.data.id : (viewedSlug.toLowerCase() === OWNER_SLUG ? OWNER_ID : null);
+        return viewedUserId;
+    }
+
+    async function loadHome() {
+        var counter = document.getElementById("post-counter");
+        var latest = document.getElementById("latest-posts");
+        var uid = await resolveProfile();
+
+        if (!uid) {
+            counter.textContent = "профиль не найден";
+            latest.innerHTML = '<div class="home-card-text">нет такого дневника</div>';
+            window.__allPosts = [];
+            return;
+        }
+
+        var { data, error, count } = await sb
+            .from("posts")
+            .select("id, title, content, category, created_at, user_id", { count: "exact" })
+            .eq("user_id", uid)
+            .order("created_at", { ascending: false });
+
+        if (error) {
+            // fallback: старые посты без user_id — только для kinqsy
+            if (viewedSlug.toLowerCase() === OWNER_SLUG) {
+                var all = await sb.from("posts").select("id, title, content, category, created_at, user_id", { count: "exact" }).order("created_at", { ascending: false });
+                data = (all.data || []).filter(function (p) {
+                    return !p.user_id || p.user_id === uid;
+                });
+                count = data.length;
+                error = all.error;
+            }
+        }
+
+        if (error && !data) {
+            counter.textContent = "couldn't load posts";
+            latest.textContent = error.message;
+            return;
+        }
+
+        var posts = data || [];
+        counter.textContent = "posts · " + (count != null ? count : posts.length) + " · @" + viewedSlug;
+        window.__allPosts = posts;
+
+        var top = posts.slice(0, 3);
+        if (!top.length) {
+            latest.innerHTML = '<div class="home-card-text">пока нет постов</div>';
+            return;
+        }
+
+        latest.innerHTML = top.map(function (p) {
+            var href = pageForCategory(p.category) + "#post-" + p.id;
+            var title = p.title && p.title.trim() ? p.title : "(untitled)";
+            return (
+                '<a class="home-card" href="' + href + '">' +
+                    '<div class="home-card-meta">' + escapeHtml(p.category || "notes") +
+                        " · " + new Date(p.created_at).toLocaleDateString("en-GB") +
+                    "</div>" +
+                    '<div class="home-card-title">' + escapeHtml(title) + "</div>" +
+                    '<div class="home-card-text">' + escapeHtml(excerpt(p.content)) + "</div>" +
+                "</a>"
+            );
+        }).join("");
+    }
+
+    document.getElementById("open-something").onclick = function () {
+        var posts = window.__allPosts || [];
         if (!posts.length) {
             alert("Пока нечего открывать");
             return;
         }
-        const p = posts[Math.floor(Math.random() * posts.length)];
-        window.location.href = pageForCategory(p.category) + "#post-" + p.id;
-    });
-}
-
-loadHome();
-    function openAuth() {
-    var authOverlay = document.getElementById("auth-overlay");
-    var authError = document.getElementById("auth-error");
-    if (!authOverlay) return;
-    authOverlay.classList.add("open");
-    authOverlay.setAttribute("aria-hidden", "false");
-    if (authError) authError.textContent = "";
-}
-
-function closeAuth() {
-    var authOverlay = document.getElementById("auth-overlay");
-    if (!authOverlay) return;
-    authOverlay.classList.remove("open");
-    authOverlay.setAttribute("aria-hidden", "true");
-}
-
-async function showFriendCode(userId) {
-    var authCode = document.getElementById("auth-code");
-    if (!authCode) return;
-    var { data, error } = await supabaseClient
-        .from("profiles")
-        .select("friend_code, username")
-        .eq("id", userId)
-        .maybeSingle();
-    if (error || !data) {
-        authCode.style.display = "block";
-        authCode.textContent = "профиль не найден";
-        return;
-    }
-    authCode.style.display = "block";
-authCode.innerHTML = "привет, <strong>" + escapeHtml(data.username || "") +
-    "</strong><br>код дружбы: <strong>" + escapeHtml(data.friend_code || "") + "</strong>";
-
-var modal = document.querySelector(".auth-modal");
-if (modal) {
-    var title = modal.querySelector("h2");
-    if (title) title.textContent = "профиль";
-}
-var email = document.getElementById("auth-email");
-var pass = document.getElementById("auth-password");
-var loginBtn = document.getElementById("auth-login");
-var signupBtn = document.getElementById("auth-signup");
-var logoutBtn = document.getElementById("auth-logout");
-if (email) email.style.display = "none";
-if (pass) pass.style.display = "none";
-if (loginBtn) loginBtn.style.display = "none"; 
-if (signupBtn) signupBtn.style.display = "none"; 
-if (logoutBtn) logoutBtn.style.display = ""; 
-var labels = document.querySelectorAll(".auth-modal label"); 
-for (var i = 0; i < labels.length; i++) labels[i].style.display = "none"; }
-function loadExternalQuote() { 
-var textEl = document.getElementById("home-quote-text"); 
-var authorEl = document.getElementById("home-quote-author"); 
-if (!textEl || !authorEl) return;
-var quotes = [
-    { t: "Будь собой; все остальные роли уже заняты.", a: "Оскар Уайльд" },
-    { t: "Какое бы дело мы ни затевали, время всегда кажется неподходящим, и никогда не бывает абсолютно благоприятных обстоятельств. Тот, кто ждёт идеального случая, так никогда и не начнёт дела, а если и начнёт, то зачастую его ожидает печальный конец.", a: "Никколо Макиавелли" },
-    { t: "Мы в ответе за тех, кого приручили.", a: "Антуан де Сент-Экзюпери" },
-    { t: "Жизнь — это то, что с тобой происходит, пока ты строишь другие планы.", a: "Джон Леннон" },
-    { t: "В определённый момент нашей жизни мы теряем контроль над тем, что с нами происходит, и нашей жизнью начинает управлять только судьба. Это — величайшая ложь в мире.", a: "Паоло Коэльо" },
-    { t: "Лучший способ что-то узнать — это сделать", a: "Ричард Брэнсон" },
-    { t: "Иногда молчание — самый честный ответ.", a: " Далай-лама" },
-    { t: "Если хочешь понять жизнь, то перестань верить тому, что говорят и пишут, а наблюдай и чувствуй.", a: "Антон Чехов" },
-    { t: "Мало людей мыслят, но все хотят иметь мнение.", a: "Джордж Беркли" },
-    { t: "Я давно поняла: то, что дано тебе природой, и есть лучшее для тебя. Это твоя индивидуальность. При желании всё недостатки можно превратить в достоинства.", a: "Кейт Мосс" },
-    { t: "Единственным критерием истины является опыт.", a: "Леонардо Да Винчи" },
-    { t: "Как неправильно для женщины ждать, что мужчина построит мир, который она хочет, вместо того чтобы создавать его самой.", a: "Мэрилин Монро" },
-    { t: "Возможно, вам придётся сражаться в битве более одного раза, чтобы выиграть.", a: "Маргарет Тэтчер" },
-    { t: "Либо напиши что-нибудь стоящее, либо делай что-нибудь, о чём стоит написать.", a: "Бенджамин Франклин" },
-    { t: "Наши представления о том, как всё должно быть, мешают нам наслаждаться тем, как всё есть.", a: "Анджелина Джоли" },
-    { t: "Каждый год мы разные люди. Я не думаю, что всю жизнь мы остаёмся одним и тем же человеком.", a: "Стивен Спилберг" },
-    { t: "Умение сказать именно то, что нужно и именно так, чтобы вас слушали и понимали, есть великое уменье, которое даётся очень немногим, но которым никто не имеет права пренебрегать.", a: "Михаил Салтыков-Щедрин" },
-    { t: "Чересчур хорошая жизнь часто портит характер так же, как чересчур обильная еда портит желудок, и в этих случаях как тело, так и душу с успехом исцеляют лекарства не только неприятные, но даже противные на вкус.", a: "Чарльз Диккенс" },
-    { t: "Жизнь не намеревалась создать нас совершенными. Тому, кто совершенен, место только в музее.", a: "Эрих Мария Ремарк" },
-    { t: "Сомнение есть путь к истине: кто не сомневается — не видит, кто не видит — не понимает, кто не понимает — пребывает в слепоте и заблуждении.", a: "Абу Хамид аль-Газали" },
-    { t: "Не ограничивайте себя. Многие люди ограничивают себя до того, чем они, по их мнению, могут заниматься. Вы можете пойти так далеко, как позволяет ваш ум. Помните, вы можете достичь всего, во что вы верите.", a: "Мэри Кэй Эш" },
-    { t: "Как только вы вообразите, что не в состоянии выполнить определённое дело, с этого момента его осуществление становится для вас невозможным.", a: "Бенедикт Спиноза" }
-];
-
-var hourIndex = Math.floor(Date.now() / 3600000);
-var q = quotes[hourIndex % quotes.length];
-textEl.textContent = q.t;
-authorEl.textContent = q.a;
-}
-
-document.getElementById("auth-close").addEventListener("click", closeAuth);
-document.getElementById("auth-overlay").addEventListener("click", function (e) {
-    if (e.target === document.getElementById("auth-overlay")) closeAuth();
-});
-
-document.getElementById("auth-login").addEventListener("click", async function () {
-    var authError = document.getElementById("auth-error");
-    authError.textContent = "";
-    var email = document.getElementById("auth-email").value.trim();
-    var password = document.getElementById("auth-password").value;
-    var { data, error } = await supabaseClient.auth.signInWithPassword({ email: email, password: password });
-    if (error) { authError.textContent = error.message; return; }
-    await showFriendCode(data.user.id);
-});
-
-document.getElementById("auth-signup").addEventListener("click", async function () {
-    var authError = document.getElementById("auth-error");
-    authError.textContent = "";
-    var email = document.getElementById("auth-email").value.trim();
-    var password = document.getElementById("auth-password").value;
-    var { data, error } = await supabaseClient.auth.signUp({ email: email, password: password });
-    if (error) { authError.textContent = error.message; return; }
-    if (data.user) {
-        authError.textContent = "аккаунт создан";
-        await showFriendCode(data.user.id);
-    }
-});
-
-supabaseClient.auth.getSession().then(function (res) {
-    if (res.data && res.data.session) showFriendCode(res.data.session.user.id);
-});
-
-loadExternalQuote();
-</script>
-    
-    <script>
-(function () {
-    var star = document.getElementById("admin-star");
-    if (!star) return;
-    star.onclick = function () {
-        if (typeof openAuth === "function") openAuth();
+        var p = posts[Math.floor(Math.random() * posts.length)];
+        location.href = pageForCategory(p.category) + "#post-" + p.id;
     };
+
+    // заголовок → всегда на kinqsy
+    document.getElementById("site-title").onclick = function () {
+        location.href = "index.html";
+    };
+
+    // цитата → предложить добавить
+    document.getElementById("home-quotes").onclick = function () {
+        var text = prompt("Предложи цитату (текст):");
+        if (!text || !text.trim()) return;
+        var author = prompt("Автор (можно пусто):") || "";
+        var msg = "Цитата:\n«" + text.trim() + "»\n" + (author ? "— " + author : "");
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(msg).then(function () {
+                alert("Скопировано. Можешь отправить kinqsy или вставить в quotation.");
+            }).catch(function () {
+                alert(msg);
+            });
+        } else {
+            alert(msg);
+        }
+        location.href = menuUrl("quotes.html");
+    };
+
+    var quotes = [
+        { t: "Мы — то, что мы постоянно делаем. Совершенство, следовательно, не действие, а привычка.", a: "Аристотель" },
+        { t: "Как только вы вообразите, что не в состоянии выполнить дело, с этого момента оно становится невозможным.", a: "Спиноза" },
+        { t: "Не всё то потеряно, что не достигнуто.", a: "—" },
+        { t: "Слова — это действия.", a: "—" },
+        { t: "Тишина тоже ответ.", a: "—" }
+    ];
+    (function loadQuote() {
+        var hourIndex = Math.floor(Date.now() / 3600000);
+        var q = quotes[hourIndex % quotes.length];
+        document.getElementById("home-quote-text").textContent = q.t;
+        document.getElementById("home-quote-author").textContent = q.a;
+    })();
+
+    // auth UI
+    var authOverlay = document.getElementById("auth-overlay");
+    function openAuth() {
+        authOverlay.classList.add("open");
+        document.getElementById("auth-error").textContent = "";
+    }
+    function closeAuth() {
+        authOverlay.classList.remove("open");
+    }
+
+    async function refreshAuthChip() {
+        var { data: { session } } = await sb.auth.getSession();
+        var chip = document.getElementById("auth-chip");
+        var text = document.getElementById("auth-chip-text");
+        if (session && session.user) {
+            var { data: prof } = await sb.from("profiles").select("display_name").eq("id", session.user.id).maybeSingle();
+            var name = (prof && prof.display_name) ? prof.display_name : session.user.email;
+            text.textContent = "вы: @" + name;
+            chip.classList.add("show");
+        } else {
+            chip.classList.remove("show");
+        }
+    }
+
+    document.getElementById("admin-star").onclick = async function () {
+        var { data: { session } } = await sb.auth.getSession();
+        if (session) {
+            var { data: prof } = await sb.from("profiles").select("display_name").eq("id", session.user.id).maybeSingle();
+            if (prof && prof.display_name) {
+                location.href = "about.html?u=" + encodeURIComponent(prof.display_name);
+            } else {
+                location.href = "about.html";
+            }
+            return;
+        }
+        openAuth();
+    };
+
+    document.getElementById("auth-close").onclick = closeAuth;
+    document.getElementById("auth-overlay").onclick = function (e) {
+        if (e.target === authOverlay) closeAuth();
+    };
+
+    document.getElementById("auth-login").onclick = async function () {
+        var err = document.getElementById("auth-error");
+        err.textContent = "";
+        var email = document.getElementById("auth-email").value.trim();
+        var password = document.getElementById("auth-password").value;
+        var { error } = await sb.auth.signInWithPassword({ email: email, password: password });
+        if (error) { err.textContent = error.message; return; }
+        closeAuth();
+        await refreshAuthChip();
+        var { data: { session } } = await sb.auth.getSession();
+        if (session) {
+            var { data: prof } = await sb.from("profiles").select("display_name").eq("id", session.user.id).maybeSingle();
+            if (prof && prof.display_name) {
+                location.href = "index.html?u=" + encodeURIComponent(prof.display_name);
+            }
+        }
+    };
+
+    document.getElementById("auth-signup").onclick = async function () {
+        var err = document.getElementById("auth-error");
+        err.textContent = "";
+        var email = document.getElementById("auth-email").value.trim();
+        var password = document.getElementById("auth-password").value;
+        var { data, error } = await sb.auth.signUp({ email: email, password: password });
+        if (error) { err.textContent = error.message; return; }
+        err.textContent = "аккаунт создан — подтверди почту, потом войди";
+        if (data && data.user) {
+            var nick = email.split("@")[0].slice(0, 32) || "user";
+            var code = "KQ-" + Math.random().toString(36).slice(2, 8).toUpperCase();
+            await sb.from("profiles").upsert({
+                id: data.user.id,
+                display_name: nick,
+                friend_code: code,
+                updated_at: new Date().toISOString()
+            }, { onConflict: "id" });
+            var box = document.getElementById("auth-code");
+            box.style.display = "block";
+            box.innerHTML = "ник: <strong>" + escapeHtml(nick) + "</strong><br>код: <strong>" + code + "</strong>";
+        }
+    };
+
+    document.getElementById("auth-logout").onclick = async function () {
+        await sb.auth.signOut();
+        await refreshAuthChip();
+    };
+
+    sb.auth.onAuthStateChange(function () {
+        refreshAuthChip();
+    });
+
+    refreshAuthChip();
+    loadHome();
 })();
-</script>
-
-
+    </script>
 </body>
 </html>
