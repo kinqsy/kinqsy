@@ -404,38 +404,113 @@ font-family: Arial, sans-serif;
     }
     .post-menu button:hover { background: rgba(255, 255, 255, 0.35); }
     .post-menu button.danger { color: #7a2030; }
+    
+    .auth-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 2000;
+        background: rgba(20, 10, 16, 0.45);
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    .auth-overlay.open { display: flex; }
+    .auth-modal {
+        width: min(92vw, 420px);
+        max-height: 88vh;
+        overflow-y: auto;
+        padding: 24px;
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        background: rgba(255, 255, 255, 0.22);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        color: #2a1822;
+        box-sizing: border-box;
+    }
+    .auth-modal h2 { margin: 0 0 14px; font-weight: normal; font-size: 22px; }
+    .auth-modal label {
+        display: block;
+        font-size: 12px;
+        font-weight: bold;
+        margin: 10px 0 4px;
+        font-family: Arial, sans-serif;
+    }
+    .auth-modal input, .auth-modal textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,.5);
+        background: rgba(255,255,255,.35);
+        font-family: Georgia, serif;
+        font-size: 15px;
+        box-sizing: border-box;
+    }
+    .auth-modal textarea { min-height: 100px; resize: vertical; }
+    .auth-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 16px;
+        flex-wrap: wrap;
+    }
+    .auth-actions button {
+        flex: 1;
+        min-width: 90px;
+        padding: 10px 14px;
+        border: 0;
+        border-radius: 999px;
+        background: #f0c9d6;
+        color: #3a2030;
+        font-weight: bold;
+        font-family: Arial, sans-serif;
+    }
+    .auth-actions button.secondary { background: rgba(255,255,255,.4); }
+    .auth-error {
+        margin-top: 10px;
+        font-size: 13px;
+        color: #7a2030;
+        min-height: 1.2em;
+    }
+    .compose-preview {
+        margin-top: 10px;
+        max-width: 100%;
+        border-radius: 12px;
+        display: none;
+    }
+
     </style>
 </head>
 <body id="top">
 
     <nav class="top-menu">
-        <a href="index.html">home</a>
-        <a href="notes.html">notes</a>
-        <a href="dreams.html">dreams</a>
-        <a href="quotes.html">quotation/definition</a>
-        <a href="about.html">about</a>
+        <a href="index.html" id="nav-home">home</a>
+        <a href="notes.html" id="nav-notes">notes</a>
+        <a href="dreams.html" id="nav-dreams">dreams</a>
+        <a href="quotes.html" id="nav-quotes">quotation/definition</a>
+        <a href="about.html" id="nav-about">about</a>
         <span class="star" id="admin-star">★</span>
     </nav>
 
     <div class="dreams-bg" aria-hidden="true"></div>
-<div class="dreams-grain" aria-hidden="true"></div>
-<main class="dreams-page">
+    <div class="dreams-grain" aria-hidden="true"></div>
+
+    <main class="dreams-page">
         <div class="dreams-header">
             <h1 class="dreams-title">DREAMS</h1>
-            <div class="dreams-subtitle">things I probably shouldn't publish</div>
+            <div class="dreams-subtitle" id="dreams-user-label">dreams · @kinqsy</div>
         </div>
-
         <section class="feed" id="feed"></section>
     </main>
 
     <div class="support-line">
-    <a href="https://boosty.to/kinqsy/donate" target="_blank" rel="noopener noreferrer">support the diary</a>
-</div>
+        <a href="https://boosty.to/kinqsy/donate" target="_blank" rel="noopener noreferrer">support the diary</a>
+    </div>
 
     <footer>
         <div>© 2026 kinqsy.lol</div>
         <div class="socials">
-<a href="https://t.me/kinqsy_notes" target="_blank" rel="noopener noreferrer" aria-label="Telegram">
+            <a href="https://t.me/kinqsy_notes" target="_blank" rel="noopener noreferrer" aria-label="Telegram">
                 <svg viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
             </a>
             <a href="https://pin.it/7q2l8cx9W" target="_blank" rel="noopener noreferrer" aria-label="Pinterest">
@@ -448,209 +523,412 @@ font-family: Arial, sans-serif;
         <div></div>
     </footer>
 
-    <a href="#top" class="back-to-top-fixed" aria-label="Back to top">↑</a>
+    <a href="#top" class="back-to-top-fixed" aria-label="Наверх">↑</a>
 
     <div class="post-menu" id="post-menu">
-    <button type="button" id="post-menu-edit">изменить</button>
-    <button type="button" id="post-menu-delete" class="danger">удалить</button>
-</div>
+        <button type="button" id="post-menu-edit">изменить</button>
+        <button type="button" id="post-menu-delete" class="danger">удалить</button>
+    </div>
+
+    <div class="auth-overlay" id="auth-overlay">
+        <div class="auth-modal">
+            <h2>вход</h2>
+            <label for="auth-email">email</label>
+            <input id="auth-email" type="email" autocomplete="username">
+            <label for="auth-password">пароль</label>
+            <input id="auth-password" type="password" autocomplete="current-password">
+            <div class="auth-actions">
+                <button type="button" id="auth-login">войти</button>
+                <button type="button" id="auth-signup" class="secondary">регистрация</button>
+                <button type="button" id="auth-close" class="secondary">закрыть</button>
+            </div>
+            <div class="auth-error" id="auth-error"></div>
+        </div>
+    </div>
+
+    <div class="auth-overlay" id="compose-overlay">
+        <div class="auth-modal">
+            <h2>новый сон</h2>
+            <label for="compose-title">заголовок</label>
+            <input id="compose-title" type="text">
+            <label for="compose-content">текст</label>
+            <textarea id="compose-content" rows="5"></textarea>
+            <label for="compose-media">ссылка на фото/gif</label>
+            <input id="compose-media" type="url" placeholder="https://...">
+            <img id="compose-preview" class="compose-preview" alt="">
+            <div class="auth-actions">
+                <button type="button" id="compose-save">опубликовать</button>
+                <button type="button" id="compose-close" class="secondary">закрыть</button>
+            </div>
+            <div class="auth-error" id="compose-error"></div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-const SUPABASE_URL = "https://rgkfegdtxaojceknnzlr.supabase.co";
-const SUPABASE_KEY = "sb_publishable_uK7zrVyq8AlHpoj13pGQ6g_q3L47Akw";
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-function escapeHtml(text) {
-    return String(text)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;");
-}
-
-async function loadComments(postId) {
-    const { data, error } = await supabaseClient
-        .from("comments")
-        .select("*")
-        .eq("post_id", postId)
-        .order("created_at", { ascending: true });
-
-    if (error) {
-        console.error(error);
-        return [];
-    }
-    return data || [];
-}
-
-function renderComments(comments) {
-    if (!comments.length) {
-        return '<div class="comment-meta">пока нет комментариев</div>';
-    }
-
-    return comments.map(function (c) {
-        return (
-            '<div class="comment">' +
-                '<div class="comment-meta">' +
-                    escapeHtml(c.author_name) +
-                    " · " +
-                    new Date(c.created_at).toLocaleDateString("en-GB") +
-                "</div>" +
-                "<div>" + escapeHtml(c.content) + "</div>" +
-            "</div>"
-        );
-    }).join("");
-}
-
-async function loadDreams() {
-    const feed = document.getElementById("feed");
-    if (!feed) return;
-
-    feed.innerHTML = '<div class="empty">loading...</div>';
-
-    const { data, error } = await supabaseClient
-        .from("posts")
-        .select("*")
-        .eq("category", "dreams")
-        .order("created_at", { ascending: false });
-
-    if (error) {
-        feed.innerHTML = '<div class="empty">Supabase error: ' + error.message + '</div>';
-        console.error(error);
-        return;
-    }
-
-    if (!data || data.length === 0) {
-        feed.innerHTML = '<div class="empty">no dreams yet.</div>';
-        return;
-    }
-
-    feed.innerHTML = "";
-
-    for (const post of data) {
-    const article = document.createElement("article");
-    article.className = "post";
-    article.id = "post-" + post.id;
-
-    var mediaHtml = "";
-    if (post.media_url) {
-        mediaHtml = '<div class="post-media"><img src="' + post.media_url + '" alt=""></div>';
-    }
-
-    const comments = await loadComments(post.id);
-
-    article.innerHTML =
-        '<div class="post-date">' +
-            new Date(post.created_at).toLocaleDateString("en-GB") +
-        '</div>' +
-        '<h2 class="post-title">' + escapeHtml(post.title || "") + '</h2>' +
-        mediaHtml +
-        '<div class="post-content">' + escapeHtml(post.content || "") + '</div>' +
-        '<div class="post-footer-row">' +
-            '<div class="post-footer">comments · ' + comments.length + '</div>' +
-            '<button type="button" class="post-owner-btn" aria-label="menu">⋯</button>' +
-        '</div>' +
-        '<div class="comments">' +
-            '<div class="comments-list">' + renderComments(comments) + '</div>' +
-            '<form class="comment-form">' +
-                '<input name="author_name" type="text" placeholder="имя" maxlength="40" required>' +
-                '<textarea name="content" placeholder="комментарий" maxlength="500" required></textarea>' +
-                '<button type="submit">отправить</button>' +
-            '</form>' +
-        '</div>';
-
-    const form = article.querySelector(".comment-form");
-    const list = article.querySelector(".comments-list");
-    const footer = article.querySelector(".post-footer");
-
-    form.addEventListener("submit", async function (e) {
-        e.preventDefault();
-        const nameInput = form.querySelector('[name="author_name"]');
-        const textInput = form.querySelector('[name="content"]');
-        const author_name = nameInput.value.trim();
-        const content = textInput.value.trim();
-        const submitBtn = form.querySelector("button");
-        if (!author_name || !content) {
-            alert("Напиши имя и комментарий");
-            return;
-        }
-        submitBtn.disabled = true;
-        const { error } = await supabaseClient.from("comments").insert({
-            post_id: post.id,
-            author_name: author_name,
-            content: content
-        });
-        submitBtn.disabled = false;
-        if (error) {
-            alert("Ошибка: " + error.message);
-            return;
-        }
-        textInput.value = "";
-        const fresh = await loadComments(post.id);
-        list.innerHTML = renderComments(fresh);
-        footer.textContent = "comments · " + fresh.length;
-    });
-
-    bindPostOwnerActions(article, post);
-feed.appendChild(article);
-} 
-}
-       var OWNER_ID = "4923abc5-5c86-48c2-904b-a267c2e21703"; var activePostMenu = null;
-async function canEditPost(post) { var res = await supabaseClient.auth.getSession(); var session = res.data.session; if (!session) return false; if (post.user_id && String(post.user_id) === String(session.user.id)) return true; if (String(session.user.id) === String(OWNER_ID)) return true; return false; }
-function hidePostMenu() { var menu = document.getElementById("post-menu"); if (menu) menu.classList.remove("open"); activePostMenu = null; }
-function showPostMenuNearFooter(article, post) { var menu = document.getElementById("post-menu"); var footerRow = article.querySelector(".post-footer-row"); if (!menu) return; if (!footerRow) return;
-activePostMenu = post;
-menu.classList.add("open");
-
-var rect = footerRow.getBoundingClientRect();
-var menuW = 160;
-var left = rect.right - menuW;
-var top = rect.top;
-if (left < 8) left = 8;
-if (left + menuW > window.innerWidth - 8) left = window.innerWidth - menuW - 8;
-if (top + 90 > window.innerHeight) top = Math.max(8, rect.bottom - 90);
-
-menu.style.left = left + "px";
-menu.style.top = top + "px";
-}
-function bindPostOwnerActions(article, post) { var btn = article.querySelector(".post-owner-btn"); if (!btn) return;
-btn.addEventListener("click", async function (e) {
-    e.preventDefault();
-    e.stopPropagation();
-    var ok = await canEditPost(post);
-    if (!ok) {
-        alert("Войди через ★");
-        return;
-    }
-    if (activePostMenu && String(activePostMenu.id) === String(post.id)) {
-        hidePostMenu();
-        return;
-    }
-    showPostMenuNearFooter(article, post);
-});
-}
-document.addEventListener("click", function (e) { var menu = document.getElementById("post-menu"); if (!menu || !menu.classList.contains("open")) return; if (e.target.closest("#post-menu")) return; if (e.target.closest(".post-owner-btn")) return; hidePostMenu(); });
-var delBtn = document.getElementById("post-menu-delete"); var editBtn = document.getElementById("post-menu-edit");
-if (delBtn) { delBtn.onclick = async function () { if (!activePostMenu) return; if (!confirm("Удалить пост?")) return; var { error } = await supabaseClient.from("posts").delete().eq("id", activePostMenu.id); hidePostMenu(); if (error) { alert(error.message); return; } loadDreams(); }; }
-if (editBtn) { editBtn.onclick = async function () { if (!activePostMenu) return; var post = activePostMenu; hidePostMenu(); var title = prompt("Заголовок", post.title ? post.title : ""); if (title === null) return; var content = prompt("Текст", post.content ? post.content : ""); if (content === null) return; var { error } = await supabaseClient.from("posts").update({ title: title, content: content }).eq("id", post.id); if (error) { alert(error.message); return; } loadDreams(); }; }
-        
-loadDreams();
-
 (function () {
-    var star = document.getElementById("admin-star");
-    if (!star) return;
-    var clicks = 0;
-    var timer = null;
-    star.onclick = function () {
-        clicks = clicks + 1;
-        if (timer) clearTimeout(timer);
-        timer = setTimeout(function () { clicks = 0; }, 2000);
-        if (clicks >= 3) {
-            clicks = 0;
-            window.location.href = "admin.html";
+    var SUPABASE_URL = "https://rgkfegdtxaojceknnzlr.supabase.co";
+    var SUPABASE_KEY = "sb_publishable_uK7zrVyq8AlHpoj13pGQ6g_q3L47Akw";
+    var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    var OWNER_ID = "4923abc5-5c86-48c2-904b-a267c2e21703";
+    var OWNER_SLUG = "kinqsy";
+    var viewedUserId = null;
+    var activePostMenu = null;
+
+    function escapeHtml(t) {
+        return String(t || "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;");
+    }
+
+    function getU() {
+        var u = new URLSearchParams(location.search).get("u");
+        return (u && u.trim()) ? u.trim() : OWNER_SLUG;
+    }
+
+    function menuUrl(page) {
+        return page + "?u=" + encodeURIComponent(getU());
+    }
+
+    function fixMenu() {
+        var map = {
+            "nav-home": "index.html",
+            "nav-notes": "notes.html",
+            "nav-dreams": "dreams.html",
+            "nav-quotes": "quotes.html",
+            "nav-about": "about.html"
+        };
+        Object.keys(map).forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el) el.href = menuUrl(map[id]);
+        });
+    }
+
+    async function resolveViewedUser() {
+        fixMenu();
+        var slug = getU();
+        var label = document.getElementById("dreams-user-label");
+        if (label) label.textContent = "dreams · @" + slug;
+
+        var res = await sb.from("profiles").select("id, display_name").ilike("display_name", slug).maybeSingle();
+        if (!res.data && slug.toLowerCase() === OWNER_SLUG) {
+            res = await sb.from("profiles").select("id, display_name").eq("id", OWNER_ID).maybeSingle();
+        }
+        viewedUserId = res.data ? res.data.id : (slug.toLowerCase() === OWNER_SLUG ? OWNER_ID : null);
+        return viewedUserId;
+    }
+
+    async function currentUserId() {
+        var { data: { session } } = await sb.auth.getSession();
+        return session ? session.user.id : null;
+    }
+
+    async function canEditPost(post) {
+        var uid = await currentUserId();
+        if (!uid) return false;
+        if (post.user_id && String(post.user_id) === String(uid)) return true;
+        return false;
+    }
+
+    async function loadComments(postId) {
+        var { data, error } = await sb.from("comments").select("*").eq("post_id", postId).order("created_at", { ascending: true });
+        if (error) return [];
+        return data || [];
+    }
+
+    function hidePostMenu() {
+        var menu = document.getElementById("post-menu");
+        if (menu) menu.classList.remove("open");
+        activePostMenu = null;
+    }
+
+    function showPostMenuNearFooter(article, post) {
+        var menu = document.getElementById("post-menu");
+        if (!menu) return;
+        var footer = article.querySelector(".post-footer-row") || article.querySelector(".post-footer");
+        if (!footer) return;
+        activePostMenu = post;
+        menu.classList.add("open");
+        var rect = footer.getBoundingClientRect();
+        var menuW = 160;
+        var left = rect.right - menuW;
+        var top = rect.top;
+        if (left < 8) left = 8;
+        if (left + menuW > window.innerWidth - 8) left = window.innerWidth - menuW - 8;
+        menu.style.left = left + "px";
+        menu.style.top = top + "px";
+    }
+
+    async function renderPost(post) {
+        var article = document.createElement("article");
+        article.className = "post";
+        article.id = "post-" + post.id;
+
+        var mediaHtml = "";
+        if (post.media_url) {
+            mediaHtml = '<div class="post-media"><img src="' + escapeHtml(post.media_url) + '" alt=""></div>';
+        }
+
+        var comments = await loadComments(post.id);
+
+        article.innerHTML =
+            '<div class="post-date">' + new Date(post.created_at).toLocaleDateString("en-GB") + '</div>' +
+            '<h2 class="post-title">' + escapeHtml(post.title || "") + '</h2>' +
+            mediaHtml +
+            '<div class="post-content">' + escapeHtml(post.content || "") + '</div>' +
+            '<div class="post-footer-row">' +
+                '<div class="post-footer">comments · ' + comments.length + '</div>' +
+                '<button type="button" class="post-owner-btn" aria-label="menu">⋯</button>' +
+            '</div>' +
+            '<div class="comments">' +
+                '<div class="comments-list">' +
+                    (comments.length
+                        ? comments.map(function (c) {
+                            return '<div class="comment"><div class="comment-meta">' +
+                                escapeHtml(c.author_name || "гость") + " · " +
+                                new Date(c.created_at).toLocaleDateString("en-GB") +
+                                '</div><div>' + escapeHtml(c.content) + '</div></div>';
+                        }).join("")
+                        : '<div class="comment-meta">пока нет комментариев</div>') +
+                '</div>' +
+                '<form class="comment-form">' +
+                    '<input name="author_name" type="text" placeholder="имя" maxlength="40" required>' +
+                    '<textarea name="content" placeholder="комментарий" maxlength="500" required></textarea>' +
+                    '<button type="submit">отправить</button>' +
+                '</form>' +
+            '</div>';
+
+        var form = article.querySelector(".comment-form");
+        var list = article.querySelector(".comments-list");
+        var footer = article.querySelector(".post-footer");
+
+        form.addEventListener("submit", async function (e) {
+            e.preventDefault();
+            var name = form.querySelector('[name="author_name"]').value.trim();
+            var content = form.querySelector('[name="content"]').value.trim();
+            if (!name || !content) return;
+            var uid = await currentUserId();
+            var { error } = await sb.from("comments").insert({
+                post_id: post.id,
+                author_name: name,
+                content: content,
+                user_id: uid
+            });
+            if (error) { alert(error.message); return; }
+            form.querySelector('[name="content"]').value = "";
+            var fresh = await loadComments(post.id);
+            list.innerHTML = fresh.map(function (c) {
+                return '<div class="comment"><div class="comment-meta">' +
+                    escapeHtml(c.author_name || "гость") + " · " +
+                    new Date(c.created_at).toLocaleDateString("en-GB") +
+                    '</div><div>' + escapeHtml(c.content) + '</div></div>';
+            }).join("") || '<div class="comment-meta">пока нет комментариев</div>';
+            footer.textContent = "comments · " + fresh.length;
+        });
+
+        var btn = article.querySelector(".post-owner-btn");
+        btn.addEventListener("click", async function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!(await canEditPost(post))) {
+                alert("Войди через ★ — править можно только свои сны");
+                return;
+            }
+            if (activePostMenu && String(activePostMenu.id) === String(post.id)) {
+                hidePostMenu();
+                return;
+            }
+            showPostMenuNearFooter(article, post);
+        });
+
+        return article;
+    }
+
+    async function loadDreams() {
+        var feed = document.getElementById("feed");
+        if (!feed) return;
+        feed.innerHTML = '<div class="empty">loading...</div>';
+
+        var uid = await resolveViewedUser();
+        if (!uid) {
+            feed.innerHTML = '<div class="empty">профиль не найден</div>';
+            return;
+        }
+
+        var { data, error } = await sb
+            .from("posts")
+            .select("*")
+            .eq("category", "dreams")
+            .eq("user_id", uid)
+            .order("created_at", { ascending: false });
+
+        if (error) {
+            feed.innerHTML = '<div class="empty">Supabase error: ' + error.message + '</div>';
+            return;
+        }
+
+        if ((!data || !data.length) && getU().toLowerCase() === OWNER_SLUG) {
+            var all = await sb.from("posts").select("*").eq("category", "dreams").order("created_at", { ascending: false });
+            if (!all.error) {
+                data = (all.data || []).filter(function (p) {
+                    return !p.user_id || String(p.user_id) === String(uid);
+                });
+            }
+        }
+
+        data = data || [];
+        if (!data.length) {
+            feed.innerHTML = '<div class="empty">no dreams yet.</div>';
+            return;
+        }
+
+        feed.innerHTML = "";
+        for (var i = 0; i < data.length; i++) {
+            feed.appendChild(await renderPost(data[i]));
+        }
+    }
+
+    // auth + compose
+    var authOverlay = document.getElementById("auth-overlay");
+    var composeOverlay = document.getElementById("compose-overlay");
+
+    function openAuth() { authOverlay.classList.add("open"); document.getElementById("auth-error").textContent = ""; }
+    function closeAuth() { authOverlay.classList.remove("open"); }
+    function openCompose() { composeOverlay.classList.add("open"); document.getElementById("compose-error").textContent = ""; }
+    function closeCompose() { composeOverlay.classList.remove("open"); }
+
+    document.getElementById("admin-star").onclick = async function () {
+        var uid = await currentUserId();
+        if (!uid) {
+            openAuth();
+            return;
+        }
+        // только в своём дневнике
+        var viewed = await resolveViewedUser();
+        if (viewed && String(viewed) !== String(uid)) {
+            alert("Это чужой дневник. Свой: dreams.html?u=ТВОЙ_НИК");
+            return;
+        }
+        openCompose();
+    };
+
+    document.getElementById("auth-close").onclick = closeAuth;
+    document.getElementById("compose-close").onclick = closeCompose;
+
+    document.getElementById("auth-login").onclick = async function () {
+        var err = document.getElementById("auth-error");
+        err.textContent = "";
+        var email = document.getElementById("auth-email").value.trim();
+        var password = document.getElementById("auth-password").value;
+        var { error } = await sb.auth.signInWithPassword({ email: email, password: password });
+        if (error) { err.textContent = error.message; return; }
+        closeAuth();
+        var uid = await currentUserId();
+        var { data: prof } = await sb.from("profiles").select("display_name").eq("id", uid).maybeSingle();
+        if (prof && prof.display_name && getU().toLowerCase() !== String(prof.display_name).toLowerCase()) {
+            location.href = "dreams.html?u=" + encodeURIComponent(prof.display_name);
+            return;
+        }
+        openCompose();
+    };
+
+    document.getElementById("auth-signup").onclick = async function () {
+        var err = document.getElementById("auth-error");
+        err.textContent = "";
+        var email = document.getElementById("auth-email").value.trim();
+        var password = document.getElementById("auth-password").value;
+        var { data, error } = await sb.auth.signUp({ email: email, password: password });
+        if (error) { err.textContent = error.message; return; }
+        err.textContent = "аккаунт создан — подтверди почту, потом войди";
+        if (data && data.user) {
+            var nick = email.split("@")[0].slice(0, 32) || "user";
+            var code = "KQ-" + Math.random().toString(36).slice(2, 8).toUpperCase();
+            await sb.from("profiles").upsert({
+                id: data.user.id,
+                display_name: nick,
+                friend_code: code,
+                updated_at: new Date().toISOString()
+            }, { onConflict: "id" });
         }
     };
+
+    document.getElementById("compose-media").oninput = function () {
+        var u = document.getElementById("compose-media").value.trim();
+        var img = document.getElementById("compose-preview");
+        if (u) { img.style.display = "block"; img.src = u; }
+        else { img.style.display = "none"; img.src = ""; }
+    };
+
+    document.getElementById("compose-save").onclick = async function () {
+        var err = document.getElementById("compose-error");
+        err.textContent = "";
+        var uid = await currentUserId();
+        if (!uid) { err.textContent = "нужен вход"; return; }
+
+        var title = document.getElementById("compose-title").value.trim();
+        var content = document.getElementById("compose-content").value.trim();
+        var media_url = document.getElementById("compose-media").value.trim();
+        if (!title && !content) {
+            err.textContent = "напиши заголовок или текст";
+            return;
+        }
+
+        var payload = {
+            title: title,
+            content: content,
+            category: "dreams",
+            user_id: uid
+        };
+        if (media_url) {
+            payload.media_url = media_url;
+            payload.media_type = /\.gif(\?|$)/i.test(media_url) ? "gif" : "image";
+        }
+
+        var { error } = await sb.from("posts").insert(payload);
+        if (error) { err.textContent = error.message; return; }
+
+        document.getElementById("compose-title").value = "";
+        document.getElementById("compose-content").value = "";
+        document.getElementById("compose-media").value = "";
+        document.getElementById("compose-preview").style.display = "none";
+        closeCompose();
+        await loadDreams();
+    };
+
+    document.getElementById("post-menu-delete").onclick = async function () {
+        if (!activePostMenu) return;
+        if (!confirm("Удалить сон?")) return;
+        var { error } = await sb.from("posts").delete().eq("id", activePostMenu.id);
+        hidePostMenu();
+        if (error) { alert(error.message); return; }
+        loadDreams();
+    };
+
+    document.getElementById("post-menu-edit").onclick = async function () {
+        if (!activePostMenu) return;
+        var post = activePostMenu;
+        hidePostMenu();
+        var title = prompt("Заголовок", post.title || "");
+        if (title === null) return;
+        var content = prompt("Текст", post.content || "");
+        if (content === null) return;
+        var { error } = await sb.from("posts").update({ title: title, content: content }).eq("id", post.id);
+        if (error) { alert(error.message); return; }
+        loadDreams();
+    };
+
+    document.addEventListener("click", function (e) {
+        var menu = document.getElementById("post-menu");
+        if (!menu || !menu.classList.contains("open")) return;
+        if (e.target.closest("#post-menu") || e.target.closest(".post-owner-btn")) return;
+        hidePostMenu();
+    });
+
+    loadDreams();
 })();
-</script>
+    </script>
 </body>
 </html>
