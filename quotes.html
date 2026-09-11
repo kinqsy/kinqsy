@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,11 +7,26 @@
     <link rel="icon" href="favicon.png" type="image/png">
     <style>
         * { box-sizing: border-box; }
+        ::selection {
+            background: rgba(240, 201, 214, 0.9);
+            color: #3a2030;
+        }
+        body, body * {
+            user-select: none;
+            -webkit-user-select: none;
+            cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='%23f0c9d6' stroke='%233a2030' stroke-width='1.2' d='M4 3l12 7.5-5.2 1.4L13 21z'/%3E%3C/svg%3E") 4 2, auto;
+        }
+        input, textarea {
+            user-select: text;
+            -webkit-user-select: text;
+        }
+        a, button, .star, .pin-handle, .auth-modal input, .auth-modal textarea {
+            cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath fill='%23f6dce8' stroke='%233a2030' stroke-width='1.3' d='M8 4l12 8-6 1.5L16 24l-3-7-5 2z'/%3E%3C/svg%3E") 5 2, pointer !important;
+        }
         html { scroll-behavior: smooth; }
         html, body { margin: 0; padding: 0; min-height: 100%; }
-
         body {
-            background: #1a0f14 url("quotes-bg.jpg") center center / cover no-repeat fixed;
+            background: #000;
             color: #000;
             font-family: Georgia, "Times New Roman", serif;
         }
@@ -21,19 +36,23 @@
             top: 0; left: 0;
             width: 100%;
             height: 42px;
-            background: #885069;
+            background: rgba(240, 201, 214, 0.35);
+            backdrop-filter: blur(22px) saturate(160%);
+            -webkit-backdrop-filter: blur(22px) saturate(160%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.35);
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 18px;
             z-index: 1000;
-            box-shadow: 0 2px 12px rgba(0,0,0,.18);
+            box-shadow: 0 4px 24px rgba(110, 64, 87, 0.12);
         }
         .top-menu a {
             color: #050505;
             text-decoration: none;
             font-size: 21px;
             font-weight: bold;
+            white-space: nowrap;
         }
         .top-menu a:hover { text-decoration: underline; }
         .top-menu .star {
@@ -41,197 +60,207 @@
             font-size: 18px;
             opacity: 0.75;
             margin-left: 6px;
-            cursor: pointer;
-            user-select: none;
         }
         .top-menu .star:hover { opacity: 1; }
 
+        .quotes-bg {
+            position: fixed;
+            top: 42px; left: 0; right: 0; bottom: 0;
+            z-index: 0;
+            background: #1a0f14 url("quotes-bg.jpg") center center / cover no-repeat;
+            pointer-events: none;
+            border-radius: 0 0 30px 30px;
+            overflow: hidden;
+        }
+        .quotes-bg::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: inherit;
+            background-size: cover;
+            background-position: center;
+            filter: blur(14px);
+            transform: scale(1.06);
+        }
+        .quotes-grain {
+            position: fixed;
+            top: 42px; left: 0; right: 0; bottom: 0;
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0.4;
+            border-radius: 0 0 30px 30px;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            background-size: 180px 180px;
+            mix-blend-mode: soft-light;
+        }
+
         .quotes-page {
-            min-height: 100vh;
-            padding: 100px 20px 80px;
-        }
-
-        .quotes-header {
-            max-width: 900px;
-            margin: 0 auto 40px;
-            padding: 0;
-            background: none;
-            border: none;
-            box-shadow: none;
-            backdrop-filter: none;
-            -webkit-backdrop-filter: none;
-        }
-
-        .quotes-title {
-            margin: 0 0 14px;
-            color: #000;
-            font-family: "Bodoni 72", Didot, "Bodoni MT", Georgia, serif;
-            font-size: clamp(42px, 8vw, 90px);
-            font-weight: 400;
-            line-height: .9;
-            letter-spacing: -3px;
-            text-shadow: 0 2px 0 rgba(255,255,255,.35), 0 8px 24px rgba(0,0,0,.25);
-        }
-
-        .quotes-subtitle {
-            margin: 0;
-            font-size: 17px;
-            font-style: italic;
-            font-weight: bold;
-            text-shadow: 0 2px 10px rgba(0,0,0,.2);
-        }
-
-        .feed {
-            max-width: 900px;
-            margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            gap: 28px;
-        }
-
-        .post {
             position: relative;
-            padding: 28px;
-            border-radius: 22px;
-            background: linear-gradient(
-                180deg,
-                rgba(255,255,255,.18) 0%,
-                rgba(255,255,255,.06) 100%
-            );
-            border: 1px solid rgba(255,255,255,.35);
-            box-shadow: 0 16px 40px rgba(0,0,0,.15);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            overflow: hidden;
+            z-index: 2;
+            min-height: calc(100vh - 42px);
+            margin-top: 42px;
+            padding: 48px 16px 80px;
+            border-radius: 0 0 30px 30px;
         }
-        .post > * { position: relative; z-index: 2; }
-
-        .post-date {
-            margin-bottom: 12px;
-          font-family: Arial, sans-serif;
-            font-size: 11px;
-            font-weight: bold;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            opacity: .6;
+        .quotes-header {
+            max-width: 1200px;
+            margin: 0 auto 28px;
+            text-align: left;
         }
-        .post-title { margin: 0 0 15px; font-size: 29px; }
-        .post-content {
-            font-size: 18px;
-            line-height: 1.7;
+        .quotes-title {
+            margin: 0;
+            font-family: "Bodoni 72", Didot, "Bodoni MT", Georgia, serif;
+            font-size: clamp(36px, 8vw, 72px);
+            font-weight: 400;
+            line-height: 0.9;
+            letter-spacing: -2px;
+            text-shadow: 0 2px 0 rgba(255,255,255,.3), 0 8px 24px rgba(0,0,0,.2);
+        }
+        .quotes-subtitle {
+            margin: 10px 0 0;
+            font-size: 15px;
             font-style: italic;
-        }
-        .post-footer {
-            margin-top: 24px;
-            padding-top: 14px;
-            border-top: 1px solid rgba(0,0,0,.14);
-            font-family: Arial, sans-serif;
-            font-size: 12px;
             font-weight: bold;
+            opacity: 0.9;
         }
-        .post-media {
-            margin: 14px 0 6px;
-            border-radius: 16px;
-            overflow: hidden;
-        }
-        .post-media img {
-            display: block;
-            max-width: 550px;
-            max-height: 550px;
-            width: 100%;
-            height: auto;
-            object-fit: contain;
+
+        /* Pinterest-like masonry */
+        .feed {
+            max-width: 1200px;
             margin: 0 auto;
+            column-count: 3;
+            column-gap: 14px;
         }
-        .comments {
-            margin-top: 18px;
-            padding-top: 14px;
-            border-top: 1px solid rgba(0,0,0,.12);
+        @media (max-width: 900px) {
+            .feed { column-count: 2; }
         }
-        .comment {
-            margin-bottom: 10px;
-            padding: 10px 12px;
-            border-radius: 12px;
-            background: rgba(255,255,255,.25);
-            font-size: 14px;
-            line-height: 1.4;
+        @media (max-width: 560px) {
+            .feed { column-count: 1; }
         }
-        .comment-meta {
-            font-family: Arial, sans-serif;
-            font-size: 11px;
-            font-weight: bold;
-            opacity: .65;
-            margin-bottom: 4px;
+
+        .pin {
+            break-inside: avoid;
+            margin: 0 0 14px;
+            border-radius: 18px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 10px 28px rgba(0,0,0,.12);
+            color: #1a0f14;
+            position: relative;
+            transition: box-shadow 0.2s, transform 0.15s;
         }
-        .comment-form {
+        .pin.dragging {
+            opacity: 0.85;
+            transform: scale(1.02);
+            box-shadow: 0 16px 40px rgba(0,0,0,.25);
+            z-index: 5;
+        }
+        .pin.drag-over {
+            outline: 2px dashed rgba(240, 201, 214, 0.9);
+        }
+        .pin-handle {
             display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-top: 12px;
-        }
-        .comment-form input,
-        .comment-form textarea {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid rgba(0,0,0,.15);
-            border-radius: 10px;
-            background: rgba(255,255,255,.7);
-            font-family: Georgia, serif;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            height: 28px;
+            background: rgba(255, 255, 255, 0.25);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.25);
             font-size: 14px;
+            letter-spacing: 2px;
+            color: rgba(26, 15, 20, 0.55);
+            touch-action: none;
         }
-        .comment-form textarea {
-            min-height: 70px;
-            resize: vertical;
+        .pin-handle:active { background: rgba(255, 255, 255, 0.4); }
+        .pin-body { padding: 14px 14px 12px; }
+        .pin-media {
+            width: 100%;
+            display: block;
+            max-height: 420px;
+            object-fit: cover;
         }
-        .comment-form button {
-            align-self: flex-start;
-            margin-top: 4px;
-            padding: 8px 16px;
-            border: 0;
-            border-radius: 999px;
-            background: #885069;
-            color: #fff;
-            font-family: Arial, sans-serif;
-            font-size: 13px;
+        .pin-title {
+            margin: 0 0 8px;
+            font-size: 18px;
+            line-height: 1.25;
             font-weight: bold;
-            cursor: pointer;
+        }
+        .pin-text {
+            margin: 0;
+            font-size: 15px;
+            line-height: 1.45;
+            font-style: italic;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .pin-meta {
+            margin-top: 10px;
+            font-size: 11px;
+            font-family: Arial, sans-serif;
+            opacity: 0.65;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+        .pin-owner-btn {
+            border: 0;
+            background: rgba(255,255,255,0.35);
+            border-radius: 999px;
+            width: 28px;
+            height: 28px;
+            font-size: 16px;
+            line-height: 1;
+            color: #2a1822;
         }
 
         .empty {
-            padding: 60px 20px;
+            max-width: 1200px;
+            margin: 40px auto;
             text-align: center;
             font-style: italic;
-            opacity: .75;
-            background: rgba(255,255,255,.28);
-            border-radius: 18px;
-            backdrop-filter: blur(10px);
+            opacity: 0.8;
+        }
+
+        .support-line {
+            position: relative;
+            z-index: 5;
+            text-align: center;
+            padding: 16px;
+            background: #000;
+        }
+        .support-line a {
+            color: #F1B9D0;
+            text-decoration: none;
+            font-size: 14px;
         }
 
         footer {
-            min-height: 110px;
+            position: relative;
+            z-index: 5;
+            min-height: 100px;
             background: #000;
             color: #F1B9D0;
             display: grid;
             grid-template-columns: 1fr auto 1fr;
             align-items: center;
-            padding: 20px 28px;
+            padding: 18px 24px;
         }
         .socials {
             display: flex;
             gap: 16px;
             justify-content: center;
-            align-items: center;
         }
         .socials a {
-            width: 28px;
-            height: 28px;
+            width: 28px; height: 28px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: #F1B9D0;
-            text-decoration: none;
         }
-        .socials a:hover { opacity: 0.8; transform: scale(1.08); }
         .socials svg { width: 22px; height: 22px; fill: currentColor; }
 
         .back-to-top-fixed {
@@ -242,7 +271,8 @@
             width: 44px;
             height: 44px;
             border-radius: 50%;
-            background: #885069;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            background: rgba(255, 255, 255, 0.14);
             color: #f6dce8;
             display: flex;
             align-items: center;
@@ -250,66 +280,151 @@
             text-decoration: none;
             font-size: 18px;
             font-weight: bold;
-            box-shadow: 0 8px 24px rgba(0,0,0,.35);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
         }
-        .back-to-top-fixed:hover {
-            transform: translateY(-2px);
-            opacity: 0.9;
+
+        .auth-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            background: rgba(20, 10, 16, 0.45);
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
         }
+        .auth-overlay.open { display: flex; }
+        .auth-modal {
+            width: min(92vw, 420px);
+            max-height: 88vh;
+            overflow-y: auto;
+            padding: 24px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.22);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            color: #2a1822;
+        }
+        .auth-modal h2 { margin: 0 0 14px; font-weight: normal; }
+        .auth-modal label {
+            display: block;
+            font-size: 12px;
+            font-weight: bold;
+            margin: 10px 0 4px;
+            font-family: Arial, sans-serif;
+        }
+        .auth-modal input, .auth-modal textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,.5);
+            background: rgba(255,255,255,.35);
+            font-family: Georgia, serif;
+            font-size: 15px;
+        }
+        .auth-modal textarea { min-height: 110px; resize: vertical; }
+        .auth-hint {
+            margin-top: 4px;
+            font-size: 11px;
+            opacity: 0.7;
+            font-family: Arial, sans-serif;
+        }
+        .auth-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+        .auth-actions button {
+            flex: 1;
+            min-width: 90px;
+            padding: 10px 14px;
+            border: 0;
+            border-radius: 999px;
+            background: #f0c9d6;
+            color: #3a2030;
+            font-weight: bold;
+            font-family: Arial, sans-serif;
+        }
+        .auth-actions button.secondary { background: rgba(255,255,255,.4); }
+        .auth-error {
+            margin-top: 10px;
+            font-size: 13px;
+            color: #7a2030;
+            min-height: 1.2em;
+        }
+        .compose-preview {
+            margin-top: 10px;
+            max-width: 100%;
+            border-radius: 12px;
+            display: none;
+        }
+
+        .post-menu {
+            display: none;
+            position: fixed;
+            z-index: 1500;
+            min-width: 140px;
+            padding: 6px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid rgba(255,255,255,0.5);
+            box-shadow: 0 12px 30px rgba(0,0,0,.2);
+        }
+        .post-menu.open { display: block; }
+        .post-menu button {
+            display: block;
+            width: 100%;
+            border: 0;
+            background: transparent;
+            padding: 10px 12px;
+            text-align: left;
+            border-radius: 8px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            color: #2a1822;
+        }
+        .post-menu button.danger { color: #7a2030; }
 
         @media (max-width: 700px) {
             .top-menu {
-                padding: 0 8px;
-                gap: 11px;
                 justify-content: flex-start;
                 overflow-x: auto;
-                scrollbar-width: none;
+                padding: 0 8px;
+                gap: 12px;
             }
-            .top-menu::-webkit-scrollbar { display: none; }
-            .top-menu a { font-size: 16px; }
-            .quotes-page { padding: 85px 12px 50px; }
-            .quotes-title { font-size: clamp(34px, 10vw, 60px); letter-spacing: -2px; }
-            .post { padding: 20px; border-radius: 16px; }
-            .post-title { font-size: 24px; }
-            .post-content { font-size: 16px; }
-            .post-media {
-                margin: 14px 0 6px;
-                border-radius: 16px;
-                overflow: hidden;
-}
-            .post-media img {
-                display: block;
-                max-width: 550px;
-                max-height: 550px;
-                width: 100%;
-                height: auto;
-                object-fit: contain;
-                margin: 0 auto;
-}
-            footer { grid-template-columns: 1fr; gap: 18px; text-align: center; }
-            .back-to-top-fixed { right: 16px; bottom: 16px; width: 40px; height: 40px; }
+            footer { grid-template-columns: 1fr; gap: 14px; text-align: center; }
         }
     </style>
 </head>
 <body id="top">
 
     <nav class="top-menu">
-        <a href="index.html">home</a>
-        <a href="notes.html">notes</a>
-        <a href="dreams.html">dreams</a>
-        <a href="quotes.html">quotation/definition</a>
-        <a href="about.html">about</a>
+        <a href="index.html" id="nav-home">home</a>
+        <a href="notes.html" id="nav-notes">notes</a>
+        <a href="dreams.html" id="nav-dreams">dreams</a>
+        <a href="quotes.html" id="nav-quotes">quotation/definition</a>
+        <a href="about.html" id="nav-about">about</a>
         <span class="star" id="admin-star">★</span>
     </nav>
+
+    <div class="quotes-bg" aria-hidden="true"></div>
+    <div class="quotes-grain" aria-hidden="true"></div>
 
     <main class="quotes-page">
         <div class="quotes-header">
             <h1 class="quotes-title">QUOTATION / DEFINITION</h1>
-            <div class="quotes-subtitle">things I probably shouldn't publish</div>
+            <div class="quotes-subtitle" id="quotes-user-label">inspiration board · @kinqsy</div>
         </div>
-
         <section class="feed" id="feed"></section>
     </main>
+
+    <div class="support-line">
+        <a href="https://boosty.to/kinqsy/donate" target="_blank" rel="noopener noreferrer">support the diary</a>
+    </div>
 
     <footer>
         <div>© 2026 kinqsy.lol</div>
@@ -327,167 +442,483 @@
         <div></div>
     </footer>
 
-    <a href="#top" class="back-to-top-fixed" aria-label="Back to top">↑</a>
+    <a href="#top" class="back-to-top-fixed" aria-label="Наверх">↑</a>
+
+    <div class="post-menu" id="post-menu">
+        <button type="button" id="post-menu-edit">изменить</button>
+        <button type="button" id="post-menu-delete" class="danger">удалить</button>
+    </div>
+
+    <div class="auth-overlay" id="auth-overlay">
+        <div class="auth-modal">
+            <h2>вход</h2>
+            <label for="auth-email">email</label>
+            <input id="auth-email" type="email" autocomplete="username">
+            <label for="auth-password">пароль</label>
+            <input id="auth-password" type="password" autocomplete="current-password">
+            <div class="auth-actions">
+                <button type="button" id="auth-login">войти</button>
+                <button type="button" id="auth-signup" class="secondary">регистрация</button>
+                <button type="button" id="auth-close" class="secondary">закрыть</button>
+            </div>
+            <div class="auth-error" id="auth-error"></div>
+        </div>
+    </div>
+
+    <div class="auth-overlay" id="compose-overlay">
+        <div class="auth-modal">
+            <h2>на доску</h2>
+            <label for="compose-title">заголовок (необязательно)</label>
+            <input id="compose-title" type="text" maxlength="80">
+            <label for="compose-content">цитата / текст</label>
+            <textarea id="compose-content" rows="5" maxlength="600"></textarea>
+            <div class="auth-hint">макс. 600 символов — цитата, не глава</div>
+            <label for="compose-media">картинка / gif (ссылка)</label>
+            <input id="compose-media" type="url" placeholder="https://...">
+            <img id="compose-preview" class="compose-preview" alt="">
+            <div class="auth-actions">
+                <button type="button" id="compose-save">добавить</button>
+                <button type="button" id="compose-close" class="secondary">закрыть</button>
+            </div>
+            <div class="auth-error" id="compose-error"></div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-const SUPABASE_URL = "https://rgkfegdtxaojceknnzlr.supabase.co";
-const SUPABASE_KEY = "sb_publishable_uK7zrVyq8AlHpoj13pGQ6g_q3L47Akw";
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+(function () {
+    var SUPABASE_URL = "https://rgkfegdtxaojceknnzlr.supabase.co";
+    var SUPABASE_KEY = "sb_publishable_uK7zrVyq8AlHpoj13pGQ6g_q3L47Akw";
+    var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-function escapeHtml(text) {
-    return String(text)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;");
-}
+    var OWNER_ID = "4923abc5-5c86-48c2-904b-a267c2e21703";
+    var OWNER_SLUG = "kinqsy";
+    var MAX_QUOTE = 600;
+    var viewedUserId = null;
+    var activePostMenu = null;
+    var allPins = [];
+    var canReorder = false;
 
-async function loadComments(postId) {
-    const { data, error } = await supabaseClient
-        .from("comments")
-        .select("*")
-        .eq("post_id", postId)
-        .order("created_at", { ascending: true });
-
-    if (error) {
-        console.error(error);
-        return [];
-    }
-    return data || [];
-}
-
-function renderComments(comments) {
-    if (!comments.length) {
-        return '<div class="comment-meta">пока нет комментариев</div>';
+    function escapeHtml(t) {
+        return String(t || "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;");
     }
 
-    return comments.map(function (c) {
-        return (
-            '<div class="comment">' +
-                '<div class="comment-meta">' +
-                    escapeHtml(c.author_name) +
-                    " · " +
-                    new Date(c.created_at).toLocaleDateString("en-GB") +
-                "</div>" +
-                "<div>" + escapeHtml(c.content) + "</div>" +
-            "</div>"
-        );
-    }).join("");
-}
-
-async function loadQuotes() {
-    const feed = document.getElementById("feed");
-    if (!feed) return;
-
-    feed.innerHTML = '<div class="empty">loading...</div>';
-
-    const { data, error } = await supabaseClient
-        .from("posts")
-        .select("*")
-        .eq("category", "quotes")
-        .order("created_at", { ascending: false });
-
-    if (error) {
-        feed.innerHTML = '<div class="empty">Supabase error: ' + error.message + '</div>';
-        console.error(error);
-        return;
+    function getU() {
+        var u = new URLSearchParams(location.search).get("u");
+        return (u && u.trim()) ? u.trim() : OWNER_SLUG;
     }
 
-    if (!data || data.length === 0) {
-        feed.innerHTML = '<div class="empty">no quotes yet.</div>';
-        return;
+    function menuUrl(page) {
+        return page + "?u=" + encodeURIComponent(getU());
     }
 
-    feed.innerHTML = "";
+    function fixMenu() {
+        var map = {
+            "nav-home": "index.html",
+            "nav-notes": "notes.html",
+            "nav-dreams": "dreams.html",
+            "nav-quotes": "quotes.html",
+            "nav-about": "about.html"
+        };
+        Object.keys(map).forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el) el.href = menuUrl(map[id]);
+        });
+    }
 
-    for (const post of data) {
-        const article = document.createElement("article");
-        article.className = "post";
+    function orderKey() {
+        return "kinqsy_quotes_order_" + (viewedUserId || getU());
+    }
 
-        let mediaHtml = "";
-        if (post.media_url) {
-            mediaHtml = '<div class="post-media"><img src="' + post.media_url + '" alt=""></div>';
+    function loadOrder() {
+        try {
+            return JSON.parse(localStorage.getItem(orderKey()) || "[]");
+        } catch (e) {
+            return [];
         }
+    }
 
-        const comments = await loadComments(post.id);
+    function saveOrder(ids) {
+        localStorage.setItem(orderKey(), JSON.stringify(ids));
+    }
 
-        article.innerHTML =
-            '<div class="post-date">' +
-                new Date(post.created_at).toLocaleDateString("en-GB") +
-            '</div>' +
-            '<h2 class="post-title">' + (post.title || "") + '</h2>' +
-            mediaHtml +
-            '<div class="post-content">' + (post.content || "") + '</div>' +
-            '<div class="post-footer">comments · ' + comments.length + '</div>' +
-            '<div class="comments">' +
-                '<div class="comments-list">' + renderComments(comments) + '</div>' +
-                '<form class="comment-form">' +
-                    '<input name="author_name" type="text" placeholder="имя" maxlength="40" required>' +
-                    '<textarea name="content" placeholder="комментарий" maxlength="500" required></textarea>' +
-                    '<button type="submit">отправить</button>' +
-                '</form>' +
-            '</div>';
-
-        const form = article.querySelector(".comment-form");
-        const list = article.querySelector(".comments-list");
-        const footer = article.querySelector(".post-footer");
-
-        form.addEventListener("submit", async function (e) {
-            e.preventDefault();
-
-            const nameInput = form.querySelector('[name="author_name"]');
-            const textInput = form.querySelector('[name="content"]');
-            const author_name = nameInput.value.trim();
-            const content = textInput.value.trim();
-            const submitBtn = form.querySelector("button");
-
-            if (!author_name || !content) {
-                alert("Напиши имя и комментарий");
-                return;
+    function applySavedOrder(posts) {
+        var order = loadOrder();
+        if (!order.length) return posts;
+        var map = {};
+        posts.forEach(function (p) { map[String(p.id)] = p; });
+        var sorted = [];
+        order.forEach(function (id) {
+            if (map[id]) {
+                sorted.push(map[id]);
+                delete map[id];
             }
+        });
+        Object.keys(map).forEach(function (id) { sorted.push(map[id]); });
+        return sorted;
+    }
 
-            submitBtn.disabled = true;
+    async function currentUserId() {
+        var { data: { session } } = await sb.auth.getSession();
+        return session ? session.user.id : null;
+    }
 
-            const { error } = await supabaseClient.from("comments").insert({post_id: post.id,
-                author_name: author_name,
-                content: content
+    async function resolveViewedUser() {
+        fixMenu();
+        var slug = getU();
+        document.getElementById("quotes-user-label").textContent = "inspiration board · @" + slug;
+
+        var res = await sb.from("profiles").select("id, display_name").ilike("display_name", slug).maybeSingle();
+        if (!res.data && slug.toLowerCase() === OWNER_SLUG) {
+            res = await sb.from("profiles").select("id, display_name").eq("id", OWNER_ID).maybeSingle();
+        }
+        viewedUserId = res.data ? res.data.id : (slug.toLowerCase() === OWNER_SLUG ? OWNER_ID : null);
+
+        var uid = await currentUserId();
+        canReorder = !!(uid && viewedUserId && String(uid) === String(viewedUserId));
+        return viewedUserId;
+    }
+
+    async function canEditPost(post) {
+        var uid = await currentUserId();
+        if (!uid || !post.user_id) return false;
+        return String(post.user_id) === String(uid);
+    }
+
+    function hidePostMenu() {
+        document.getElementById("post-menu").classList.remove("open");
+        activePostMenu = null;
+    }
+
+    function showPostMenu(btn, post) {
+        var menu = document.getElementById("post-menu");
+        activePostMenu = post;
+        menu.classList.add("open");
+        var rect = btn.getBoundingClientRect();
+        menu.style.left = Math.min(rect.left, window.innerWidth - 160) + "px";
+        menu.style.top = (rect.bottom + 4) + "px";
+    }
+
+    function bindDrag(pin) {
+        if (!canReorder) return;
+        var handle = pin.querySelector(".pin-handle");
+        if (!handle) return;
+
+        pin.draggable = true;
+
+        pin.addEventListener("dragstart", function (e) {
+            pin.classList.add("dragging");
+            e.dataTransfer.effectAllowed = "move";
+            e.dataTransfer.setData("text/plain", pin.dataset.id);
+        });
+        pin.addEventListener("dragend", function () {
+            pin.classList.remove("dragging");
+            document.querySelectorAll(".pin.drag-over").forEach(function (el) {
+                el.classList.remove("drag-over");
             });
-
-            submitBtn.disabled = false;
-
-            if (error) {
-                alert("Ошибка: " + error.message);
-                return;
-            }
-
-            textInput.value = "";
-            const fresh = await loadComments(post.id);
-            list.innerHTML = renderComments(fresh);
-            footer.textContent = "comments · " + fresh.length;
+            persistDomOrder();
+        });
+        pin.addEventListener("dragover", function (e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = "move";
+            pin.classList.add("drag-over");
+        });
+        pin.addEventListener("dragleave", function () {
+            pin.classList.remove("drag-over");
+        });
+        pin.addEventListener("drop", function (e) {
+            e.preventDefault();
+            pin.classList.remove("drag-over");
+            var id = e.dataTransfer.getData("text/plain");
+            var dragged = document.querySelector('.pin[data-id="' + id + '"]');
+            if (!dragged || dragged === pin) return;
+            var feed = document.getElementById("feed");
+            var pins = Array.prototype.slice.call(feed.querySelectorAll(".pin"));
+            var from = pins.indexOf(dragged);
+            var to = pins.indexOf(pin);
+            if (from < to) feed.insertBefore(dragged, pin.nextSibling);
+            else feed.insertBefore(dragged, pin);
         });
 
-        feed.appendChild(article);
+        // touch: long-press style drag via pointer
+        var touchDrag = null;
+        handle.addEventListener("touchstart", function (e) {
+            if (!canReorder) return;
+            touchDrag = { id: pin.dataset.id, y: e.touches[0].clientY };
+        }, { passive: true });
+
+        handle.addEventListener("touchmove", function (e) {
+            if (!touchDrag) return;
+            e.preventDefault();
+            var t = e.touches[0];
+            var el = document.elementFromPoint(t.clientX, t.clientY);
+            var target = el && el.closest ? el.closest(".pin") : null;
+            if (!target || target === pin) return;
+            var feed = document.getElementById("feed");
+            var dragged = document.querySelector('.pin[data-id="' + touchDrag.id + '"]');
+            if (!dragged) return;
+            var pins = Array.prototype.slice.call(feed.querySelectorAll(".pin"));
+            var from = pins.indexOf(dragged);
+            var to = pins.indexOf(target);
+            if (from < 0 || to < 0) return;
+            if (from < to) feed.insertBefore(dragged, target.nextSibling);
+            else feed.insertBefore(dragged, target);
+        }, { passive: false });
+
+        handle.addEventListener("touchend", function () {
+            touchDrag = null;
+            persistDomOrder();
+        });
     }
-}
 
-loadQuotes();
+    function persistDomOrder() {
+        if (!canReorder) return;
+        var ids = Array.prototype.map.call(
+            document.querySelectorAll("#feed .pin"),
+            function (el) { return el.dataset.id; }
+        );
+        saveOrder(ids);
+    }
 
-(function () {
-    var star = document.getElementById("admin-star");
-    if (!star) return;
-    var clicks = 0;
-    var timer = null;
-    star.onclick = function () {
-        clicks = clicks + 1;
-        if (timer) clearTimeout(timer);
-        timer = setTimeout(function () { clicks = 0; }, 2000);
-        if (clicks >= 3) {
-            clicks = 0;
-            window.location.href = "admin.html";
+    function makePin(post) {
+        var pin = document.createElement("article");
+        pin.className = "pin";
+        pin.dataset.id = String(post.id);
+
+        var media = post.media_url
+            ? '<img class="pin-media" src="' + escapeHtml(post.media_url) + '" alt="">'
+            : "";
+
+        var title = post.title && post.title.trim()
+            ? '<h2 class="pin-title">' + escapeHtml(post.title) + '</h2>'
+            : "";
+
+        var text = post.content && post.content.trim()
+            ? '<p class="pin-text">' + escapeHtml(post.content) + '</p>'
+            : "";
+
+        pin.innerHTML =
+            '<div class="pin-handle" title="перетащи">⋮⋮</div>' +
+            media +
+            '<div class="pin-body">' +
+                title + text +
+                '<div class="pin-meta">' +
+                    '<span>' + new Date(post.created_at).toLocaleDateString("en-GB") + '</span>' +
+                    '<button type="button" class="pin-owner-btn" aria-label="меню">⋯</button>' +
+                '</div>' +
+            '</div>';
+
+        if (!canReorder) {
+            pin.querySelector(".pin-handle").style.display = "none";
+        } else {
+            bindDrag(pin);
+        }
+
+        pin.querySelector(".pin-owner-btn").addEventListener("click", async function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!(await canEditPost(post))) {
+                alert("Только автор может менять пин");
+                return;
+            }
+            showPostMenu(e.currentTarget, post);
+        });
+
+        return pin;
+    }
+
+    async function loadQuotes() {
+        var feed = document.getElementById("feed");
+        feed.innerHTML = '<div class="empty">loading...</div>';
+
+        var uid = await resolveViewedUser();
+        if (!uid) {
+            feed.innerHTML = '<div class="empty">профиль не найден</div>';
+            return;
+        }
+
+        var { data, error } = await sb
+            .from("posts")
+            .select("*")
+            .eq("category", "quotes")
+            .eq("user_id", uid)
+            .order("created_at", { ascending: false });
+
+        if (error) {
+            feed.innerHTML = '<div class="empty">Supabase error: ' + escapeHtml(error.message) + '</div>';
+            return;
+        }
+
+        if ((!data || !data.length) && getU().toLowerCase() === OWNER_SLUG) {
+            var all = await sb.from("posts").select("*").eq("category", "quotes").order("created_at", { ascending: false });
+            if (!all.error) {
+                data = (all.data || []).filter(function (p) {
+                    return !p.user_id || String(p.user_id) === String(uid);
+                });
+            }
+        }
+
+        data = applySavedOrder(data || []);
+        allPins = data;
+
+        if (!data.length) {
+            feed.innerHTML = '<div class="empty">доска пока пустая — ★ добавить</div>';
+            return;
+        }
+
+        feed.innerHTML = "";
+        data.forEach(function (post) {
+            feed.appendChild(makePin(post));
+        });
+    }
+
+    // auth / compose
+    var authOverlay = document.getElementById("auth-overlay");
+    var composeOverlay = document.getElementById("compose-overlay");
+    function openAuth() { authOverlay.classList.add("open"); document.getElementById("auth-error").textContent = ""; }
+    function closeAuth() { authOverlay.classList.remove("open"); }
+    function openCompose() { composeOverlay.classList.add("open"); document.getElementById("compose-error").textContent = ""; }
+    function closeCompose() { composeOverlay.classList.remove("open"); }
+
+    document.getElementById("admin-star").onclick = async function () {
+        var uid = await currentUserId();
+        if (!uid) { openAuth(); return; }
+        var viewed = await resolveViewedUser();
+        if (viewed && String(viewed) !== String(uid)) {
+            alert("Чужая доска. Своя: quotes.html?u=ТВОЙ_НИК");
+            return;
+        }
+        openCompose();
+    };
+
+    document.getElementById("auth-close").onclick = closeAuth;
+    document.getElementById("compose-close").onclick = closeCompose;
+
+    document.getElementById("auth-login").onclick = async function () {
+        var err = document.getElementById("auth-error");
+        err.textContent = "";
+        var email = document.getElementById("auth-email").value.trim();
+        var password = document.getElementById("auth-password").value;
+        var { error } = await sb.auth.signInWithPassword({ email: email, password: password });
+        if (error) { err.textContent = error.message; return; }
+        closeAuth();
+        var uid = await currentUserId();
+        var { data: prof } = await sb.from("profiles").select("display_name").eq("id", uid).maybeSingle();
+        if (prof && prof.display_name && getU().toLowerCase() !== String(prof.display_name).toLowerCase()) {
+            location.href = "quotes.html?u=" + encodeURIComponent(prof.display_name);
+            return;
+        }
+        openCompose();
+        await loadQuotes();
+    };
+
+    document.getElementById("auth-signup").onclick = async function () {
+        var err = document.getElementById("auth-error");
+        err.textContent = "";
+        var email = document.getElementById("auth-email").value.trim();
+        var password = document.getElementById("auth-password").value;
+        var { data, error } = await sb.auth.signUp({ email: email, password: password });
+        if (error) { err.textContent = error.message; return; }
+        err.textContent = "аккаунт создан — подтверди почту, потом войди";
+        if (data && data.user) {
+            var nick = email.split("@")[0].slice(0, 32) || "user";
+            var code = "KQ-" + Math.random().toString(36).slice(2, 8).toUpperCase();
+            await sb.from("profiles").upsert({
+                id: data.user.id,
+                display_name: nick,
+                friend_code: code,
+                updated_at: new Date().toISOString()
+            }, { onConflict: "id" });
         }
     };
+
+    document.getElementById("compose-media").oninput = function () {
+        var u = document.getElementById("compose-media").value.trim();
+        var img = document.getElementById("compose-preview");
+        if (u) { img.style.display = "block"; img.src = u; }
+        else { img.style.display = "none"; img.src = ""; }
+    };
+
+    document.getElementById("compose-save").onclick = async function () {
+        var err = document.getElementById("compose-error");
+        err.textContent = "";
+        var uid = await currentUserId();
+        if (!uid) { err.textContent = "нужен вход"; return; }
+
+        var title = document.getElementById("compose-title").value.trim().slice(0, 80);
+        var content = document.getElementById("compose-content").value.trim().slice(0, MAX_QUOTE);
+        var media_url = document.getElementById("compose-media").value.trim();
+
+        if (!title && !content && !media_url) {
+            err.textContent = "добавь текст или картинку";
+            return;
+        }
+        if (content.length > MAX_QUOTE) {
+            err.textContent = "макс. " + MAX_QUOTE + " символов";
+            return;
+        }
+
+        var payload = {
+            title: title,
+            content: content,
+            category: "quotes",
+            user_id: uid
+        };
+        if (media_url) {
+            payload.media_url = media_url;
+            payload.media_type = /\.gif(\?|$)/i.test(media_url) ? "gif" : "image";
+        }
+
+        var { error } = await sb.from("posts").insert(payload);
+        if (error) { err.textContent = error.message; return; }
+
+        document.getElementById("compose-title").value = "";
+        document.getElementById("compose-content").value = "";
+        document.getElementById("compose-media").value = "";
+        document.getElementById("compose-preview").style.display = "none";
+        closeCompose();
+        await loadQuotes();
+    };
+
+    document.getElementById("post-menu-delete").onclick = async function () {
+        if (!activePostMenu) return;
+        if (!confirm("Удалить с доски?")) return;
+        var { error } = await sb.from("posts").delete().eq("id", activePostMenu.id);
+        hidePostMenu();
+        if (error) { alert(error.message); return; }
+        loadQuotes();
+    };
+
+    document.getElementById("post-menu-edit").onclick = async function () {
+        if (!activePostMenu) return;
+        var post = activePostMenu;
+        hidePostMenu();
+        var title = prompt("Заголовок", post.title || "");
+        if (title === null) return;
+        var content = prompt("Текст (макс. " + MAX_QUOTE + ")", post.content || "");
+        if (content === null) return;
+        content = String(content).slice(0, MAX_QUOTE);
+        var { error } = await sb.from("posts").update({
+            title: title.slice(0, 80),
+            content: content
+        }).eq("id", post.id);
+        if (error) { alert(error.message); return; }
+        loadQuotes();
+    };
+
+    document.addEventListener("click", function (e) {
+        var menu = document.getElementById("post-menu");
+        if (!menu.classList.contains("open")) return;
+        if (e.target.closest("#post-menu") || e.target.closest(".pin-owner-btn")) return;
+        hidePostMenu();
+    });
+
+    loadQuotes();
 })();
-</script>
+    </script>
 </body>
 </html>
