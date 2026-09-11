@@ -5,22 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QUOTATION / DEFINITION — KINQSY.LOL</title>
     <link rel="icon" href="favicon.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Alumni+Sans+Collegiate+One&family=Amatic+SC:wght@400;700&family=Bad+Script&family=Kaisei+Decol:wght@400;700&family=Poiret+One&family=Press+Start+2P&family=Rubik+Beastly&family=Shafarik&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; }
-        ::selection {
-            background: rgba(240, 201, 214, 0.9);
-            color: #3a2030;
-        }
+        ::selection { background: rgba(240, 201, 214, 0.9); color: #3a2030; }
         body, body * {
             user-select: none;
             -webkit-user-select: none;
             cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='%23f0c9d6' stroke='%233a2030' stroke-width='1.2' d='M4 3l12 7.5-5.2 1.4L13 21z'/%3E%3C/svg%3E") 4 2, auto;
         }
-        input, textarea {
+        input, textarea, select {
             user-select: text;
             -webkit-user-select: text;
         }
-        a, button, .star, .pin-handle, .auth-modal input, .auth-modal textarea {
+        a, button, .star, .pin-handle, label {
             cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath fill='%23f6dce8' stroke='%233a2030' stroke-width='1.3' d='M8 4l12 8-6 1.5L16 24l-3-7-5 2z'/%3E%3C/svg%3E") 5 2, pointer !important;
         }
         html { scroll-behavior: smooth; }
@@ -32,370 +32,197 @@
         }
 
         .top-menu {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%;
-            height: 42px;
+            position: fixed; top: 0; left: 0; width: 100%; height: 42px;
             background: rgba(240, 201, 214, 0.35);
             backdrop-filter: blur(22px) saturate(160%);
             -webkit-backdrop-filter: blur(22px) saturate(160%);
             border-bottom: 1px solid rgba(255, 255, 255, 0.35);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 18px;
+            display: flex; align-items: center; justify-content: center; gap: 18px;
             z-index: 1000;
             box-shadow: 0 4px 24px rgba(110, 64, 87, 0.12);
         }
         .top-menu a {
-            color: #050505;
-            text-decoration: none;
-            font-size: 21px;
-            font-weight: bold;
-            white-space: nowrap;
+            color: #050505; text-decoration: none; font-size: 21px; font-weight: bold; white-space: nowrap;
         }
         .top-menu a:hover { text-decoration: underline; }
-        .top-menu .star {
-            color: #111;
-            font-size: 18px;
-            opacity: 0.75;
-            margin-left: 6px;
-        }
+        .top-menu .star { color: #111; font-size: 18px; opacity: 0.75; margin-left: 6px; }
         .top-menu .star:hover { opacity: 1; }
 
         .quotes-bg {
-            position: fixed;
-            top: 42px; left: 0; right: 0; bottom: 0;
-            z-index: 0;
+            position: fixed; top: 42px; left: 0; right: 0; bottom: 0; z-index: 0;
             background: #1a0f14 url("quotes-bg.jpg") center center / cover no-repeat;
-            pointer-events: none;
-            border-radius: 0 0 30px 30px;
-            overflow: hidden;
+            pointer-events: none; border-radius: 0 0 30px 30px; overflow: hidden;
         }
         .quotes-bg::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: inherit;
-            background-size: cover;
-            background-position: center;
-            filter: blur(14px);
-            transform: scale(1.06);
+            content: ""; position: absolute; inset: 0;
+            background: inherit; background-size: cover; background-position: center;
+            filter: blur(14px); transform: scale(1.06);
         }
         .quotes-grain {
-            position: fixed;
-            top: 42px; left: 0; right: 0; bottom: 0;
-            z-index: 1;
-            pointer-events: none;
-            opacity: 0.4;
-            border-radius: 0 0 30px 30px;
+            position: fixed; top: 42px; left: 0; right: 0; bottom: 0; z-index: 1;
+            pointer-events: none; opacity: 0.4; border-radius: 0 0 30px 30px;
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-            background-size: 180px 180px;
-            mix-blend-mode: soft-light;
+            background-size: 180px 180px; mix-blend-mode: soft-light;
         }
 
         .quotes-page {
-            position: relative;
-            z-index: 2;
-            min-height: calc(100vh - 42px);
-            margin-top: 42px;
-            padding: 48px 16px 80px;
-            border-radius: 0 0 30px 30px;
+            position: relative; z-index: 2;
+            min-height: calc(100vh - 42px); margin-top: 42px;
+            padding: 40px 12px 80px; border-radius: 0 0 30px 30px;
         }
-        .quotes-header {
-            max-width: 1200px;
-            margin: 0 auto 28px;
-            text-align: left;
-        }
+        .quotes-header { max-width: 1600px; margin: 0 auto 18px; }
         .quotes-title {
             margin: 0;
             font-family: "Bodoni 72", Didot, "Bodoni MT", Georgia, serif;
-            font-size: clamp(36px, 8vw, 72px);
-            font-weight: 400;
-            line-height: 0.9;
-            letter-spacing: -2px;
+            font-size: clamp(32px, 7vw, 64px); font-weight: 400; line-height: 0.9; letter-spacing: -2px;
             text-shadow: 0 2px 0 rgba(255,255,255,.3), 0 8px 24px rgba(0,0,0,.2);
         }
-        .quotes-subtitle {
-            margin: 10px 0 0;
-            font-size: 15px;
-            font-style: italic;
+        .quotes-subtitle { margin: 10px 0 0; font-size: 14px; font-style: italic; font-weight: bold; }
+
+        .board-tabs {
+            max-width: 1600px; margin: 16px auto 20px;
+            display: flex; gap: 8px; flex-wrap: wrap;
+        }
+        .board-tab {
+            border: 1px solid rgba(255,255,255,0.35);
+            background: rgba(255,255,255,0.18);
+            color: #1a0f14;
+            border-radius: 999px;
+            padding: 8px 16px;
+            font-family: Arial, sans-serif;
+            font-size: 13px;
             font-weight: bold;
-            opacity: 0.9;
+            backdrop-filter: blur(10px);
+        }
+        .board-tab.active {
+            background: rgba(240, 201, 214, 0.85);
+            border-color: rgba(255,255,255,0.5);
         }
 
-        /* Pinterest-like masonry */
         .feed {
-            max-width: 1200px;
-            margin: 0 auto;
-            column-count: 3;
-            column-gap: 14px;
+            max-width: 1600px; margin: 0 auto;
+            column-count: 7; column-gap: 12px;
         }
-        @media (max-width: 900px) {
-            .feed { column-count: 2; }
-        }
-        @media (max-width: 560px) {
-            .feed { column-count: 1; }
-        }
+        @media (max-width: 1400px) { .feed { column-count: 6; } }
+        @media (max-width: 1200px) { .feed { column-count: 5; } }
+        @media (max-width: 1000px) { .feed { column-count: 4; } }
+        @media (max-width: 800px) { .feed { column-count: 3; } }
+        @media (max-width: 600px) { .feed { column-count: 2; } }
+        @media (max-width: 400px) { .feed { column-count: 1; } }
 
         .pin {
-            break-inside: avoid;
-            margin: 0 0 14px;
-            border-radius: 18px;
-            overflow: hidden;
+            break-inside: avoid; margin: 0 0 12px; border-radius: 16px; overflow: hidden;
             background: rgba(255, 255, 255, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.35);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            box-shadow: 0 10px 28px rgba(0,0,0,.12);
-            color: #1a0f14;
-            position: relative;
-            transition: box-shadow 0.2s, transform 0.15s;
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 8px 24px rgba(0,0,0,.12);
+            color: #1a0f14; position: relative;
         }
-        .pin.dragging {
-            opacity: 0.85;
-            transform: scale(1.02);
-            box-shadow: 0 16px 40px rgba(0,0,0,.25);
-            z-index: 5;
-        }
-        .pin.drag-over {
-            outline: 2px dashed rgba(240, 201, 214, 0.9);
-        }
+        .pin.dragging { opacity: 0.85; transform: scale(1.02); }
+        .pin.drag-over { outline: 2px dashed rgba(240, 201, 214, 0.95); }
         .pin-handle {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            height: 28px;
-            background: rgba(255, 255, 255, 0.25);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.25);
-            font-size: 14px;
-            letter-spacing: 2px;
-            color: rgba(26, 15, 20, 0.55);
+            display: flex; align-items: center; justify-content: center;
+            height: 26px; background: rgba(255,255,255,0.25);
+            border-bottom: 1px solid rgba(255,255,255,0.25);
+            font-size: 12px; letter-spacing: 2px; color: rgba(26,15,20,0.5);
             touch-action: none;
         }
-        .pin-handle:active { background: rgba(255, 255, 255, 0.4); }
-        .pin-body { padding: 14px 14px 12px; }
-        .pin-media {
-            width: 100%;
-            display: block;
-            max-height: 420px;
-            object-fit: cover;
+        .pin-media { width: 100%; display: block; max-height: 360px; object-fit: cover; }
+        .pin-body { padding: 12px; }
+        .pin-title { margin: 0 0 6px; font-size: 15px; line-height: 1.25; font-weight: bold; }
+        .pin-text { margin: 0; font-size: 13px; line-height: 1.4; font-style: italic; white-space: pre-wrap; word-break: break-word; }
+        .pin-attr {
+            margin-top: 8px; font-size: 10px; font-family: Arial, sans-serif;
+            opacity: 0.75; line-height: 1.3;
         }
-        .pin-title {
-            margin: 0 0 8px;
-            font-size: 18px;
-            line-height: 1.25;
-            font-weight: bold;
-        }
-        .pin-text {
-            margin: 0;
-            font-size: 15px;
-            line-height: 1.45;
-            font-style: italic;
-            white-space: pre-wrap;
-            word-break: break-word;
-        }
+        .pin-attr a { color: #5a3040; }
         .pin-meta {
-            margin-top: 10px;
-            font-size: 11px;
-            font-family: Arial, sans-serif;
-            opacity: 0.65;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 8px;
+            margin-top: 8px; display: flex; justify-content: space-between; align-items: center; gap: 6px;
+            font-size: 10px; font-family: Arial, sans-serif; opacity: 0.7;
         }
-        .pin-owner-btn {
-            border: 0;
-            background: rgba(255,255,255,0.35);
-            border-radius: 999px;
-            width: 28px;
-            height: 28px;
-            font-size: 16px;
-            line-height: 1;
-            color: #2a1822;
+        .pin-actions { display: flex; gap: 4px; }
+        .pin-btn {
+            border: 0; border-radius: 999px; width: 28px; height: 28px;
+            background: rgba(255,255,255,0.4); color: #2a1822; font-size: 14px;
         }
+        .empty { max-width: 1600px; margin: 40px auto; text-align: center; font-style: italic; opacity: 0.85; }
 
-        .empty {
-            max-width: 1200px;
-            margin: 40px auto;
-            text-align: center;
-            font-style: italic;
-            opacity: 0.8;
-        }
-
-        .support-line {
-            position: relative;
-            z-index: 5;
-            text-align: center;
-            padding: 16px;
-            background: #000;
-        }
-        .support-line a {
-            color: #F1B9D0;
-            text-decoration: none;
-            font-size: 14px;
-        }
-
+        .support-line { position: relative; z-index: 5; text-align: center; padding: 16px; background: #000; }
+        .support-line a { color: #F1B9D0; text-decoration: none; font-size: 14px; }
         footer {
-            position: relative;
-            z-index: 5;
-            min-height: 100px;
-            background: #000;
-            color: #F1B9D0;
-            display: grid;
-            grid-template-columns: 1fr auto 1fr;
-            align-items: center;
-            padding: 18px 24px;
+            position: relative; z-index: 5; min-height: 100px; background: #000; color: #F1B9D0;
+            display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 18px 24px;
         }
-        .socials {
-            display: flex;
-            gap: 16px;
-            justify-content: center;
-        }
-        .socials a {
-            width: 28px; height: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #F1B9D0;
-        }
+        .socials { display: flex; gap: 16px; justify-content: center; }
+        .socials a { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: #F1B9D0; }
         .socials svg { width: 22px; height: 22px; fill: currentColor; }
 
         .back-to-top-fixed {
-            position: fixed;
-            right: 22px;
-            bottom: 22px;
-            z-index: 999;
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            background: rgba(255, 255, 255, 0.14);
-            color: #f6dce8;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            font-size: 18px;
-            font-weight: bold;
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            position: fixed; right: 22px; bottom: 22px; z-index: 999;
+            width: 44px; height: 44px; border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.25);
+            background: rgba(255,255,255,0.14); color: #f6dce8;
+            display: flex; align-items: center; justify-content: center;
+            text-decoration: none; font-size: 18px; font-weight: bold;
+            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
         }
 
         .auth-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            z-index: 2000;
-            background: rgba(20, 10, 16, 0.45);
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
+            display: none; position: fixed; inset: 0; z-index: 2000;
+            background: rgba(20,10,16,0.45); align-items: center; justify-content: center; padding: 16px;
         }
         .auth-overlay.open { display: flex; }
         .auth-modal {
-            width: min(92vw, 420px);
-            max-height: 88vh;
-            overflow-y: auto;
-            padding: 24px;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            background: rgba(255, 255, 255, 0.22);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            color: #2a1822;
+            width: min(94vw, 440px); max-height: 90vh; overflow-y: auto; padding: 22px;
+            border-radius: 20px; border: 1px solid rgba(255,255,255,0.4);
+            background: rgba(255,255,255,0.22); backdrop-filter: blur(16px); color: #2a1822;
         }
-        .auth-modal h2 { margin: 0 0 14px; font-weight: normal; }
-        .auth-modal label {
-            display: block;
-            font-size: 12px;
-            font-weight: bold;
-            margin: 10px 0 4px;
-            font-family: Arial, sans-serif;
+        .auth-modal h2 { margin: 0 0 12px; font-weight: normal; }
+        .auth-modal label { display: block; font-size: 12px; font-weight: bold; margin: 10px 0 4px; font-family: Arial, sans-serif; }
+        .auth-modal input, .auth-modal textarea, .auth-modal select {
+            width: 100%; padding: 9px 11px; border-radius: 12px;
+            border: 1px solid rgba(255,255,255,.5); background: rgba(255,255,255,.35);
+            font-family: Georgia, serif; font-size: 14px;
         }
-        .auth-modal input, .auth-modal textarea {
-            width: 100%;
-            padding: 10px 12px;
-            border-radius: 12px;
-            border: 1px solid rgba(255,255,255,.5);
-            background: rgba(255,255,255,.35);
-            font-family: Georgia, serif;
-            font-size: 15px;
+        .auth-modal textarea { min-height: 90px; resize: vertical; }
+        .auth-hint { margin-top: 4px; font-size: 11px; opacity: 0.7; font-family: Arial, sans-serif; }
+        .style-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .attr-list { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+        .attr-list label {
+            display: flex; align-items: flex-start; gap: 8px; font-weight: normal; font-size: 12px;
+            margin: 0; line-height: 1.3;
         }
-        .auth-modal textarea { min-height: 110px; resize: vertical; }
-        .auth-hint {
-            margin-top: 4px;
-            font-size: 11px;
-            opacity: 0.7;
-            font-family: Arial, sans-serif;
+        .attr-list input { width: auto; margin-top: 2px; }
+        .check-row {
+            display: flex; align-items: center; gap: 8px; margin-top: 12px;
+            font-size: 13px; font-family: Arial, sans-serif;
         }
-        .auth-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 16px;
-            flex-wrap: wrap;
-        }
+        .check-row input { width: auto; }
+        .auth-actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
         .auth-actions button {
-            flex: 1;
-            min-width: 90px;
-            padding: 10px 14px;
-            border: 0;
-            border-radius: 999px;
-            background: #f0c9d6;
-            color: #3a2030;
-            font-weight: bold;
-            font-family: Arial, sans-serif;
+            flex: 1; min-width: 90px; padding: 10px 12px; border: 0; border-radius: 999px;
+            background: #f0c9d6; color: #3a2030; font-weight: bold; font-family: Arial, sans-serif;
         }
         .auth-actions button.secondary { background: rgba(255,255,255,.4); }
-        .auth-error {
-            margin-top: 10px;
-            font-size: 13px;
-            color: #7a2030;
-            min-height: 1.2em;
-        }
-        .compose-preview {
-            margin-top: 10px;
-            max-width: 100%;
-            border-radius: 12px;
-            display: none;
-        }
+        .auth-error { margin-top: 10px; font-size: 13px; color: #7a2030; min-height: 1.2em; }
+        .compose-preview { margin-top: 10px; max-width: 100%; border-radius: 12px; display: none; }
 
         .post-menu {
-            display: none;
-            position: fixed;
-            z-index: 1500;
-            min-width: 140px;
-            padding: 6px;
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.92);
-            border: 1px solid rgba(255,255,255,0.5);
-            box-shadow: 0 12px 30px rgba(0,0,0,.2);
+            display: none; position: fixed; z-index: 1500; min-width: 140px; padding: 6px;
+            border-radius: 12px; background: rgba(255,255,255,0.92);
+            border: 1px solid rgba(255,255,255,0.5); box-shadow: 0 12px 30px rgba(0,0,0,.2);
         }
         .post-menu.open { display: block; }
         .post-menu button {
-            display: block;
-            width: 100%;
-            border: 0;
-            background: transparent;
-            padding: 10px 12px;
-            text-align: left;
-            border-radius: 8px;
-            font-family: Arial, sans-serif;
-            font-size: 14px;
-            color: #2a1822;
+            display: block; width: 100%; border: 0; background: transparent;
+            padding: 10px 12px; text-align: left; border-radius: 8px;
+            font-family: Arial, sans-serif; font-size: 13px; color: #2a1822;
         }
         .post-menu button.danger { color: #7a2030; }
 
         @media (max-width: 700px) {
-            .top-menu {
-                justify-content: flex-start;
-                overflow-x: auto;
-                padding: 0 8px;
-                gap: 12px;
-            }
+            .top-menu { justify-content: flex-start; overflow-x: auto; padding: 0 8px; gap: 12px; }
+            .style-row { grid-template-columns: 1fr; }
             footer { grid-template-columns: 1fr; gap: 14px; text-align: center; }
         }
     </style>
@@ -419,6 +246,12 @@
             <h1 class="quotes-title">QUOTATION / DEFINITION</h1>
             <div class="quotes-subtitle" id="quotes-user-label">inspiration board · @kinqsy</div>
         </div>
+
+        <div class="board-tabs">
+            <button type="button" class="board-tab active" data-mode="mine" id="tab-mine">моя доска</button>
+            <button type="button" class="board-tab" data-mode="public" id="tab-public">общая лента</button>
+        </div>
+
         <section class="feed" id="feed"></section>
     </main>
 
@@ -443,7 +276,6 @@
     </footer>
 
     <a href="#top" class="back-to-top-fixed" aria-label="Наверх">↑</a>
-
     <div class="post-menu" id="post-menu">
         <button type="button" id="post-menu-edit">изменить</button>
         <button type="button" id="post-menu-delete" class="danger">удалить</button>
@@ -468,14 +300,67 @@
     <div class="auth-overlay" id="compose-overlay">
         <div class="auth-modal">
             <h2>на доску</h2>
-            <label for="compose-title">заголовок (необязательно)</label>
+            <label for="compose-title">заголовок</label>
             <input id="compose-title" type="text" maxlength="80">
+
             <label for="compose-content">цитата / текст</label>
-            <textarea id="compose-content" rows="5" maxlength="600"></textarea>
-            <div class="auth-hint">макс. 600 символов — цитата, не глава</div>
+            <textarea id="compose-content" rows="4" maxlength="600"></textarea>
+            <div class="auth-hint">макс. 600 символов</div>
+
+            <div class="style-row">
+                <div>
+                    <label for="compose-title-font">шрифт заголовка</label>
+                    <select id="compose-title-font">
+                        <option value="Georgia, serif">Georgia</option>
+                        <option value="'Poiret One', sans-serif">Poiret One</option>
+                        <option value="'Amatic SC', cursive">Amatic SC</option>
+                        <option value="'Bad Script', cursive">Bad Script</option>
+                        <option value="'Kaisei Decol', serif">Kaisei Decol</option>
+                        <option value="'Rubik Beastly', system-ui">Rubik Beastly</option>
+                        <option value="'Press Start 2P', system-ui">Press Start 2P</option>
+                        <option value="'Shafarik', serif">Shafarik</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="compose-body-font">шрифт текста</label>
+                    <select id="compose-body-font">
+                        <option value="Georgia, serif">Georgia</option>
+                        <option value="'Poiret One', sans-serif">Poiret One</option>
+                        <option value="'Amatic SC', cursive">Amatic SC</option>
+                        <option value="'Bad Script', cursive">Bad Script</option>
+                        <option value="'Kaisei Decol', serif">Kaisei Decol</option>
+                        <option value="'Shafarik', serif">Shafarik</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="compose-title-color">цвет заголовка</label>
+                    <input id="compose-title-color" type="color" value="#1a0f14">
+                </div>
+                <div>
+                    <label for="compose-body-color">цвет текста</label>
+                    <input id="compose-body-color" type="color" value="#1a0f14">
+                </div>
+            </div>
+
             <label for="compose-media">картинка / gif (ссылка)</label>
             <input id="compose-media" type="url" placeholder="https://...">
             <img id="compose-preview" class="compose-preview" alt="">
+
+            <label>чьё изображение / работа</label>
+            <div class="attr-list">
+                <label><input type="radio" name="attr-type" value="mine" checked> это моя картинка</label>
+                <label><input type="radio" name="attr-type" value="author"> картинка автора (нужна ссылка)</label>
+                <label><input type="radio" name="attr-type" value="found"> не знаю чья, нашла тут (нужна ссылка)</label>
+                <label><input type="radio" name="attr-type" value="unknown"> не знаю чья</label>
+            </div>
+            <label for="compose-attr-url">ссылка на источник</label>
+            <input id="compose-attr-url" type="url" placeholder="https://...">
+
+            <label class="check-row">
+                <input type="checkbox" id="compose-public">
+                показать в общей ленте
+            </label>
+
             <div class="auth-actions">
                 <button type="button" id="compose-save">добавить</button>
                 <button type="button" id="compose-close" class="secondary">закрыть</button>
@@ -494,17 +379,22 @@
     var OWNER_ID = "4923abc5-5c86-48c2-904b-a267c2e21703";
     var OWNER_SLUG = "kinqsy";
     var MAX_QUOTE = 600;
+    var mode = "mine"; // mine | public
     var viewedUserId = null;
-    var activePostMenu = null;
-    var allPins = [];
     var canReorder = false;
+    var activePostMenu = null;
+
+    var ATTR_LABELS = {
+        mine: "моя работа",
+        author: "автор",
+        found: "найдено",
+        unknown: "автор неизвестен"
+    };
 
     function escapeHtml(t) {
         return String(t || "")
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;");
+            .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
     }
 
     function getU() {
@@ -518,11 +408,8 @@
 
     function fixMenu() {
         var map = {
-            "nav-home": "index.html",
-            "nav-notes": "notes.html",
-            "nav-dreams": "dreams.html",
-            "nav-quotes": "quotes.html",
-            "nav-about": "about.html"
+            "nav-home": "index.html", "nav-notes": "notes.html", "nav-dreams": "dreams.html",
+            "nav-quotes": "quotes.html", "nav-about": "about.html"
         };
         Object.keys(map).forEach(function (id) {
             var el = document.getElementById(id);
@@ -533,19 +420,13 @@
     function orderKey() {
         return "kinqsy_quotes_order_" + (viewedUserId || getU());
     }
-
     function loadOrder() {
-        try {
-            return JSON.parse(localStorage.getItem(orderKey()) || "[]");
-        } catch (e) {
-            return [];
-        }
+        try { return JSON.parse(localStorage.getItem(orderKey()) || "[]"); }
+        catch (e) { return []; }
     }
-
     function saveOrder(ids) {
         localStorage.setItem(orderKey(), JSON.stringify(ids));
     }
-
     function applySavedOrder(posts) {
         var order = loadOrder();
         if (!order.length) return posts;
@@ -553,10 +434,7 @@
         posts.forEach(function (p) { map[String(p.id)] = p; });
         var sorted = [];
         order.forEach(function (id) {
-            if (map[id]) {
-                sorted.push(map[id]);
-                delete map[id];
-            }
+            if (map[id]) { sorted.push(map[id]); delete map[id]; }
         });
         Object.keys(map).forEach(function (id) { sorted.push(map[id]); });
         return sorted;
@@ -570,23 +448,34 @@
     async function resolveViewedUser() {
         fixMenu();
         var slug = getU();
-        document.getElementById("quotes-user-label").textContent = "inspiration board · @" + slug;
+        document.getElementById("quotes-user-label").textContent =
+            (mode === "public" ? "общая лента" : "моя доска") + " · @" + slug;
 
         var res = await sb.from("profiles").select("id, display_name").ilike("display_name", slug).maybeSingle();
         if (!res.data && slug.toLowerCase() === OWNER_SLUG) {
             res = await sb.from("profiles").select("id, display_name").eq("id", OWNER_ID).maybeSingle();
         }
         viewedUserId = res.data ? res.data.id : (slug.toLowerCase() === OWNER_SLUG ? OWNER_ID : null);
-
         var uid = await currentUserId();
-        canReorder = !!(uid && viewedUserId && String(uid) === String(viewedUserId));
+        canReorder = mode === "mine" && !!(uid && viewedUserId && String(uid) === String(viewedUserId));
         return viewedUserId;
     }
 
     async function canEditPost(post) {
         var uid = await currentUserId();
-        if (!uid || !post.user_id) return false;
-        return String(post.user_id) === String(uid);
+        return !!(uid && post.user_id && String(post.user_id) === String(uid));
+    }
+
+    function attrHtml(post) {
+        var type = post.attribution_type || "unknown";
+        var label = ATTR_LABELS[type] || ATTR_LABELS.unknown;
+        var url = post.attribution_url || "";
+        var by = post.author_name ? " · @" + escapeHtml(post.author_name) : "";
+        if (url && (type === "author" || type === "found")) {
+            return '<div class="pin-attr">' + escapeHtml(label) + by +
+                ' · <a href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer">источник</a></div>';
+        }
+        return '<div class="pin-attr">' + escapeHtml(label) + by + '</div>';
     }
 
     function hidePostMenu() {
@@ -594,42 +483,31 @@
         activePostMenu = null;
     }
 
-    function showPostMenu(btn, post) {
-        var menu = document.getElementById("post-menu");
-        activePostMenu = post;
-        menu.classList.add("open");
-        var rect = btn.getBoundingClientRect();
-        menu.style.left = Math.min(rect.left, window.innerWidth - 160) + "px";
-        menu.style.top = (rect.bottom + 4) + "px";
+    function persistDomOrder() {
+        if (!canReorder) return;
+        var ids = Array.prototype.map.call(document.querySelectorAll("#feed .pin"), function (el) {
+            return el.dataset.id;
+        });
+        saveOrder(ids);
     }
 
     function bindDrag(pin) {
         if (!canReorder) return;
         var handle = pin.querySelector(".pin-handle");
-        if (!handle) return;
-
         pin.draggable = true;
-
         pin.addEventListener("dragstart", function (e) {
             pin.classList.add("dragging");
-            e.dataTransfer.effectAllowed = "move";
             e.dataTransfer.setData("text/plain", pin.dataset.id);
         });
         pin.addEventListener("dragend", function () {
             pin.classList.remove("dragging");
-            document.querySelectorAll(".pin.drag-over").forEach(function (el) {
-                el.classList.remove("drag-over");
-            });
             persistDomOrder();
         });
         pin.addEventListener("dragover", function (e) {
             e.preventDefault();
-            e.dataTransfer.dropEffect = "move";
             pin.classList.add("drag-over");
         });
-        pin.addEventListener("dragleave", function () {
-            pin.classList.remove("drag-over");
-        });
+        pin.addEventListener("dragleave", function () { pin.classList.remove("drag-over"); });
         pin.addEventListener("drop", function (e) {
             e.preventDefault();
             pin.classList.remove("drag-over");
@@ -644,44 +522,30 @@
             else feed.insertBefore(dragged, pin);
         });
 
-        // touch: long-press style drag via pointer
         var touchDrag = null;
         handle.addEventListener("touchstart", function (e) {
-            if (!canReorder) return;
-            touchDrag = { id: pin.dataset.id, y: e.touches[0].clientY };
+            touchDrag = { id: pin.dataset.id };
         }, { passive: true });
-
         handle.addEventListener("touchmove", function (e) {
             if (!touchDrag) return;
             e.preventDefault();
             var t = e.touches[0];
             var el = document.elementFromPoint(t.clientX, t.clientY);
             var target = el && el.closest ? el.closest(".pin") : null;
-            if (!target || target === pin) return;
+            if (!target || target.dataset.id === touchDrag.id) return;
             var feed = document.getElementById("feed");
             var dragged = document.querySelector('.pin[data-id="' + touchDrag.id + '"]');
             if (!dragged) return;
             var pins = Array.prototype.slice.call(feed.querySelectorAll(".pin"));
             var from = pins.indexOf(dragged);
             var to = pins.indexOf(target);
-            if (from < 0 || to < 0) return;
             if (from < to) feed.insertBefore(dragged, target.nextSibling);
             else feed.insertBefore(dragged, target);
         }, { passive: false });
-
         handle.addEventListener("touchend", function () {
             touchDrag = null;
             persistDomOrder();
         });
-    }
-
-    function persistDomOrder() {
-        if (!canReorder) return;
-        var ids = Array.prototype.map.call(
-            document.querySelectorAll("#feed .pin"),
-            function (el) { return el.dataset.id; }
-        );
-        saveOrder(ids);
     }
 
     function makePin(post) {
@@ -689,94 +553,159 @@
         pin.className = "pin";
         pin.dataset.id = String(post.id);
 
+        var titleStyle = "font-family:" + escapeHtml(post.title_font || "Georgia, serif") +
+            ";color:" + escapeHtml(post.title_color || "#1a0f14");
+        var bodyStyle = "font-family:" + escapeHtml(post.body_font || "Georgia, serif") +
+            ";color:" + escapeHtml(post.body_color || "#1a0f14");
+
         var media = post.media_url
             ? '<img class="pin-media" src="' + escapeHtml(post.media_url) + '" alt="">'
             : "";
-
-        var title = post.title && post.title.trim()
-            ? '<h2 class="pin-title">' + escapeHtml(post.title) + '</h2>'
+        var title = post.title
+            ? '<h2 class="pin-title" style="' + titleStyle + '">' + escapeHtml(post.title) + '</h2>'
+            : "";
+        var text = post.content
+            ? '<p class="pin-text" style="' + bodyStyle + '">' + escapeHtml(post.content) + '</p>'
             : "";
 
-        var text = post.content && post.content.trim()
-            ? '<p class="pin-text">' + escapeHtml(post.content) + '</p>'
+        var saveBtn = mode === "public"
+            ? '<button type="button" class="pin-btn pin-save" title="сохранить к себе">＋</button>'
             : "";
 
         pin.innerHTML =
-            '<div class="pin-handle" title="перетащи">⋮⋮</div>' +
+            '<div class="pin-handle">⋮⋮</div>' +
             media +
             '<div class="pin-body">' +
-                title + text +
+                title + text + attrHtml(post) +
                 '<div class="pin-meta">' +
                     '<span>' + new Date(post.created_at).toLocaleDateString("en-GB") + '</span>' +
-                    '<button type="button" class="pin-owner-btn" aria-label="меню">⋯</button>' +
+                    '<div class="pin-actions">' +
+                        saveBtn +
+                        '<button type="button" class="pin-btn pin-menu-btn">⋯</button>' +
+                    '</div>' +
                 '</div>' +
             '</div>';
 
-        if (!canReorder) {
-            pin.querySelector(".pin-handle").style.display = "none";
-        } else {
-            bindDrag(pin);
-        }
+        if (!canReorder) pin.querySelector(".pin-handle").style.display = "none";
+        else bindDrag(pin);
 
-        pin.querySelector(".pin-owner-btn").addEventListener("click", async function (e) {
-            e.preventDefault();
+        var menuBtn = pin.querySelector(".pin-menu-btn");
+        menuBtn.addEventListener("click", async function (e) {
             e.stopPropagation();
             if (!(await canEditPost(post))) {
-                alert("Только автор может менять пин");
+                alert("Только автор");
                 return;
             }
-            showPostMenu(e.currentTarget, post);
+            activePostMenu = post;
+            var menu = document.getElementById("post-menu");
+            menu.classList.add("open");
+            var r = e.currentTarget.getBoundingClientRect();
+            menu.style.left = Math.min(r.left, window.innerWidth - 160) + "px";
+            menu.style.top = (r.bottom + 4) + "px";
         });
+
+        var saveEl = pin.querySelector(".pin-save");
+        if (saveEl) {
+            saveEl.addEventListener("click", async function (e) {
+                e.stopPropagation();
+                var uid = await currentUserId();
+                if (!uid) {
+                    document.getElementById("auth-overlay").classList.add("open");
+                    return;
+                }
+                var payload = {
+                    title: post.title || "",
+                    content: post.content || "",
+                    media_url: post.media_url || null,
+                    media_type: post.media_type || null,
+                    category: "quotes",
+                    user_id: uid,
+                    is_public: false,
+                    attribution_type: post.attribution_type || "found",
+                    attribution_url: post.attribution_url || null,
+                    title_font: post.title_font || null,
+                    body_font: post.body_font || null,
+                    title_color: post.title_color || null,
+                    body_color: post.body_color || null,
+                    author_name: post.author_name || "saved"
+                };
+                var { error } = await sb.from("posts").insert(payload);
+                if (error) alert(error.message);
+                else alert("сохранено на твою доску");
+            });
+        }
 
         return pin;
     }
 
-    async function loadQuotes() {
+    async function loadBoard() {
         var feed = document.getElementById("feed");
         feed.innerHTML = '<div class="empty">loading...</div>';
+        await resolveViewedUser();
 
-        var uid = await resolveViewedUser();
-        if (!uid) {
-            feed.innerHTML = '<div class="empty">профиль не найден</div>';
-            return;
+        var q = sb.from("posts").select("*").eq("category", "quotes");
+
+        if (mode === "public") {
+            q = q.eq("is_public", true).order("created_at", { ascending: false }).limit(120);
+        } else {
+            if (!viewedUserId) {
+                feed.innerHTML = '<div class="empty">профиль не найден</div>';
+                return;
+            }
+            q = q.eq("user_id", viewedUserId).order("created_at", { ascending: false });
         }
 
-        var { data, error } = await sb
-            .from("posts")
-            .select("*")
-            .eq("category", "quotes")
-            .eq("user_id", uid)
-            .order("created_at", { ascending: false });
+        var { data, error } = await q;
 
         if (error) {
-            feed.innerHTML = '<div class="empty">Supabase error: ' + escapeHtml(error.message) + '</div>';
-            return;
-        }
-
-        if ((!data || !data.length) && getU().toLowerCase() === OWNER_SLUG) {
-            var all = await sb.from("posts").select("*").eq("category", "quotes").order("created_at", { ascending: false });
-            if (!all.error) {
-                data = (all.data || []).filter(function (p) {
-                    return !p.user_id || String(p.user_id) === String(uid);
+            // fallback если нет колонки is_public
+            if (String(error.message).indexOf("is_public") !== -1 && mode === "public") {
+                var all = await sb.from("posts").select("*").eq("category", "quotes").order("created_at", { ascending: false }).limit(120);
+                data = all.data || [];
+                error = all.error;
+            } else if (mode === "mine" && viewedUserId) {
+                var mine = await sb.from("posts").select("*").eq("category", "quotes").order("created_at", { ascending: false });
+                data = (mine.data || []).filter(function (p) {
+                    return !p.user_id || String(p.user_id) === String(viewedUserId);
                 });
+                error = mine.error;
             }
         }
 
-        data = applySavedOrder(data || []);
-        allPins = data;
+        if (error && !data) {
+            feed.innerHTML = '<div class="empty">' + escapeHtml(error.message) + '</div>';
+            return;
+        }
+
+        data = data || [];
+        if (mode === "mine") data = applySavedOrder(data);
 
         if (!data.length) {
-            feed.innerHTML = '<div class="empty">доска пока пустая — ★ добавить</div>';
+            feed.innerHTML = '<div class="empty">' +
+                (mode === "public" ? "в общей ленте пока пусто" : "доска пустая — ★ добавить") +
+                '</div>';
             return;
         }
 
         feed.innerHTML = "";
-        data.forEach(function (post) {
-            feed.appendChild(makePin(post));
-        });
+        data.forEach(function (post) { feed.appendChild(makePin(post)); });
     }
 
-    // auth / compose
+    // tabs
+    document.getElementById("tab-mine").onclick = function () {
+        mode = "mine";
+        document.getElementById("tab-mine").classList.add("active");
+        document.getElementById("tab-public").classList.remove("active");
+        loadBoard();
+    };
+    document.getElementById("tab-public").onclick = function () {
+        mode = "public";
+        document.getElementById("tab-public").classList.add("active");
+        document.getElementById("tab-mine").classList.remove("active");
+        loadBoard();
+    };
+
+    // auth + compose
     var authOverlay = document.getElementById("auth-overlay");
     var composeOverlay = document.getElementById("compose-overlay");
     function openAuth() { authOverlay.classList.add("open"); document.getElementById("auth-error").textContent = ""; }
@@ -787,10 +716,12 @@
     document.getElementById("admin-star").onclick = async function () {
         var uid = await currentUserId();
         if (!uid) { openAuth(); return; }
-        var viewed = await resolveViewedUser();
-        if (viewed && String(viewed) !== String(uid)) {
-            alert("Чужая доска. Своя: quotes.html?u=ТВОЙ_НИК");
-            return;
+        if (mode === "mine") {
+            var viewed = await resolveViewedUser();
+            if (viewed && String(viewed) !== String(uid)) {
+                alert("Чужая доска. Своя: quotes.html?u=ТВОЙ_НИК");
+                return;
+            }
         }
         openCompose();
     };
@@ -801,19 +732,14 @@
     document.getElementById("auth-login").onclick = async function () {
         var err = document.getElementById("auth-error");
         err.textContent = "";
-        var email = document.getElementById("auth-email").value.trim();
-        var password = document.getElementById("auth-password").value;
-        var { error } = await sb.auth.signInWithPassword({ email: email, password: password });
+        var { error } = await sb.auth.signInWithPassword({
+            email: document.getElementById("auth-email").value.trim(),
+            password: document.getElementById("auth-password").value
+        });
         if (error) { err.textContent = error.message; return; }
         closeAuth();
-        var uid = await currentUserId();
-        var { data: prof } = await sb.from("profiles").select("display_name").eq("id", uid).maybeSingle();
-        if (prof && prof.display_name && getU().toLowerCase() !== String(prof.display_name).toLowerCase()) {
-            location.href = "quotes.html?u=" + encodeURIComponent(prof.display_name);
-            return;
-        }
         openCompose();
-        await loadQuotes();
+        loadBoard();
     };
 
     document.getElementById("auth-signup").onclick = async function () {
@@ -825,12 +751,10 @@
         if (error) { err.textContent = error.message; return; }
         err.textContent = "аккаунт создан — подтверди почту, потом войди";
         if (data && data.user) {
-            var nick = email.split("@")[0].slice(0, 32) || "user";
-            var code = "KQ-" + Math.random().toString(36).slice(2, 8).toUpperCase();
             await sb.from("profiles").upsert({
                 id: data.user.id,
-                display_name: nick,
-                friend_code: code,
+                display_name: email.split("@")[0].slice(0, 32) || "user",
+                friend_code: "KQ-" + Math.random().toString(36).slice(2, 8).toUpperCase(),
                 updated_at: new Date().toISOString()
             }, { onConflict: "id" });
         }
@@ -843,6 +767,12 @@
         else { img.style.display = "none"; img.src = ""; }
     };
 
+    function selectedAttr() {
+        var els = document.querySelectorAll('input[name="attr-type"]');
+        for (var i = 0; i < els.length; i++) if (els[i].checked) return els[i].value;
+        return "unknown";
+    }
+
     document.getElementById("compose-save").onclick = async function () {
         var err = document.getElementById("compose-error");
         err.textContent = "";
@@ -852,21 +782,33 @@
         var title = document.getElementById("compose-title").value.trim().slice(0, 80);
         var content = document.getElementById("compose-content").value.trim().slice(0, MAX_QUOTE);
         var media_url = document.getElementById("compose-media").value.trim();
+        var attrType = selectedAttr();
+        var attrUrl = document.getElementById("compose-attr-url").value.trim();
 
         if (!title && !content && !media_url) {
             err.textContent = "добавь текст или картинку";
             return;
         }
-        if (content.length > MAX_QUOTE) {
-            err.textContent = "макс. " + MAX_QUOTE + " символов";
+        if ((attrType === "author" || attrType === "found") && !attrUrl) {
+            err.textContent = "для этого варианта нужна ссылка";
             return;
         }
+
+        var { data: prof } = await sb.from("profiles").select("display_name").eq("id", uid).maybeSingle();
 
         var payload = {
             title: title,
             content: content,
             category: "quotes",
-            user_id: uid
+            user_id: uid,
+            is_public: !!document.getElementById("compose-public").checked,
+            attribution_type: attrType,
+            attribution_url: attrUrl || null,
+            title_font: document.getElementById("compose-title-font").value,
+            body_font: document.getElementById("compose-body-font").value,
+            title_color: document.getElementById("compose-title-color").value,
+            body_color: document.getElementById("compose-body-color").value,
+            author_name: (prof && prof.display_name) ? prof.display_name : null
         };
         if (media_url) {
             payload.media_url = media_url;
@@ -874,23 +816,48 @@
         }
 
         var { error } = await sb.from("posts").insert(payload);
-        if (error) { err.textContent = error.message; return; }
+        if (error) {
+            // если новых колонок нет — упрощённый insert
+            if (/is_public|attribution|title_font|body_font|title_color|body_color|author_name/i.test(error.message)) {
+                var basic = {
+                    title: title,
+                    content: content,
+                    category: "quotes",
+                    user_id: uid
+                };
+                if (media_url) {
+                    basic.media_url = media_url;
+                    basic.media_type = payload.media_type;
+                }
+                var retry = await sb.from("posts").insert(basic);
+                if (retry.error) { err.textContent = retry.error.message; return; }
+                err.textContent = "сохранено упрощённо — добавь колонки в posts (см. инструкцию)";
+            } else {
+                err.textContent = error.message;
+                return;
+            }
+        }
 
         document.getElementById("compose-title").value = "";
         document.getElementById("compose-content").value = "";
         document.getElementById("compose-media").value = "";
+        document.getElementById("compose-attr-url").value = "";
+        document.getElementById("compose-public").checked = false;
         document.getElementById("compose-preview").style.display = "none";
         closeCompose();
-        await loadQuotes();
+        mode = "mine";
+        document.getElementById("tab-mine").classList.add("active");
+        document.getElementById("tab-public").classList.remove("active");
+        loadBoard();
     };
 
     document.getElementById("post-menu-delete").onclick = async function () {
         if (!activePostMenu) return;
-        if (!confirm("Удалить с доски?")) return;
+        if (!confirm("Удалить?")) return;
         var { error } = await sb.from("posts").delete().eq("id", activePostMenu.id);
         hidePostMenu();
-        if (error) { alert(error.message); return; }
-        loadQuotes();
+        if (error) alert(error.message);
+        else loadBoard();
     };
 
     document.getElementById("post-menu-edit").onclick = async function () {
@@ -899,25 +866,24 @@
         hidePostMenu();
         var title = prompt("Заголовок", post.title || "");
         if (title === null) return;
-        var content = prompt("Текст (макс. " + MAX_QUOTE + ")", post.content || "");
+        var content = prompt("Текст", post.content || "");
         if (content === null) return;
-        content = String(content).slice(0, MAX_QUOTE);
         var { error } = await sb.from("posts").update({
-            title: title.slice(0, 80),
-            content: content
+            title: String(title).slice(0, 80),
+            content: String(content).slice(0, MAX_QUOTE)
         }).eq("id", post.id);
-        if (error) { alert(error.message); return; }
-        loadQuotes();
+        if (error) alert(error.message);
+        else loadBoard();
     };
 
     document.addEventListener("click", function (e) {
         var menu = document.getElementById("post-menu");
         if (!menu.classList.contains("open")) return;
-        if (e.target.closest("#post-menu") || e.target.closest(".pin-owner-btn")) return;
+        if (e.target.closest("#post-menu") || e.target.closest(".pin-menu-btn")) return;
         hidePostMenu();
     });
 
-    loadQuotes();
+    loadBoard();
 })();
     </script>
 </body>
