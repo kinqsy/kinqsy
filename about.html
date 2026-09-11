@@ -24,7 +24,8 @@
             user-select: text;
             -webkit-user-select: text;
         }
-        a, button, .star, .top-menu .star, input, textarea, select, .about-avatar, .about-nick, .about-status, .about-presence {
+        a, button, .star, .top-menu .star, input, textarea, select,
+        .about-avatar, .about-nick, .about-status, .about-presence {
             cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath fill='%23f6dce8' stroke='%233a2030' stroke-width='1.3' d='M8 4l12 8-6 1.5L16 24l-3-7-5 2z'/%3E%3C/svg%3E") 5 2, pointer !important;
         }
         html { scroll-behavior: smooth; }
@@ -109,10 +110,7 @@
             background: transparent;
             border-radius: 0 0 30px 30px;
         }
-        .about-page > * {
-            position: relative;
-            z-index: 2;
-        }
+        .about-page > * { position: relative; z-index: 2; }
         .about-title {
             max-width: 900px;
             width: 100%;
@@ -189,7 +187,6 @@
             border: 1px solid rgba(255,255,255,0.5);
             border-radius: 8px;
             padding: 4px 8px;
-            box-sizing: border-box;
         }
         .about-avatar {
             width: 96px;
@@ -202,10 +199,19 @@
             background-position: center;
             background-repeat: no-repeat;
         }
-        .about-avatar[data-avatar="1"] { background-image: url("https://raw.githubusercontent.com/kinqsy/kinqsy/main/avatar-1.jpg"); }
-.about-avatar[data-avatar="2"] { background-image: url("https://raw.githubusercontent.com/kinqsy/kinqsy/main/avatar-2.jpg"); }
-.about-avatar[data-avatar="3"] { background-image: url("https://raw.githubusercontent.com/kinqsy/kinqsy/main/avatar-3.jpg"); }
-.about-avatar[data-avatar="4"] { background-image: url("https://raw.githubusercontent.com/kinqsy/kinqsy/main/avatar-4.jpg"); }
+        .about-avatar[data-avatar="1"] {
+            background-image: url("https://raw.githubusercontent.com/kinqsy/kinqsy/main/avatar-1.jpg");
+        }
+        .about-avatar[data-avatar="2"] {
+            background-image: url("https://raw.githubusercontent.com/kinqsy/kinqsy/main/avatar-2.jpg");
+        }
+        .about-avatar[data-avatar="3"] {
+            background-image: url("https://raw.githubusercontent.com/kinqsy/kinqsy/main/avatar-3.jpg");
+        }
+        .about-avatar[data-avatar="4"] {
+            background-image: url("https://raw.githubusercontent.com/kinqsy/kinqsy/main/avatar-4.jpg");
+        }
+
         .about-rating {
             flex-shrink: 0;
             width: 150px;
@@ -234,7 +240,6 @@
             height: 10px;
             border-radius: 999px;
             background: linear-gradient(90deg, #7a2030 0%, #c4b8be 50%, #4a7c59 100%);
-            overflow: visible;
         }
         .about-rep-marker {
             position: absolute;
@@ -261,7 +266,6 @@
             margin-top: 4px;
             font-size: 12px;
             font-weight: bold;
-            line-height: 1.2;
             color: #1a0f14;
         }
         .about-rating-tip {
@@ -285,7 +289,6 @@
         .about-card {
             max-width: 900px;
             width: 100%;
-            position: relative;
             padding: 36px 32px;
             border-radius: 22px;
             background: linear-gradient(180deg, rgba(255,255,255,.18) 0%, rgba(255,255,255,.06) 100%);
@@ -293,7 +296,6 @@
             box-shadow: 0 16px 40px rgba(0,0,0,.15);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            overflow: hidden;
         }
         .about-text {
             margin: 0;
@@ -349,7 +351,6 @@
             font-weight: bold;
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
         }
 
         .auth-overlay {
@@ -375,7 +376,6 @@
             -webkit-backdrop-filter: blur(16px);
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
             color: #2a1822;
-            box-sizing: border-box;
         }
         .auth-modal h2 {
             margin: 0 0 16px;
@@ -399,7 +399,6 @@
             background: rgba(255, 255, 255, 0.35);
             font-family: Georgia, serif;
             font-size: 15px;
-            box-sizing: border-box;
         }
         .auth-modal textarea { min-height: 120px; resize: vertical; }
         .auth-actions {
@@ -438,18 +437,18 @@
             }
             .about-page { padding: 85px 12px 50px; }
             .about-title { font-size: clamp(55px, 17vw, 100px); letter-spacing: -4px; }
-            .about-header-row { flex-wrap: wrap; justify-content: center; text-align: center; }
+            .about-header-row { flex-wrap: wrap; justify-content: center; }
             .about-user-left { text-align: center; flex: 1 1 100%; }
-            .about-card { padding: 24px 20px; border-radius: 16px; }
+            .about-card { padding: 24px 20px; }
             .about-text { font-size: 18px; }
             footer { grid-template-columns: 1fr; gap: 18px; text-align: center; }
-            .back-to-top-fixed { right: 16px; bottom: 16px; width: 40px; height: 40px; }
         }
     </style>
 </head>
 <body id="top">
 
-            <a href="index.html" id="nav-home">home</a>
+    <nav class="top-menu">
+        <a href="index.html" id="nav-home">home</a>
         <a href="notes.html" id="nav-notes">notes</a>
         <a href="dreams.html" id="nav-dreams">dreams</a>
         <a href="quotes.html" id="nav-quotes">quotation/definition</a>
@@ -511,9 +510,9 @@
         <div class="auth-modal">
             <h2>вход</h2>
             <label for="auth-email">email</label>
-            <input id="auth-email" type="email">
+            <input id="auth-email" type="email" autocomplete="username">
             <label for="auth-password">пароль</label>
-            <input id="auth-password" type="password">
+            <input id="auth-password" type="password" autocomplete="current-password">
             <div class="auth-actions">
                 <button type="button" id="auth-login">войти</button>
                 <button type="button" id="auth-signup" class="secondary">регистрация</button>
@@ -537,13 +536,23 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-        <script>
+    <script>
 (function () {
     var SUPABASE_URL = "https://rgkfegdtxaojceknnzlr.supabase.co";
     var SUPABASE_KEY = "sb_publishable_uK7zrVyq8AlHpoj13pGQ6g_q3L47Akw";
     var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        var OWNER_SLUG = "kinqsy";
+    var OWNER_SLUG = "kinqsy";
+    var OWNER_ID = "4923abc5-5c86-48c2-904b-a267c2e21703";
+    var viewedProfileId = null;
+
+    var presenceLabels = {
+        online: "онлайн",
+        offline: "оффлайн",
+        invisible: "невидимка",
+        sleep: "сплю"
+    };
+    var presenceOrder = ["online", "offline", "invisible", "sleep"];
 
     function getU() {
         var u = new URLSearchParams(location.search).get("u");
@@ -567,18 +576,6 @@
             if (el) el.href = menuUrl(map[id]);
         });
     }
-
-    var viewedProfileId = null;
-    // твой UUID из Authentication → Users
-    var OWNER_ID = "4923abc5-5c86-48c2-904b-a267c2e21703";
-
-    var presenceLabels = {
-        online: "онлайн",
-        offline: "оффлайн",
-        invisible: "невидимка",
-        sleep: "сплю"
-    };
-    var presenceOrder = ["online", "offline", "invisible", "sleep"];
 
     function repTitle(score) {
         var s = Number(score) || 0;
@@ -610,9 +607,11 @@
 
     function applyProfile(data) {
         if (!data) {
+            viewedProfileId = null;
             setReputation(0);
             return;
         }
+        viewedProfileId = data.id || null;
         document.getElementById("about-nick").textContent = data.display_name || "guest";
         document.getElementById("about-status").textContent = data.status_text || "—";
         var pr = data.presence || "online";
@@ -621,22 +620,26 @@
         pel.textContent = presenceLabels[pr] || "онлайн";
         document.getElementById("about-avatar").setAttribute("data-avatar", String(data.avatar_id || 1));
         setReputation(data.rating);
-        if (data.about_text) {
-            document.getElementById("about-text").textContent = data.about_text;
-        }
+        document.getElementById("about-text").textContent =
+            data.about_text || "о себе — нажми ★ чтобы войти и редактировать";
     }
 
     async function loadPublicProfile() {
-        if (OWNER_ID && OWNER_ID.indexOf("PASTE") === -1) {
-            var res = await sb.from("profiles").select("*").eq("id", OWNER_ID).maybeSingle();
-            if (res.data) {
-                applyProfile(res.data);
-                return;
-            }
+        fixMenu();
+        var slug = getU();
+        var res = await sb.from("profiles").select("*").ilike("display_name", slug).maybeSingle();
+        if (!res.data && slug.toLowerCase() === OWNER_SLUG.toLowerCase() && OWNER_ID) {
+            res = await sb.from("profiles").select("*").eq("id", OWNER_ID).maybeSingle();
         }
-        var any = await sb.from("profiles").select("*").limit(1).maybeSingle();
-        if (any.data) applyProfile(any.data);
-        else setReputation(0);
+        if (res.data) {
+            applyProfile(res.data);
+        } else {
+            viewedProfileId = null;
+            document.getElementById("about-nick").textContent = slug;
+            document.getElementById("about-status").textContent = "—";
+            document.getElementById("about-text").textContent = "профиль пока пустой";
+            setReputation(0);
+        }
     }
 
     async function currentUserId() {
@@ -644,9 +647,16 @@
         return session ? session.user.id : null;
     }
 
+    async function canEditThisProfile() {
+        var uid = await currentUserId();
+        if (!uid || !viewedProfileId) return false;
+        return uid === viewedProfileId;
+    }
+
     function makeEditable(el, field, maxLen) {
         el.classList.add("editable");
         el.addEventListener("click", async function () {
+            if (!(await canEditThisProfile())) return;
             var uid = await currentUserId();
             if (!uid) return;
             if (el.querySelector("input")) return;
@@ -669,7 +679,9 @@
                     el.textContent = val || "—";
                     row.status_text = val;
                 }
-                await sb.from("profiles").upsert(row, { onConflict: "id" });
+                var { error } = await sb.from("profiles").upsert(row, { onConflict: "id" });
+                if (error) console.error(error);
+                await loadPublicProfile();
             }
             input.addEventListener("keydown", function (e) {
                 if (e.key === "Enter") { e.preventDefault(); save(); }
@@ -684,6 +696,7 @@
 
     document.getElementById("about-presence").classList.add("editable");
     document.getElementById("about-presence").addEventListener("click", async function () {
+        if (!(await canEditThisProfile())) return;
         var uid = await currentUserId();
         if (!uid) return;
         var el = document.getElementById("about-presence");
@@ -700,6 +713,7 @@
     });
 
     document.getElementById("about-avatar").addEventListener("click", async function () {
+        if (!(await canEditThisProfile())) return;
         var uid = await currentUserId();
         if (!uid) return;
         var av = document.getElementById("about-avatar");
@@ -715,7 +729,6 @@
 
     var authOverlay = document.getElementById("auth-overlay");
     var aboutOverlay = document.getElementById("about-edit-overlay");
-
     function openAuth() { authOverlay.classList.add("open"); }
     function closeAuth() { authOverlay.classList.remove("open"); }
     function openAboutEdit() { aboutOverlay.classList.add("open"); }
@@ -723,15 +736,19 @@
 
     document.getElementById("admin-star").onclick = async function () {
         var uid = await currentUserId();
-        if (uid) {
-            var { data } = await sb.from("profiles").select("about_text").eq("id", uid).maybeSingle();
-            document.getElementById("edit-about").value = data && data.about_text ? data.about_text : "";
-            document.getElementById("about-error").textContent = "";
-            openAboutEdit();
-        } else {
+        if (!uid) {
             document.getElementById("auth-error").textContent = "";
             openAuth();
+            return;
         }
+        if (!(await canEditThisProfile())) {
+            alert("Это дневник @" + getU() + ".\nСвой профиль: about.html?u=ТВОЙ_НИК");
+            return;
+        }
+        var { data } = await sb.from("profiles").select("about_text").eq("id", uid).maybeSingle();
+        document.getElementById("edit-about").value = data && data.about_text ? data.about_text : "";
+        document.getElementById("about-error").textContent = "";
+        openAboutEdit();
     };
 
     document.getElementById("auth-close").onclick = closeAuth;
@@ -746,9 +763,17 @@
         if (error) { err.textContent = error.message; return; }
         closeAuth();
         var uid = await currentUserId();
-        if (uid) {
-            var { data } = await sb.from("profiles").select("about_text").eq("id", uid).maybeSingle();
-            document.getElementById("edit-about").value = data && data.about_text ? data.about_text : "";
+        if (!uid) return;
+        var { data: prof } = await sb.from("profiles").select("display_name, about_text").eq("id", uid).maybeSingle();
+        if (prof && prof.display_name) {
+            if (getU().toLowerCase() !== String(prof.display_name).toLowerCase()) {
+                location.href = "about.html?u=" + encodeURIComponent(prof.display_name);
+                return;
+            }
+        }
+        await loadPublicProfile();
+        if (await canEditThisProfile()) {
+            document.getElementById("edit-about").value = prof && prof.about_text ? prof.about_text : "";
             openAboutEdit();
         }
     };
@@ -758,9 +783,19 @@
         err.textContent = "";
         var email = document.getElementById("auth-email").value.trim();
         var password = document.getElementById("auth-password").value;
-        var { error } = await sb.auth.signUp({ email: email, password: password });
+        var { data, error } = await sb.auth.signUp({ email: email, password: password });
         if (error) { err.textContent = error.message; return; }
         err.textContent = "аккаунт создан — подтверди почту, потом войди";
+        if (data && data.user) {
+            var nick = email.split("@")[0].slice(0, 32) || "user";
+            var code = "KQ-" + Math.random().toString(36).slice(2, 8).toUpperCase();
+            await sb.from("profiles").upsert({
+                id: data.user.id,
+                display_name: nick,
+                friend_code: code,
+                updated_at: new Date().toISOString()
+            }, { onConflict: "id" });
+        }
     };
 
     document.getElementById("about-save").onclick = async function () {
@@ -768,6 +803,10 @@
         err.textContent = "";
         var uid = await currentUserId();
         if (!uid) { err.textContent = "нужен вход"; return; }
+        if (!(await canEditThisProfile())) {
+            err.textContent = "чужой профиль";
+            return;
+        }
         var about = document.getElementById("edit-about").value.trim();
         var { error } = await sb.from("profiles").upsert({
             id: uid,
