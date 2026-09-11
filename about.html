@@ -550,15 +550,26 @@
                 var uid = await currentUserId();
                 if (uid) {
                     var code = "KQ-" + Math.random().toString(36).slice(2, 8).toUpperCase();
-                    var { data } = await sb.from("profiles").upsert({
-                        id: uid,
-                        friend_code: code,
-                        updated_at: new Date().toISOString()
-                    }, { onConflict: "id" }).select("friend_code").maybeSingle();
-                    if (data && data.friend_code) {
-                        document.getElementById("my-friend-code").textContent = data.friend_code;
+                    var { data: updated, error: upErr } = await sb.from("profiles")
+                        .update({ friend_code: code, updated_at: new Date().toISOString() })
+                        .eq("id", uid)
+                        .is("friend_code", null)
+                        .select("friend_code")
+                        .maybeSingle();
+                    if (upErr) console.error(upErr);
+                    if (updated && updated.friend_code) {
+                        document.getElementById("my-friend-code").textContent = updated.friend_code;
                     } else {
-                        document.getElementById("my-friend-code").textContent = code;
+                        var { data: again } = await sb.from("profiles").select("friend_code").eq("id", uid).maybeSingle();
+                        if (again && again.friend_code) {
+                            document.getElementById("my-friend-code").textContent = again.friend_code;
+                        } else {
+                            var { data: forced } = await sb.from("profiles").update({
+                                friend_code: code, updated_at: new Date().toISOString()
+                            }).eq("id", uid).select("friend_code").maybeSingle();
+                            document.getElementById("my-friend-code").textContent =
+                                (forced && forced.friend_code) ? forced.friend_code : code;
+                        }
                     }
                 }
             }
@@ -601,10 +612,15 @@
         }
 
         // accepted friends where this profile is involved
-        var { data: rows, error } = await sb
-            .from("friendships")
-            .select("*")
-            .or("requester_id.eq." + viewedProfileId + ",addressee_id.eq." + viewedProfileId);
+        var r1 = await sb.from("friendships").select("*").eq("requester_id", viewedProfileId);
+        var r2 = await sb.from("friendships").select("*").eq("addressee_id", viewedProfileId);
+        var error = r1.error || r2.error;
+        var rows = [];
+        var seen = {};
+        (r1.data || []).concat(r2.data || []).forEach(function (row) {
+            var k = String(row.id);
+            if (!seen[k]) { seen[k] = true; rows.push(row); }
+        });
 
         if (error) {
             // table may not exist yet
@@ -691,20 +707,20 @@
         if (target.id === uid) { alert("Это твой код"); return; }
 
         // count my accepted
-        var { data: myRows } = await sb.from("friendships").select("*")
-            .or("requester_id.eq." + uid + ",addressee_id.eq." + uid)
-            .eq("status", "accepted");
+        var a1 = await sb.from("friendships").select("*").eq("requester_id", uid).eq("status", "accepted");
+        var a2 = await sb.from("friendships").select("*").eq("addressee_id", uid).eq("status", "accepted");
+        var myRows = (a1.data || []).concat(a2.data || []);
         if ((myRows || []).length >= MAX_FRIENDS) {
             alert("Максимум 5 друзей");
             return;
         }
 
         // already?
-        var { data: existing } = await sb.from("friendships").select("*")
-            .or(
-                "and(requester_id.eq." + uid + ",addressee_id.eq." + target.id + ")," +
-                "and(requester_id.eq." + target.id + ",addressee_id.eq." + uid + ")"
-            );
+        var { data: ex1 } = await sb.from("friendships").select("id")
+            .eq("requester_id", uid).eq("addressee_id", target.id).maybeSingle();
+        var { data: ex2 } = await sb.from("friendships").select("id")
+            .eq("requester_id", target.id).eq("addressee_id", uid).maybeSingle();
+        var existing = (ex1 || ex2) ? [ex1 || ex2] : [];
         if (existing && existing.length) {
             alert("Уже есть заявка или дружба");
             return;
