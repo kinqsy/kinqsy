@@ -485,6 +485,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="kinqsy-core.js"></script>
     <script>
 (function () {
     var SUPABASE_URL = "https://rgkfegdtxaojceknnzlr.supabase.co";
@@ -690,20 +691,7 @@
         }
     }
 
-    document.getElementById("admin-star").onclick = async function () {
-        var { data: { session } } = await sb.auth.getSession();
-        if (session) {
-            var { data: prof } = await sb.from("profiles").select("display_name, friend_code").eq("id", session.user.id).maybeSingle();
-            var name = (prof && prof.display_name) ? prof.display_name : "user";
-            var code = (prof && prof.friend_code) ? prof.friend_code : "нет кода";
-            var go = confirm("@" + name + "\nкод дружбы: " + code + "\n\nОК — открыть свой about\nОтмена — остаться");
-            if (go) {
-                location.href = "about.html?u=" + encodeURIComponent(name);
-            }
-            return;
-        }
-        openAuth();
-    };
+    /* star handled by kinqsy-core */
 
     document.getElementById("auth-close").onclick = closeAuth;
     document.getElementById("auth-overlay").onclick = function (e) {
@@ -764,5 +752,30 @@
     loadHome();
 })();
     </script>
+
+<script>
+(function () {
+  if (!window.Kinqsy) return;
+  Kinqsy.fixMenu();
+  Kinqsy.init({
+    onLoginSuccess: async function () {
+      var prof = await Kinqsy.currentProfile();
+      if (prof && prof.display_name) {
+        location.href = "index.html?u=" + encodeURIComponent(prof.display_name);
+      } else {
+        location.reload();
+      }
+    },
+    onStarLoggedIn: async function (uid, prof) {
+      var name = (prof && prof.display_name) ? prof.display_name : "user";
+      var code = (prof && prof.friend_code) ? prof.friend_code : "—";
+      var go = confirm("@" + name + "\nкод: " + code + "\n\nОК — мой about");
+      if (go) location.href = "about.html?u=" + encodeURIComponent(name);
+    }
+  });
+  // keep existing loadHome if present — page script still runs
+})();
+</script>
+
 </body>
 </html>
