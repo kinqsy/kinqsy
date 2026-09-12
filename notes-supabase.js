@@ -73,7 +73,20 @@ let broken = 0;
 return { heart: heart, broken: broken };
 }
 async function addReaction(payload) { const { error } = await supabaseClient.from("reactions").insert(payload); if (error) { alert("Ошибка: " + error.message); return false; } return true; }
-function reactionsHtml(counts, kind, id) { return ( '<div class="reactions" data-kind="' + kind + '" data-id="' + id + '">' + '<button type="button" class="react-btn" data-reaction="heart">❤️ ' + counts.heart + '</button>' + '<button type="button" class="react-btn" data-reaction="broken">💔 ' + counts.broken + '</button>' + '</div>' ); }
+function reactionsHtml(counts, kind, id) {
+  return (
+    '<div class="reactions" data-kind="' + kind + '" data-id="' + id + '">' +
+      '<button type="button" class="react-btn" data-reaction="heart" aria-label="heart">' +
+        '<svg class="react-ico" viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M12 21s-6.7-4.2-9.3-8.2C.7 9.7 2.2 6 5.5 6c1.8 0 3.1 1 3.9 2.1C10.2 7 11.5 6 13.3 6c3.3 0 4.8 3.7 2.8 6.8C18.7 16.8 12 21 12 21z"/></svg> ' +
+        counts.heart +
+      "</button>" +
+      '<button type="button" class="react-btn" data-reaction="broken" aria-label="broken">' +
+        '<svg class="react-ico" viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M12 21s-6.7-4.2-9.3-8.2C.7 9.7 2.2 6 5.5 6c1.8 0 3.1 1 3.9 2.1L12 12l.5-1.2C13.3 9.7 14.6 6 17.3 6c3.3 0 4.8 3.7 2.8 6.8C18.7 16.8 12 21 12 21zM12 12l-2 5 2-1 2 1-2-5z"/></svg> ' +
+        counts.broken +
+      "</button>" +
+    "</div>"
+  );
+}
 async function renderComments(comments) { if (!comments.length) { return '<div class="comment-meta">пока нет комментариев</div>'; }
 const parts = [];
 for (const c of comments) {
@@ -183,7 +196,6 @@ else if (bgKey === "clear") article.style.background = "rgba(255, 255, 255, 0.08
         '<div class="comments">' +
             '<div class="comments-list">' + commentsHtml + '</div>' +
             '<form class="comment-form">' +
-                '<input name="author_name" type="text" placeholder="имя" maxlength="40" required>' +
                 '<textarea name="content" placeholder="комментарий" maxlength="500" required></textarea>' +
                 '<button type="submit">отправить</button>' +
             '</form>' +
@@ -196,25 +208,33 @@ else if (bgKey === "clear") article.style.background = "rgba(255, 255, 255, 0.08
     form.addEventListener("submit", async function (e) {
         e.preventDefault();
 
-        const nameInput = form.querySelector('[name="author_name"]');
         const textInput = form.querySelector('[name="content"]');
-        const author_name = nameInput.value.trim();
         const content = textInput.value.trim();
         const submitBtn = form.querySelector("button");
 
-        if (!author_name || !content) {
-            alert("Напиши имя и комментарий");
+        if (!content) {
+            alert("Напиши комментарий");
             return;
         }
 
         submitBtn.disabled = true;
 
         const { data: { session } } = await supabaseClient.auth.getSession();
+        if (!session) {
+            submitBtn.disabled = false;
+            alert("Войди через ★ чтобы комментировать");
+            return;
+        }
+        let author_name = "user";
+        try {
+            const pr = await supabaseClient.from("profiles").select("display_name").eq("id", session.user.id).maybeSingle();
+            if (pr.data && pr.data.display_name) author_name = pr.data.display_name;
+        } catch (e) {}
 const { error } = await supabaseClient.from("comments").insert({
     post_id: post.id,
     author_name: author_name,
     content: content,
-    user_id: session ? session.user.id : null
+    user_id: session.user.id
 });
 
         submitBtn.disabled = false;
