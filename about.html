@@ -338,7 +338,7 @@
         <section class="glass section">
             <h2>About</h2>
             <div class="section-body" id="about-text">нажми ★ чтобы войти и написать о себе</div>
-            <div class="section-hint">до 1000 символов · без анкеты</div>
+            
         </section>
 
         <section class="glass section">
@@ -346,7 +346,7 @@
             <div class="placeholder-tags" id="interests-box">
                 <span class="tag">скоро</span>
             </div>
-            <div class="section-hint">теги вроде fashion · music · films</div>
+            
         </section>
 
         <section class="glass section">
@@ -354,7 +354,7 @@
             <div class="ach-row" id="ach-box">
                 <span class="ach-chip">0 / 50 unlocked</span>
             </div>
-            <div class="section-hint">витрина значков · позже</div>
+            
         </section>
 
         <section class="glass section">
@@ -366,12 +366,12 @@
                 <div class="fave-slot">slot 4</div>
                 <div class="fave-slot">slot 5</div>
             </div>
-            <div class="section-hint">любимая работа · ачивка · коллекция · позже</div>
+            
         </section>
 
         <section class="glass section">
             <h2>My favourites</h2>
-            <div class="section-hint" style="margin-top:0;margin-bottom:10px">TOP 5 movies · music · books · games — скоро</div>
+            
             <div class="faves-row">
                 <div class="fave-slot">movies</div>
                 <div class="fave-slot">music</div>
@@ -389,7 +389,7 @@
                 <button type="button" id="friend-add-btn">добавить</button>
             </div>
             <div class="pending-list" id="pending-list"></div>
-            <div class="section-hint">максимум 5 друзей · только по коду</div>
+            
         </section>
     </main>
 
@@ -537,7 +537,10 @@
         }
         viewedProfile = data;
         viewedProfileId = data.id || null;
-        document.getElementById("about-nick").textContent = data.display_name || "guest";
+        var handle = data.display_name || "guest";
+        var real = data.real_name || data.full_name || "";
+        document.getElementById("about-nick").textContent = real ? (real + " · @" + handle) : ("@" + handle);
+        document.getElementById("about-nick").dataset.handle = handle;
         document.getElementById("about-status").textContent = data.status_text || "—";
         var pr = data.presence || "online";
         var pel = document.getElementById("about-presence");
@@ -569,6 +572,7 @@
         }
         await refreshOwnerTools();
         await loadFriends();
+        if (typeof renderInterests === 'function') await renderInterests();
     }
 
     async function refreshOwnerTools() {
@@ -635,6 +639,52 @@
                 slot.innerHTML = '<div class="friend-avatar empty">+</div><div class="friend-name">пусто</div>';
             }
             row.appendChild(slot);
+        }
+    }
+
+    
+    var DEFAULT_TAGS = ["fashion","music","films","art","books","night","soft","horror","old internet","games"];
+    async function renderInterests() {
+        var box = document.getElementById("interests-box");
+        if (!box) return;
+        var tags = [];
+        if (viewedProfile && viewedProfile.interests) {
+            try {
+                tags = typeof viewedProfile.interests === "string" ? JSON.parse(viewedProfile.interests) : viewedProfile.interests;
+            } catch (e) { tags = []; }
+        }
+        if (!Array.isArray(tags)) tags = [];
+        box.innerHTML = "";
+        if (!tags.length && !(await canEditThisProfile())) {
+            box.innerHTML = '<span class="tag">—</span>';
+            return;
+        }
+        tags.forEach(function (t) {
+            var s = document.createElement("span");
+            s.className = "tag";
+            s.textContent = t;
+            box.appendChild(s);
+        });
+        if (await canEditThisProfile()) {
+            var add = document.createElement("button");
+            add.type = "button";
+            add.className = "tag";
+            add.textContent = "+ тег";
+            add.onclick = async function () {
+                var pick = prompt("Тег (или свой):\n" + DEFAULT_TAGS.join(", "));
+                if (!pick) return;
+                pick = pick.trim().toLowerCase().slice(0, 24);
+                if (!pick) return;
+                if (tags.indexOf(pick) === -1) tags.push(pick);
+                var uid = await currentUserId();
+                await sb.from("profiles").upsert({
+                    id: uid,
+                    interests: tags,
+                    updated_at: new Date().toISOString()
+                }, { onConflict: "id" });
+                await loadPublicProfile();
+            };
+            box.appendChild(add);
         }
     }
 
