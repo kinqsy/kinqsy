@@ -565,6 +565,7 @@ font-family: Arial, sans-serif;
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="kinqsy-core.js"></script>
     <script>
 (function () {
     var SUPABASE_URL = "https://rgkfegdtxaojceknnzlr.supabase.co";
@@ -618,6 +619,7 @@ font-family: Arial, sans-serif;
             res = await sb.from("profiles").select("id, display_name").eq("id", OWNER_ID).maybeSingle();
         }
         viewedUserId = res.data ? res.data.id : (slug.toLowerCase() === OWNER_SLUG ? OWNER_ID : null);
+        window.__dreamsViewedUserId = viewedUserId;
         return viewedUserId;
     }
 
@@ -798,22 +800,10 @@ font-family: Arial, sans-serif;
     function openAuth() { authOverlay.classList.add("open"); document.getElementById("auth-error").textContent = ""; }
     function closeAuth() { authOverlay.classList.remove("open"); }
     function openCompose() { composeOverlay.classList.add("open"); document.getElementById("compose-error").textContent = ""; }
+    window.__openDreamCompose = openCompose;
     function closeCompose() { composeOverlay.classList.remove("open"); }
 
-    document.getElementById("admin-star").onclick = async function () {
-        var uid = await currentUserId();
-        if (!uid) {
-            openAuth();
-            return;
-        }
-        // только в своём дневнике
-        var viewed = await resolveViewedUser();
-        if (viewed && String(viewed) !== String(uid)) {
-            alert("Это чужой дневник. Свой: dreams.html?u=ТВОЙ_НИК");
-            return;
-        }
-        openCompose();
-    };
+    /* star -> core */
 
     document.getElementById("auth-close").onclick = closeAuth;
     document.getElementById("compose-close").onclick = closeCompose;
@@ -930,5 +920,27 @@ font-family: Arial, sans-serif;
     loadDreams();
 })();
     </script>
+
+<script>
+(function () {
+  if (!window.Kinqsy) return;
+  Kinqsy.init({
+    onLoginSuccess: async function () {
+      var openCompose = window.__openDreamCompose;
+      if (typeof openCompose === "function") openCompose();
+      else location.reload();
+    },
+    onStarLoggedIn: async function (uid) {
+      var viewed = window.__dreamsViewedUserId;
+      if (viewed && String(viewed) !== String(uid)) {
+        alert("Чужой дневник. Свой: dreams.html?u=ТВОЙ_НИК");
+        return;
+      }
+      if (typeof window.__openDreamCompose === "function") window.__openDreamCompose();
+    }
+  });
+})();
+</script>
+
 </body>
 </html>
