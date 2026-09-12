@@ -1,4 +1,6 @@
-const SUPABASE_URL = "https://rgkfegdtxaojceknnzlr.supabase.co"; const SUPABASE_KEY = "sb_publishable_uK7zrVyq8AlHpoj13pGQ6g_q3L47Akw"; const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const SUPABASE_URL = "https://rgkfegdtxaojceknnzlr.supabase.co";
+const SUPABASE_KEY = "sb_publishable_uK7zrVyq8AlHpoj13pGQ6g_q3L47Akw";
+const supabaseClient = (window.__kinqsy_sb) || (window.__kinqsy_sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: true, storageKey: "kinqsy-auth" } }));
 function escapeHtml(text) {
     return String(text || "")
         .replace(/&/g, "&amp;")
