@@ -71,7 +71,6 @@
         margin-top: 42px;
         padding: 58px 20px 80px;
         background: transparent;
-        border-radius: 0 0 30px 30px;
         overflow: visible;
     }
     .dreams-bg {
@@ -498,7 +497,9 @@ font-family: Arial, sans-serif;
     <main class="dreams-page">
         <div class="dreams-header">
             <h1 class="dreams-title">DREAMS</h1>
-            <div class="dreams-subtitle" id="dreams-user-label">dreams · @kinqsy</div>
+            <div class="dreams-subtitle">things I probably shouldn't publish</div>
+            <div class="dreams-subtitle" id="dreams-user-label" style="font-style:normal;opacity:.75;margin-top:6px">dreams · @kinqsy</div>
+
         </div>
         <section class="feed" id="feed"></section>
     </main>
@@ -546,6 +547,33 @@ font-family: Arial, sans-serif;
         </div>
     </div>
 
+    <div class="auth-overlay" id="edit-overlay">
+        <div class="auth-modal">
+            <h2>изменить сон</h2>
+            <label for="edit-title">заголовок</label>
+            <input id="edit-title" type="text">
+            <label for="edit-content">текст</label>
+            <textarea id="edit-content" rows="5"></textarea>
+            <label for="edit-media">ссылка на фото/gif</label>
+            <input id="edit-media" type="url">
+            <label for="edit-title-font">шрифт заголовка</label>
+            <select id="edit-title-font">
+                <option value="Georgia, serif">Georgia</option>
+                <option value="'Poiret One', sans-serif">Poiret One</option>
+                <option value="'Amatic SC', cursive">Amatic SC</option>
+                <option value="'Bad Script', cursive">Bad Script</option>
+            </select>
+            <label for="edit-title-color">цвет заголовка</label>
+            <input id="edit-title-color" type="color" value="#1a0f14">
+            <label for="edit-body-color">цвет текста</label>
+            <input id="edit-body-color" type="color" value="#1a0f14">
+            <div class="auth-actions">
+                <button type="button" id="edit-save">сохранить</button>
+                <button type="button" id="edit-close" class="secondary">закрыть</button>
+            </div>
+            <div class="auth-error" id="edit-error"></div>
+        </div>
+    </div>
     <div class="auth-overlay" id="compose-overlay">
         <div class="auth-modal">
             <h2>новый сон</h2>
@@ -553,9 +581,23 @@ font-family: Arial, sans-serif;
             <input id="compose-title" type="text">
             <label for="compose-content">текст</label>
             <textarea id="compose-content" rows="5"></textarea>
+            <label for="compose-title-font">шрифт заголовка</label>
+            <select id="compose-title-font">
+                <option value="Georgia, serif">Georgia</option>
+                <option value="'Poiret One', sans-serif">Poiret One</option>
+                <option value="'Amatic SC', cursive">Amatic SC</option>
+                <option value="'Bad Script', cursive">Bad Script</option>
+            </select>
+            <label for="compose-title-color">цвет заголовка</label>
+            <input id="compose-title-color" type="color" value="#1a0f14">
+            <label for="compose-body-color">цвет текста</label>
+            <input id="compose-body-color" type="color" value="#1a0f14">
             <label for="compose-media">ссылка на фото/gif</label>
             <input id="compose-media" type="url" placeholder="https://...">
+            <label for="compose-file">или файл с устройства</label>
+            <input id="compose-file" type="file" accept="image/*,.gif">
             <img id="compose-preview" class="compose-preview" alt="">
+            <div class="auth-hint" id="compose-preview-text" style="margin-top:8px;font-style:italic"></div>
             <div class="auth-actions">
                 <button type="button" id="compose-save">опубликовать</button>
                 <button type="button" id="compose-close" class="secondary">закрыть</button>
@@ -845,6 +887,19 @@ font-family: Arial, sans-serif;
         }
     };
 
+    var fileInput = document.getElementById("compose-file");
+    if (fileInput) fileInput.onchange = function () {
+        var f = fileInput.files && fileInput.files[0];
+        if (!f) return;
+        if (f.size > 1.5 * 1024 * 1024) { alert("файл до 1.5MB"); return; }
+        var reader = new FileReader();
+        reader.onload = function () {
+            document.getElementById("compose-media").value = reader.result;
+            var img = document.getElementById("compose-preview");
+            img.style.display = "block"; img.src = reader.result;
+        };
+        reader.readAsDataURL(f);
+    };
     document.getElementById("compose-media").oninput = function () {
         var u = document.getElementById("compose-media").value.trim();
         var img = document.getElementById("compose-preview");
@@ -870,8 +925,12 @@ font-family: Arial, sans-serif;
             title: title,
             content: content,
             category: "dreams",
-            user_id: uid
+            user_id: uid,
+            title_font: document.getElementById("compose-title-font") ? document.getElementById("compose-title-font").value : null,
+            title_color: document.getElementById("compose-title-color") ? document.getElementById("compose-title-color").value : null,
+            body_color: document.getElementById("compose-body-color") ? document.getElementById("compose-body-color").value : null
         };
+        Object.keys(payload).forEach(function (k) { if (payload[k] == null) delete payload[k]; });
         if (media_url) {
             payload.media_url = media_url;
             payload.media_type = /\.gif(\?|$)/i.test(media_url) ? "gif" : "image";
@@ -901,12 +960,41 @@ font-family: Arial, sans-serif;
         if (!activePostMenu) return;
         var post = activePostMenu;
         hidePostMenu();
-        var title = prompt("Заголовок", post.title || "");
-        if (title === null) return;
-        var content = prompt("Текст", post.content || "");
-        if (content === null) return;
-        var { error } = await sb.from("posts").update({ title: title, content: content }).eq("id", post.id);
-        if (error) { alert(error.message); return; }
+        document.getElementById("edit-title").value = post.title || "";
+        document.getElementById("edit-content").value = post.content || "";
+        var em = document.getElementById("edit-media");
+        if (em) em.value = post.media_url || "";
+        window.__editingDreamId = post.id;
+        document.getElementById("edit-error").textContent = "";
+        document.getElementById("edit-overlay").classList.add("open");
+    };
+    document.getElementById("edit-close").onclick = function () {
+        document.getElementById("edit-overlay").classList.remove("open");
+        window.__editingDreamId = null;
+    };
+    document.getElementById("edit-save").onclick = async function () {
+        var err = document.getElementById("edit-error");
+        err.textContent = "";
+        var id = window.__editingDreamId;
+        if (!id) return;
+        var payload = {
+            title: document.getElementById("edit-title").value.trim(),
+            content: document.getElementById("edit-content").value.trim()
+        };
+        var media = document.getElementById("edit-media");
+        if (media && media.value.trim()) payload.media_url = media.value.trim();
+        var tf = document.getElementById("edit-title-font");
+        if (tf) payload.title_font = tf.value;
+        var tc = document.getElementById("edit-title-color");
+        if (tc) payload.title_color = tc.value;
+        var bc = document.getElementById("edit-body-color");
+        if (bc) payload.body_color = bc.value;
+        var { error } = await sb.from("posts").update(payload).eq("id", id);
+        if (error) {
+            var r2 = await sb.from("posts").update({ title: payload.title, content: payload.content }).eq("id", id);
+            if (r2.error) { err.textContent = r2.error.message; return; }
+        }
+        document.getElementById("edit-overlay").classList.remove("open");
         loadDreams();
     };
 
@@ -942,5 +1030,10 @@ font-family: Arial, sans-serif;
 })();
 </script>
 
+<script>
+document.addEventListener("contextmenu", function (e) {
+  if (e.target && e.target.closest && e.target.closest(".post-media")) e.preventDefault();
+});
+</script>
 </body>
 </html>
