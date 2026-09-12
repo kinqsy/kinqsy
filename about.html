@@ -452,6 +452,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="kinqsy-core.js"></script>
     <script>
 (function () {
     var SUPABASE_URL = "https://rgkfegdtxaojceknnzlr.supabase.co";
@@ -970,5 +971,20 @@
     loadPublicProfile();
 })();
     </script>
+
+<script>
+(function () {
+  if (!window.Kinqsy) return;
+  Kinqsy.init({
+    skipDefaultStar: true,
+    onLoginSuccess: async function () {
+      location.reload();
+    }
+  });
+  // keep page star; ensure menu
+  Kinqsy.fixMenu();
+})();
+</script>
+
 </body>
 </html>
