@@ -964,36 +964,64 @@ document.getElementById("edit-media-url").oninput = function () {
 
 document.getElementById("edit-save").onclick = async function () {
     var err = document.getElementById("edit-error");
-    err.textContent = "";
-    if (!editingPostId) { err.textContent = "нет поста"; return; }
-    var { data: { session } } = await sb.auth.getSession();
-    if (!session) { err.textContent = "войди через ★"; return; }
-    var payload = {
-        title: document.getElementById("edit-title").value.trim(),
-        content: document.getElementById("edit-content").value.trim(),
-        media_url: document.getElementById("edit-media-url").value.trim() || null,
-        title_font: document.getElementById("edit-title-font") ? document.getElementById("edit-title-font").value : null,
-        body_font: document.getElementById("edit-body-font") ? document.getElementById("edit-body-font").value : null,
-        title_color: document.getElementById("edit-title-color") ? document.getElementById("edit-title-color").value : null,
-        body_color: document.getElementById("edit-body-color") ? document.getElementById("edit-body-color").value : null,
-        post_bg: document.getElementById("edit-post-bg") ? document.getElementById("edit-post-bg").value : null
-    };
-    Object.keys(payload).forEach(function (k) { if (payload[k] === null || payload[k] === "") delete payload[k]; });
-    if (payload.media_url) {
-        payload.media_type = /\.gif(\?|$)/i.test(payload.media_url) ? "gif" : "image";
+    if (err) err.textContent = "";
+    if (!editingPostId) {
+        if (err) err.textContent = "нет поста";
+        return;
     }
-    var { error } = await sb.from("posts").update(payload).eq("id", editingPostId);
-    if (error) {
-        // retry minimal fields only
-        var basic = { title: payload.title || "", content: payload.content || "" };
+    var sess = await sb.auth.getSession();
+    var session = sess.data && sess.data.session;
+    if (!session) {
+        if (err) err.textContent = "войди через ★";
+        return;
+    }
+    var titleEl = document.getElementById("edit-title");
+    var contentEl = document.getElementById("edit-content");
+    var mediaEl = document.getElementById("edit-media-url");
+    var payload = {
+        title: titleEl ? titleEl.value.trim() : "",
+        content: contentEl ? contentEl.value.trim() : ""
+    };
+    if (mediaEl) {
+        var mu = mediaEl.value.trim();
+        payload.media_url = mu || null;
+        if (mu) payload.media_type = /\.gif(\?|$)/i.test(mu) ? "gif" : "image";
+    }
+    var tf = document.getElementById("edit-title-font");
+    var bf = document.getElementById("edit-body-font");
+    var tc = document.getElementById("edit-title-color");
+    var bc = document.getElementById("edit-body-color");
+    var bg = document.getElementById("edit-post-bg");
+    if (tf) payload.title_font = tf.value;
+    if (bf) payload.body_font = bf.value;
+    if (tc) payload.title_color = tc.value;
+    if (bc) payload.body_color = bc.value;
+    if (bg) payload.post_bg = bg.value;
+
+    // 1) full update
+    var res = await sb.from("posts").update(payload).eq("id", editingPostId).select("id");
+    if (res.error) {
+        console.error("edit full", res.error);
+        // 2) minimal
+        var basic = { title: payload.title, content: payload.content };
         if (payload.media_url) basic.media_url = payload.media_url;
-        var r2 = await sb.from("posts").update(basic).eq("id", editingPostId);
-        if (r2.error) { err.textContent = r2.error.message; return; }
-        err.textContent = "сохранено без части стилей (нет колонок)";
+        var r2 = await sb.from("posts").update(basic).eq("id", editingPostId).select("id");
+        if (r2.error) {
+            if (err) err.textContent = r2.error.message;
+            console.error("edit basic", r2.error);
+            return;
+        }
+        if (!r2.data || !r2.data.length) {
+            if (err) err.textContent = "RLS: пост не обновился (нет прав или чужой user_id)";
+            return;
+        }
+    } else if (!res.data || !res.data.length) {
+        if (err) err.textContent = "RLS: 0 строк обновлено. Войди своим аккаунтом автора поста.";
+        return;
     }
     closeEdit();
-    if (typeof loadNotes === "function") loadNotes();
-    else if (window.location) location.reload();
+    if (typeof window.loadNotes === "function") window.loadNotes();
+    else location.reload();
 };
 
     function openAuth() {
@@ -1019,35 +1047,42 @@ function closeCompose() {
 var mediaFileInput = document.getElementById("compose-media-file");
 var preview = document.getElementById("compose-preview");
 
-mediaUrlInput.oninput = function () {
-    var u = mediaUrlInput.value.trim();
-    if (u) { preview.style.display = "block"; preview.src = u; }
-    else { preview.style.display = "none"; preview.src = ""; }
-};
+if (mediaUrlInput && preview) {
+    mediaUrlInput.oninput = function () {
+        var u = mediaUrlInput.value.trim();
+        if (u) { preview.style.display = "block"; preview.src = u; }
+        else { preview.style.display = "none"; preview.src = ""; }
+    };
+}
 
-mediaFileInput.onchange = async function () {
-    var file = mediaFileInput.files && mediaFileInput.files[0];
-    if (!file) return;
-    var { data: { session } } = await sb.auth.getSession();
-    if (!session) {
-        document.getElementById("compose-error").textContent = "нужен вход";
-        return;
-    }
-    var ext = (file.name.split(".").pop() || "jpg").toLowerCase();
-    var path = session.user.id + "/" + Date.now() + "." + ext;
-    var { error: upErr } = await sb.storage.from("media").upload(path, file, { upsert: true });
-    if (upErr) {
-        document.getElementById("compose-error").textContent = upErr.message;
-        return;
-    }
-    var { data } = sb.storage.from("media").getPublicUrl(path);
-    mediaUrlInput.value = data.publicUrl;
-    preview.style.display = "block";
-    preview.src = data.publicUrl;
-};
+if (mediaFileInput && mediaUrlInput && preview) {
+    mediaFileInput.onchange = async function () {
+        var file = mediaFileInput.files && mediaFileInput.files[0];
+        if (!file) return;
+        var { data: { session } } = await sb.auth.getSession();
+        if (!session) {
+            var ce = document.getElementById("compose-error");
+            if (ce) ce.textContent = "нужен вход";
+            return;
+        }
+        var ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+        var path = session.user.id + "/" + Date.now() + "." + ext;
+        var { error: upErr } = await sb.storage.from("media").upload(path, file, { upsert: true });
+        if (upErr) {
+            var ce2 = document.getElementById("compose-error");
+            if (ce2) ce2.textContent = upErr.message;
+            return;
+        }
+        var { data } = sb.storage.from("media").getPublicUrl(path);
+        mediaUrlInput.value = data.publicUrl;
+        preview.style.display = "block";
+        preview.src = data.publicUrl;
+    };
+}
 
 
-    document.getElementById("auth-login").onclick = async function () {
+    var __authLoginBtn = document.getElementById("auth-login");
+    if (__authLoginBtn) __authLoginBtn.onclick = async function () {
         var err = document.getElementById("auth-error");
         err.textContent = "";
         var email = document.getElementById("auth-email").value.trim();
@@ -1058,7 +1093,8 @@ mediaFileInput.onchange = async function () {
         openCompose();
     };
 
-    document.getElementById("auth-signup").onclick = async function () {
+    var __authSignupBtn = document.getElementById("auth-signup");
+    if (__authSignupBtn) __authSignupBtn.onclick = async function () {
         var err = document.getElementById("auth-error");
         err.textContent = "";
         var email = document.getElementById("auth-email").value.trim();
@@ -1068,7 +1104,8 @@ mediaFileInput.onchange = async function () {
         err.textContent = "аккаунт создан — войди";
     };
 
-    document.getElementById("compose-publish").onclick = async function () {
+    var __composePub = document.getElementById("compose-publish");
+    if (__composePub) __composePub.onclick = async function () {
         var err = document.getElementById("compose-error");
         err.textContent = "";
         var { data: { session } } = await sb.auth.getSession();
