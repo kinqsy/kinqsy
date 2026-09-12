@@ -22,7 +22,20 @@
             -webkit-user-select: text;
         }
         a, button, .star, .site-title, .home-quotes {
-            cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath fill='%23f6dce8' stroke='%233a2030' stroke-width='1.3' d='M8 4l12 8-6 1.5L16 24l-3-7-5 2z'/%3E%3C/svg%3E") 5 2, pointer !important;
+            position: absolute;
+            right: 24px;
+            top: 42%;
+            transform: translateY(-50%);
+            z-index: 4;
+            max-width: 280px;
+            padding: 18px 20px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.22);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            color: #1a0f14;
+            text-shadow: none;
         }
         html { scroll-behavior: smooth; }
         html, body { margin: 0; padding: 0; min-height: 100%; }
@@ -133,15 +146,18 @@
 
         .site-title {
             margin: 0;
-            padding-top: 14vh;
+            padding: 10vh 20px 0;
             color: #000;
             font-family: "Bodoni 72", Didot, "Bodoni MT", Georgia, serif;
-            font-size: clamp(48px, 12vw, 120px);
+            font-size: clamp(48px, 12vw, 110px);
             font-weight: 400;
             line-height: 0.85;
             letter-spacing: -4px;
-            text-shadow: 0 2px 0 rgba(255,255,255,.35), 0 10px 28px rgba(0,0,0,.28);
             text-align: center;
+            position: relative;
+            z-index: 3;
+            text-shadow: 0 2px 0 rgba(255,255,255,.4), 0 10px 28px rgba(0,0,0,.3);
+            pointer-events: auto;
         }
         .site-title:hover { opacity: 0.85; }
         .tagline {
@@ -153,11 +169,14 @@
             text-shadow: 0 2px 10px rgba(0,0,0,.2);
         }
         .diary-label {
+            position: relative;
+            z-index: 3;
             margin: 0 0 20px;
             font-size: 13px;
             font-family: Arial, sans-serif;
-            opacity: 0.75;
+            opacity: 0.85;
             text-align: center;
+            text-shadow: 0 1px 8px rgba(0,0,0,.2);
         }
         .diary-label a {
             color: #1a0f14;
@@ -467,6 +486,16 @@
 
     <a href="#top" class="back-to-top-fixed" aria-label="Наверх">↑</a>
 
+    <div class="auth-overlay" id="star-modal">
+        <div class="auth-modal">
+            <h2 id="star-modal-title">профиль</h2>
+            <p id="star-modal-body" style="margin:0 0 14px;font-size:14px;line-height:1.4"></p>
+            <div class="auth-actions">
+                <button type="button" id="star-modal-about">мой about</button>
+                <button type="button" id="star-modal-close" class="secondary">закрыть</button>
+            </div>
+        </div>
+    </div>
     <div class="auth-overlay" id="auth-overlay">
         <div class="auth-modal">
             <h2>вход</h2>
@@ -635,21 +664,17 @@
     };
 
     // цитата → предложить добавить
-    document.getElementById("home-quotes").onclick = function () {
+        document.getElementById("home-quotes").onclick = function () {
         var text = prompt("Предложи цитату (текст):");
         if (!text || !text.trim()) return;
         var author = prompt("Автор (можно пусто):") || "";
-        var msg = "Цитата:\n«" + text.trim() + "»\n" + (author ? "— " + author : "");
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(msg).then(function () {
-                alert("Скопировано. Можешь отправить kinqsy или вставить в quotation.");
-            }).catch(function () {
-                alert(msg);
-            });
-        } else {
-            alert(msg);
-        }
-        location.href = menuUrl("quotes.html");
+        try {
+            var key = "kinqsy_suggestions";
+            var arr = JSON.parse(localStorage.getItem(key) || "[]");
+            arr.push({ type: "quote", text: text.trim(), author: author, at: new Date().toISOString() });
+            localStorage.setItem(key, JSON.stringify(arr));
+        } catch (e) {}
+        alert("Отправлено в предложения. Увидишь в admin (жалобы/предложения).");
     };
 
     var quotes = [
@@ -769,8 +794,15 @@
     onStarLoggedIn: async function (uid, prof) {
       var name = (prof && prof.display_name) ? prof.display_name : "user";
       var code = (prof && prof.friend_code) ? prof.friend_code : "—";
-      var go = confirm("@" + name + "\nкод: " + code + "\n\nОК — мой about");
-      if (go) location.href = "about.html?u=" + encodeURIComponent(name);
+      document.getElementById("star-modal-title").textContent = "@" + name;
+      document.getElementById("star-modal-body").textContent = "код дружбы: " + code;
+      document.getElementById("star-modal").classList.add("open");
+      document.getElementById("star-modal-about").onclick = function () {
+        location.href = "about.html?u=" + encodeURIComponent(name);
+      };
+      document.getElementById("star-modal-close").onclick = function () {
+        document.getElementById("star-modal").classList.remove("open");
+      };
     }
   });
   // keep existing loadHome if present — page script still runs
