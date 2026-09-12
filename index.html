@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KINQSY.LOL</title>
-    <link rel="icon" href="favicon.png" type="image/png">
+    <link rel="icon" href="icon-192.png" type="image/png">
+    <link rel="stylesheet" href="kinqsy-theme.css">
     <style>
         * { box-sizing: border-box; }
         ::selection { background: rgba(240, 201, 214, 0.9); color: #3a2030; }
@@ -98,6 +99,7 @@
             backdrop-filter: blur(14px);
             -webkit-backdrop-filter: blur(14px);
             color: #1a0f14;
+            text-shadow: none;
         }
         .home-quotes blockquote { margin: 0; font-style: italic; font-size: 15px; line-height: 1.4; }
         .home-quotes cite { display: block; margin-top: 8px; font-size: 12px; opacity: 0.75; font-style: normal; }
@@ -106,7 +108,7 @@
         .hero-actions {
             position: absolute;
             left: 24px;
-            bottom: 32%;
+            bottom: 48px;
             z-index: 4;
             display: flex;
             flex-direction: column;
@@ -133,7 +135,7 @@
         .home-latest {
             position: absolute;
             left: 24px;
-            bottom: 48px;
+            bottom: 120px;
             z-index: 4;
             max-width: min(420px, 92vw);
             display: flex;
@@ -205,11 +207,11 @@
             <div class="home-quotes-hint">нажми — предложить цитату</div>
         </aside>
 
-        <div class="hero-actions">
-            <button type="button" class="hero-btn" id="open-something">open something</button>
-            <div class="post-counter" id="post-counter">loading…</div>
-        </div>
         <section class="home-latest" id="latest-posts"></section>
+        <div class="hero-actions">
+            <div class="post-counter" id="post-counter">loading…</div>
+            <button type="button" class="hero-btn" id="open-something">open something</button>
+        </div>
     </main>
 
     <div class="support-line">
@@ -234,6 +236,20 @@
 
     <a href="#top" class="back-to-top-fixed" aria-label="Наверх">↑</a>
 
+    <div class="auth-overlay" id="quote-modal">
+        <div class="auth-modal">
+            <h2>предложить цитату</h2>
+            <label for="quote-text">текст</label>
+            <textarea id="quote-text" rows="4" style="width:100%;padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,.5);background:rgba(255,255,255,.35);font-family:Georgia,serif;font-size:15px"></textarea>
+            <label for="quote-author">автор (необязательно)</label>
+            <input id="quote-author" type="text" style="width:100%;padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,.5);background:rgba(255,255,255,.35)">
+            <div class="auth-actions">
+                <button type="button" id="quote-send">отправить</button>
+                <button type="button" id="quote-close" class="secondary">закрыть</button>
+            </div>
+            <div class="auth-error" id="quote-error"></div>
+        </div>
+    </div>
     <div class="auth-overlay" id="star-modal">
         <div class="auth-modal">
             <h2 id="star-modal-title">профиль</h2>
@@ -312,14 +328,14 @@
 
             var { data, error, count } = await sb
                 .from("posts")
-                .select("id, title, content, category, created_at, user_id", { count: "exact" })
+                .select("id, title, content, category, created_at, user_id, media_url", { count: "exact" })
                 .eq("user_id", uid)
                 .order("created_at", { ascending: false });
 
             if (error || !data || !data.length) {
                 if (viewedSlug.toLowerCase() === OWNER_SLUG) {
                     var all = await sb.from("posts")
-                        .select("id, title, content, category, created_at, user_id", { count: "exact" })
+                        .select("id, title, content, category, created_at, user_id, media_url", { count: "exact" })
                         .order("created_at", { ascending: false });
                     data = (all.data || []).filter(function (p) {
                         return !p.user_id || String(p.user_id) === String(uid);
@@ -366,14 +382,28 @@
         }
     }
 
-    document.getElementById("open-something").onclick = function () {
+    document.getElementById("open-something").onclick = async function () {
         var posts = window.__allPosts || [];
-        if (!posts.length) {
+        // prefer quotes with media (доска), then any with media, then any
+        var pool = posts.filter(function (p) { return p.category === "quotes" && p.media_url; });
+        if (!pool.length) pool = posts.filter(function (p) { return p.media_url; });
+        if (!pool.length) pool = posts;
+        if (!pool.length) {
+            // try fetch quotes for this user
+            try {
+                var uid = viewedUserId;
+                if (uid) {
+                    var q = await sb.from("posts").select("id, category, media_url").eq("user_id", uid).eq("category", "quotes").limit(20);
+                    pool = q.data || [];
+                }
+            } catch (e) {}
+        }
+        if (!pool.length) {
             location.href = Kinqsy.menuUrl("quotes.html");
             return;
         }
-        var p = posts[Math.floor(Math.random() * posts.length)];
-        location.href = pageForCategory(p.category) + "#post-" + p.id;
+        var p = pool[Math.floor(Math.random() * pool.length)];
+        location.href = pageForCategory(p.category || "quotes") + "#post-" + p.id;
     };
 
     document.getElementById("site-title").onclick = function () {
@@ -381,15 +411,28 @@
     };
 
     document.getElementById("home-quotes").onclick = function () {
-        var text = prompt("Предложи цитату:");
-        if (!text || !text.trim()) return;
-        var author = prompt("Автор (можно пусто):") || "";
+        document.getElementById("quote-error").textContent = "";
+        document.getElementById("quote-text").value = "";
+        document.getElementById("quote-author").value = "";
+        document.getElementById("quote-modal").classList.add("open");
+    };
+    document.getElementById("quote-close").onclick = function () {
+        document.getElementById("quote-modal").classList.remove("open");
+    };
+    document.getElementById("quote-send").onclick = function () {
+        var text = document.getElementById("quote-text").value.trim();
+        var author = document.getElementById("quote-author").value.trim();
+        var err = document.getElementById("quote-error");
+        if (!text) { err.textContent = "введи текст"; return; }
         try {
             var arr = JSON.parse(localStorage.getItem("kinqsy_suggestions") || "[]");
-            arr.push({ type: "quote", text: text.trim(), author: author, at: new Date().toISOString() });
+            arr.push({ type: "quote", text: text, author: author, at: new Date().toISOString() });
             localStorage.setItem("kinqsy_suggestions", JSON.stringify(arr));
         } catch (e) {}
-        alert("Сохранено в предложения (admin на этом устройстве)");
+        err.textContent = "сохранено";
+        setTimeout(function () {
+            document.getElementById("quote-modal").classList.remove("open");
+        }, 600);
     };
 
     (function rotateQuotes() {
