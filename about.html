@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ABOUT — KINQSY.LOL</title>
+    <link rel="icon" href="icon-192.png" type="image/png">
+    <link rel="stylesheet" href="kinqsy-theme.css">
     <link rel="icon" href="favicon.png" type="image/png">
     <style>
         * { box-sizing: border-box; }
@@ -91,8 +93,16 @@
         .about-avatar[data-avatar="3"] { background-image: url("https://raw.githubusercontent.com/kinqsy/kinqsy/main/avatar-3.jpg"); }
         .about-avatar[data-avatar="4"] { background-image: url("https://raw.githubusercontent.com/kinqsy/kinqsy/main/avatar-4.jpg"); }
 
+        .about-handle {
+            margin: 2px 0 0;
+            font-size: 13px;
+            font-family: Arial, sans-serif;
+            opacity: 0.75;
+            color: #1a0f14;
+        }
+        .about-handle.editable:hover { border-bottom: 1px dashed rgba(26,15,20,0.4); }
         .about-nick {
-            margin: 0; font-size: clamp(22px, 5vw, 32px); font-weight: bold;
+            margin: 0; font-size: clamp(22px, 5vw, 32px); font-weight: bold; line-height: 1.15;
             color: #1a0f14; word-break: break-word;
         }
         .about-status { margin: 6px 0 0; font-size: 14px; font-style: italic; opacity: 0.85; }
@@ -318,7 +328,8 @@
             <div class="profile-top">
                 <div class="about-avatar" data-avatar="1" id="about-avatar" aria-label="avatar"></div>
                 <div>
-                    <p class="about-nick" id="about-nick">kinqsy</p>
+                    <p class="about-nick" id="about-real-name">имя</p>
+                    <p class="about-handle" id="about-handle">@kinqsy</p>
                     <p class="about-status" id="about-status">—</p>
                     <p class="about-presence" id="about-presence" data-presence="online">онлайн</p>
                 </div>
@@ -415,6 +426,18 @@
 
     <a href="#top" class="back-to-top-fixed" aria-label="Наверх">↑</a>
 
+    <div class="auth-overlay" id="tags-modal">
+        <div class="auth-modal">
+            <h2>интересы</h2>
+            <div id="tags-pick" style="display:flex;flex-wrap:wrap;gap:8px;margin:10px 0"></div>
+            <label for="tags-custom">свой тег</label>
+            <input id="tags-custom" type="text" maxlength="24" placeholder="например rainy">
+            <div class="auth-actions">
+                <button type="button" id="tags-save">сохранить</button>
+                <button type="button" id="tags-close" class="secondary">закрыть</button>
+            </div>
+        </div>
+    </div>
     <div class="auth-overlay" id="auth-overlay">
         <div class="auth-modal" id="auth-modal">
             <h2 id="auth-title">вход</h2>
@@ -457,7 +480,7 @@
 (function () {
     var SUPABASE_URL = "https://rgkfegdtxaojceknnzlr.supabase.co";
     var SUPABASE_KEY = "sb_publishable_uK7zrVyq8AlHpoj13pGQ6g_q3L47Akw";
-    var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    var sb = window.__kinqsy_sb || (window.__kinqsy_sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: true, storageKey: "kinqsy-auth" } }));
 
     var OWNER_SLUG = "kinqsy";
     var OWNER_ID = "4923abc5-5c86-48c2-904b-a267c2e21703";
@@ -538,9 +561,13 @@
         viewedProfile = data;
         viewedProfileId = data.id || null;
         var handle = data.display_name || "guest";
-        var real = data.real_name || data.full_name || "";
-        document.getElementById("about-nick").textContent = real ? (real + " · @" + handle) : ("@" + handle);
-        document.getElementById("about-nick").dataset.handle = handle;
+        handle = String(handle).replace(/^@+/, "");
+        var real = data.real_name || data.full_name || handle;
+        var rn = document.getElementById("about-real-name");
+        var hh = document.getElementById("about-handle");
+        if (rn) rn.textContent = real;
+        if (hh) hh.textContent = "@" + handle;
+        if (hh) hh.dataset.handle = handle;
         document.getElementById("about-status").textContent = data.status_text || "—";
         var pr = data.presence || "online";
         var pel = document.getElementById("about-presence");
@@ -565,7 +592,10 @@
         if (res.data) applyProfile(res.data);
         else {
             viewedProfileId = null;
-            document.getElementById("about-nick").textContent = slug;
+            var rn = document.getElementById("about-real-name");
+            var hh = document.getElementById("about-handle");
+            if (rn) rn.textContent = slug;
+            if (hh) hh.textContent = "@" + String(slug).replace(/^@+/, "");
             document.getElementById("about-status").textContent = "—";
             document.getElementById("about-text").textContent = "профиль пока пустой";
             setReputation(0);
@@ -671,19 +701,47 @@
             add.className = "tag";
             add.textContent = "+ тег";
             add.onclick = async function () {
-                var pick = prompt("Тег (или свой):\n" + DEFAULT_TAGS.join(", "));
-                if (!pick) return;
-                pick = pick.trim().toLowerCase().slice(0, 24);
-                if (!pick) return;
-                if (tags.indexOf(pick) === -1) tags.push(pick);
-                var uid = await currentUserId();
-                await sb.from("profiles").upsert({
-                    id: uid,
-                    interests: tags,
-                    updated_at: new Date().toISOString()
-                }, { onConflict: "id" });
-                await loadPublicProfile();
+                var DEFAULT_TAGS = ["fashion","music","films","art","books","night","soft","horror","old internet","games","photo","poetry","pink","archive","dreams"];
+                var pickBox = document.getElementById("tags-pick");
+                pickBox.innerHTML = "";
+                var selected = tags.slice();
+                DEFAULT_TAGS.forEach(function (t) {
+                    var b = document.createElement("button");
+                    b.type = "button";
+                    b.className = "tag";
+                    b.textContent = t;
+                    b.style.opacity = selected.indexOf(t) >= 0 ? "1" : "0.55";
+                    b.onclick = function () {
+                        var i = selected.indexOf(t);
+                        if (i >= 0) selected.splice(i, 1);
+                        else selected.push(t);
+                        b.style.opacity = selected.indexOf(t) >= 0 ? "1" : "0.55";
+                    };
+                    pickBox.appendChild(b);
+                });
+                window.__interestSelected = selected;
+                document.getElementById("tags-modal").classList.add("open");
             };
+            var ts = document.getElementById("tags-save");
+            if (ts && !ts._wired) {
+                ts._wired = true;
+                ts.onclick = async function () {
+                    var selected = window.__interestSelected || [];
+                    var custom = document.getElementById("tags-custom").value.trim().toLowerCase().slice(0, 24);
+                    if (custom && selected.indexOf(custom) < 0) selected.push(custom);
+                    var uid = await currentUserId();
+                    await sb.from("profiles").upsert({
+                        id: uid,
+                        interests: selected,
+                        updated_at: new Date().toISOString()
+                    }, { onConflict: "id" });
+                    document.getElementById("tags-modal").classList.remove("open");
+                    await loadPublicProfile();
+                };
+                document.getElementById("tags-close").onclick = function () {
+                    document.getElementById("tags-modal").classList.remove("open");
+                };
+            }
             box.appendChild(add);
         }
     }
@@ -857,7 +915,81 @@
         });
     }
 
-    makeEditable(document.getElementById("about-nick"), "nickname", 32);
+    // ник (любые символы) → real_name
+    (function () {
+        var el = document.getElementById("about-real-name");
+        if (!el) return;
+        el.classList.add("editable");
+        el.addEventListener("click", async function () {
+            if (!(await canEditThisProfile())) return;
+            var uid = await currentUserId();
+            if (el.querySelector("input")) return;
+            var old = el.textContent;
+            var input = document.createElement("input");
+            input.className = "about-inline-input";
+            input.value = old === "имя" ? "" : old;
+            input.maxLength = 60;
+            el.textContent = "";
+            el.appendChild(input);
+            input.focus();
+            async function save() {
+                var val = input.value.trim().slice(0, 60);
+                el.textContent = val || "имя";
+                await sb.from("profiles").upsert({
+                    id: uid,
+                    real_name: val,
+                    updated_at: new Date().toISOString()
+                }, { onConflict: "id" });
+                await loadPublicProfile();
+            }
+            input.addEventListener("keydown", function (e) {
+                if (e.key === "Enter") { e.preventDefault(); save(); }
+                if (e.key === "Escape") el.textContent = old;
+            });
+            input.addEventListener("blur", save);
+        });
+    })();
+    // юз (@handle) → display_name только a-z0-9_.-
+    (function () {
+        var el = document.getElementById("about-handle");
+        if (!el) return;
+        el.classList.add("editable");
+        el.addEventListener("click", async function () {
+            if (!(await canEditThisProfile())) return;
+            var uid = await currentUserId();
+            if (el.querySelector("input")) return;
+            var old = el.textContent;
+            var input = document.createElement("input");
+            input.className = "about-inline-input";
+            input.value = (el.dataset.handle || old.replace(/^@+/, "")).replace(/^@+/, "");
+            input.maxLength = 32;
+            el.textContent = "";
+            el.appendChild(input);
+            input.focus();
+            async function save() {
+                var val = input.value.trim().replace(/^@+/, "").slice(0, 32);
+                if (val && !/^[a-zA-Z0-9_.-]+$/.test(val)) {
+                    alert("юз: только буквы, цифры, _ - .");
+                    el.textContent = old;
+                    return;
+                }
+                if (!val) { el.textContent = old; return; }
+                el.textContent = "@" + val;
+                el.dataset.handle = val;
+                await sb.from("profiles").upsert({
+                    id: uid,
+                    display_name: val,
+                    updated_at: new Date().toISOString()
+                }, { onConflict: "id" });
+                location.href = "about.html?u=" + encodeURIComponent(val);
+            }
+            input.addEventListener("keydown", function (e) {
+                if (e.key === "Enter") { e.preventDefault(); save(); }
+                if (e.key === "Escape") el.textContent = old;
+            });
+            input.addEventListener("blur", save);
+        });
+    })();
     makeEditable(document.getElementById("about-status"), "status_text", 64);
 
     document.getElementById("about-presence").classList.add("editable");
