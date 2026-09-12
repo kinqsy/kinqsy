@@ -1,14 +1,23 @@
-/* Kinqsy shared: ?u=, menu, auth (login/signup with nick), session chip */
+/* Kinqsy shared singleton: one Supabase client, ?u=, menu, auth, chip */
 (function (global) {
   var SUPABASE_URL = "https://rgkfegdtxaojceknnzlr.supabase.co";
   var SUPABASE_KEY = "sb_publishable_uK7zrVyq8AlHpoj13pGQ6g_q3L47Akw";
   var OWNER_SLUG = "kinqsy";
   var OWNER_ID = "4923abc5-5c86-48c2-904b-a267c2e21703";
 
-  var sb = null;
-  if (global.supabase && global.supabase.createClient) {
-    sb = global.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  function getClient() {
+    if (global.__kinqsy_sb) return global.__kinqsy_sb;
+    if (!global.supabase || !global.supabase.createClient) {
+      console.error("supabase-js not loaded before kinqsy-core.js");
+      return null;
+    }
+    global.__kinqsy_sb = global.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+      auth: { persistSession: true, storageKey: "kinqsy-auth" }
+    });
+    return global.__kinqsy_sb;
   }
+
+  var sb = getClient();
 
   function getU() {
     var u = new URLSearchParams(location.search).get("u");
@@ -34,6 +43,7 @@
   }
 
   async function currentUserId() {
+    sb = getClient();
     if (!sb) return null;
     var res = await sb.auth.getSession();
     var session = res.data && res.data.session;
@@ -58,14 +68,7 @@
     if (!document.getElementById("kinqsy-chip-style")) {
       var st = document.createElement("style");
       st.id = "kinqsy-chip-style";
-      st.textContent = [
-        ".auth-chip{position:fixed;top:50px;right:12px;z-index:1001;max-width:min(92vw,340px);padding:8px 12px;border-radius:14px;",
-        "background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.35);backdrop-filter:blur(12px);",
-        "font-size:12px;font-family:Arial,sans-serif;color:#2a1822;display:none;align-items:center;gap:8px;flex-wrap:wrap}",
-        ".auth-chip.show{display:flex}",
-        ".auth-chip button{border:0;background:rgba(240,201,214,.9);border-radius:999px;padding:6px 10px;font-size:11px;font-weight:bold;color:#3a2030;",
-        "min-height:36px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}"
-      ].join("");
+      st.textContent = ".auth-chip{position:fixed;top:50px;right:12px;z-index:1001;max-width:min(92vw,340px);padding:8px 12px;border-radius:14px;background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.35);backdrop-filter:blur(12px);font-size:12px;font-family:Arial,sans-serif;color:#2a1822;display:none;align-items:center;gap:8px;flex-wrap:wrap}.auth-chip.show{display:flex}.auth-chip button{border:0;background:rgba(240,201,214,.9);border-radius:999px;padding:6px 10px;font-size:11px;font-weight:bold;color:#3a2030;min-height:36px}";
       document.head.appendChild(st);
     }
     return chip;
@@ -82,13 +85,13 @@
     var prof = await currentProfile();
     var name = (prof && prof.display_name) ? prof.display_name : "user";
     var code = (prof && prof.friend_code) ? (" · " + prof.friend_code) : "";
-    text.textContent = "вы: @" + name + code;
+    if (text) text.textContent = "вы: @" + name + code;
     chip.classList.add("show");
     var btn = document.getElementById("auth-logout");
     if (btn && !btn._wired) {
       btn._wired = true;
       btn.onclick = async function () {
-        await sb.auth.signOut();
+        await getClient().auth.signOut();
         await refreshChip();
       };
     }
@@ -99,12 +102,19 @@
     var st = document.createElement("style");
     st.id = "kinqsy-auth-style";
     st.textContent = [
+      ".auth-overlay{display:none;position:fixed;inset:0;z-index:2000;background:rgba(20,10,16,.45);align-items:center;justify-content:center;padding:16px}",
+      ".auth-overlay.open{display:flex}",
+      ".auth-modal{width:min(94vw,420px);max-height:90vh;overflow-y:auto;padding:22px;border-radius:20px;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.22);backdrop-filter:blur(16px);color:#2a1822;text-align:left}",
+      ".auth-modal h2{margin:0 0 12px;font-weight:normal}",
+      ".auth-modal label{display:block;font-size:12px;font-weight:bold;margin:10px 0 4px;font-family:Arial,sans-serif}",
+      ".auth-modal input{width:100%;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.5);background:rgba(255,255,255,.35);font-family:Georgia,serif;font-size:16px;min-height:44px;box-sizing:border-box}",
+      ".auth-actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}",
+      ".auth-actions button{flex:1;min-width:90px;min-height:48px;padding:10px 12px;border:0;border-radius:999px;background:#f0c9d6;color:#3a2030;font-weight:bold;font-family:Arial,sans-serif;font-size:16px}",
+      ".auth-actions button.secondary{background:rgba(255,255,255,.4)}",
+      ".auth-error{margin-top:10px;font-size:13px;color:#7a2030;min-height:1.2em}",
       ".auth-mode-tabs{display:flex;gap:8px;margin:0 0 14px}",
-      ".auth-mode{flex:1;padding:12px 10px;border:0;border-radius:999px;background:rgba(255,255,255,.3);color:#2a1822;",
-      "font-family:Arial,sans-serif;font-weight:bold;font-size:14px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}",
-      ".auth-mode.active{background:#f0c9d6}",
-      "#auth-overlay input{font-size:16px!important;min-height:44px}",
-      "#auth-overlay .auth-actions button{min-height:48px;font-size:16px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}"
+      ".auth-mode{flex:1;padding:12px 10px;border:0;border-radius:999px;background:rgba(255,255,255,.3);color:#2a1822;font-family:Arial,sans-serif;font-weight:bold;font-size:14px}",
+      ".auth-mode.active{background:#f0c9d6}"
     ].join("");
     document.head.appendChild(st);
   }
@@ -113,60 +123,39 @@
     ensureAuthStyles();
     var overlay = document.getElementById("auth-overlay");
     if (overlay && document.getElementById("auth-submit")) return overlay;
-
     if (overlay) overlay.remove();
-
     overlay = document.createElement("div");
     overlay.id = "auth-overlay";
     overlay.className = "auth-overlay";
     overlay.innerHTML = [
       '<div class="auth-modal" id="auth-modal">',
-      '  <h2 id="auth-title">вход</h2>',
-      '  <div class="auth-mode-tabs">',
-      '    <button type="button" class="auth-mode active" id="mode-login">вход</button>',
-      '    <button type="button" class="auth-mode" id="mode-signup">регистрация</button>',
-      "  </div>",
-      '  <div id="signup-only" style="display:none">',
-      '    <label for="auth-nick">ник</label>',
-      '    <input id="auth-nick" type="text" maxlength="32" placeholder="например mary" autocomplete="nickname">',
-      "  </div>",
-      '  <label for="auth-email">почта</label>',
-      '  <input id="auth-email" type="email" inputmode="email" autocomplete="email" placeholder="you@mail.com">',
-      '  <label for="auth-password">пароль</label>',
-      '  <input id="auth-password" type="password" autocomplete="current-password" placeholder="минимум 6 символов">',
-      '  <div class="auth-actions">',
-      '    <button type="button" id="auth-submit">войти</button>',
-      '    <button type="button" id="auth-close" class="secondary">закрыть</button>',
-      "  </div>",
-      '  <div class="auth-error" id="auth-error"></div>',
+      '<h2 id="auth-title">вход</h2>',
+      '<div class="auth-mode-tabs">',
+      '<button type="button" class="auth-mode active" id="mode-login">вход</button>',
+      '<button type="button" class="auth-mode" id="mode-signup">регистрация</button>',
+      "</div>",
+      '<div id="signup-only" style="display:none">',
+      '<label for="auth-nick">ник</label>',
+      '<input id="auth-nick" type="text" maxlength="32" placeholder="например mary" autocomplete="nickname">',
+      "</div>",
+      '<label for="auth-email">почта</label>',
+      '<input id="auth-email" type="email" inputmode="email" autocomplete="email" placeholder="you@mail.com">',
+      '<label for="auth-password">пароль</label>',
+      '<input id="auth-password" type="password" autocomplete="current-password" placeholder="минимум 6 символов">',
+      '<div class="auth-actions">',
+      '<button type="button" id="auth-submit">войти</button>',
+      '<button type="button" id="auth-close" class="secondary">закрыть</button>',
+      "</div>",
+      '<div class="auth-error" id="auth-error"></div>',
       "</div>"
     ].join("");
     document.body.appendChild(overlay);
-
-    // minimal overlay styles if page has none
-    if (!document.getElementById("kinqsy-overlay-fallback")) {
-      var st = document.createElement("style");
-      st.id = "kinqsy-overlay-fallback";
-      st.textContent = [
-        ".auth-overlay{display:none;position:fixed;inset:0;z-index:2000;background:rgba(20,10,16,.45);align-items:center;justify-content:center;padding:16px}",
-        ".auth-overlay.open{display:flex}",
-        ".auth-modal{width:min(94vw,420px);max-height:90vh;overflow-y:auto;padding:22px;border-radius:20px;",
-        "border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.22);backdrop-filter:blur(16px);color:#2a1822}",
-        ".auth-modal h2{margin:0 0 12px;font-weight:normal}",
-        ".auth-modal label{display:block;font-size:12px;font-weight:bold;margin:10px 0 4px;font-family:Arial,sans-serif}",
-        ".auth-modal input{width:100%;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.5);background:rgba(255,255,255,.35);font-family:Georgia,serif}",
-        ".auth-actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}",
-        ".auth-actions button{flex:1;min-width:90px;padding:10px 12px;border:0;border-radius:999px;background:#f0c9d6;color:#3a2030;font-weight:bold;font-family:Arial,sans-serif}",
-        ".auth-actions button.secondary{background:rgba(255,255,255,.4)}",
-        ".auth-error{margin-top:10px;font-size:13px;color:#7a2030;min-height:1.2em}"
-      ].join("");
-      document.head.appendChild(st);
-    }
     return overlay;
   }
 
   var authMode = "login";
   var onLoginSuccess = null;
+  var wired = false;
 
   function setAuthMode(mode) {
     authMode = mode;
@@ -183,8 +172,6 @@
     if (ml) ml.classList.toggle("active", !isSignup);
     if (ms) ms.classList.toggle("active", isSignup);
     if (err) err.textContent = "";
-    var pw = document.getElementById("auth-password");
-    if (pw) pw.autocomplete = isSignup ? "new-password" : "current-password";
   }
 
   function openAuth(mode) {
@@ -199,47 +186,36 @@
     if (o) o.classList.remove("open");
   }
 
-  var wired = false;
   function wireAuthOnce() {
     if (wired) return;
     ensureAuthModal();
     wired = true;
-
     var ml = document.getElementById("mode-login");
     var ms = document.getElementById("mode-signup");
     if (ml) ml.onclick = function (e) { e.preventDefault(); setAuthMode("login"); };
     if (ms) ms.onclick = function (e) { e.preventDefault(); setAuthMode("signup"); };
-
     var closeBtn = document.getElementById("auth-close");
     if (closeBtn) closeBtn.onclick = function (e) { e.preventDefault(); closeAuth(); };
-
     var modal = document.getElementById("auth-modal");
     if (modal) modal.addEventListener("click", function (e) { e.stopPropagation(); });
-
     var overlay = document.getElementById("auth-overlay");
     if (overlay) {
       overlay.addEventListener("click", function (e) {
         if (e.target === overlay) closeAuth();
       });
     }
-
     var submit = document.getElementById("auth-submit");
     if (!submit) return;
     submit.onclick = async function (e) {
       e.preventDefault();
       e.stopPropagation();
+      sb = getClient();
       var err = document.getElementById("auth-error");
       err.textContent = "";
       var email = document.getElementById("auth-email").value.trim();
       var password = document.getElementById("auth-password").value;
-      if (!email || !password) {
-        err.textContent = "введи почту и пароль";
-        return;
-      }
-      if (password.length < 6) {
-        err.textContent = "пароль минимум 6 символов";
-        return;
-      }
+      if (!email || !password) { err.textContent = "введи почту и пароль"; return; }
+      if (password.length < 6) { err.textContent = "пароль минимум 6 символов"; return; }
 
       if (authMode === "login") {
         err.textContent = "входим…";
@@ -269,7 +245,7 @@
           updated_at: new Date().toISOString()
         }, { onConflict: "id" });
         if (up.error) err.textContent = "аккаунт есть, профиль: " + up.error.message;
-        else err.textContent = "готово @" + nick + " · код " + code + " · если нужно — подтверди почту, потом вход";
+        else err.textContent = "готово @" + nick + " · код " + code + " · потом вход";
       } else {
         err.textContent = "проверь почту, потом войди";
       }
@@ -277,15 +253,10 @@
     };
   }
 
-  /**
-   * page hooks:
-   *  onLoginSuccess: async fn
-   *  onStarLoggedIn: async fn(uid, profile) — called when ★ and already logged in
-   *  skipDefaultStar: if true, don't bind ★
-   */
   function init(options) {
     options = options || {};
     onLoginSuccess = options.onLoginSuccess || null;
+    sb = getClient();
     fixMenu();
     ensureChip();
     refreshChip();
@@ -314,7 +285,7 @@
   }
 
   global.Kinqsy = {
-    sb: function () { return sb; },
+    sb: getClient,
     OWNER_ID: OWNER_ID,
     OWNER_SLUG: OWNER_SLUG,
     getU: getU,
