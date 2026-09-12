@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DREAMS — KINQSY.LOL</title>
+    <link rel="icon" href="icon-192.png" type="image/png">
+    <link rel="stylesheet" href="kinqsy-theme.css">
     <link rel="icon" href="favicon.png" type="image/png">
     <style>
         * { box-sizing: border-box; }
@@ -496,9 +498,11 @@ font-family: Arial, sans-serif;
 
     <main class="dreams-page">
         <div class="dreams-header">
-            <h1 class="dreams-title">DREAMS</h1>
-            <div class="dreams-subtitle">things I probably shouldn't publish</div>
-            <div class="dreams-subtitle" id="dreams-user-label" style="font-style:normal;opacity:.75;margin-top:6px">dreams · @kinqsy</div>
+            <div class="kq-page-header">
+            <h1 class="kq-title dreams-title">DREAMS</h1>
+            <div class="kq-tagline">things I probably shouldn't publish</div>
+            <div class="kq-user" id="dreams-user-label">dreams · @kinqsy</div>
+        </div>
 </div>
         <section class="feed" id="feed"></section>
     </main>
@@ -726,6 +730,7 @@ font-family: Arial, sans-serif;
         }
 
         var comments = await loadComments(post.id);
+        var rcounts = await loadReactions(post.id);
 
         article.innerHTML =
             '<div class="post-date">' + new Date(post.created_at).toLocaleDateString("en-GB") + '</div>' +
@@ -733,7 +738,8 @@ font-family: Arial, sans-serif;
             mediaHtml +
             '<div class="post-content">' + escapeHtml(post.content || "") + '</div>' +
             '<div class="post-footer-row">' +
-                '<div class="post-footer">comments · ' + comments.length + '</div>' +
+                reactionsHtml(rcounts, post.id) +
+            '<div class="post-footer">comments · ' + comments.length + '</div>' +
                 '<button type="button" class="post-owner-btn" aria-label="menu">⋯</button>' +
             '</div>' +
             '<div class="comments">' +
@@ -800,6 +806,41 @@ font-family: Arial, sans-serif;
         });
 
         return article;
+    }
+
+    
+    async function loadReactions(postId) {
+        try {
+            var { data } = await sb.from("reactions").select("reaction").eq("post_id", postId);
+            var heart = 0, broken = 0;
+            (data || []).forEach(function (r) {
+                if (r.reaction === "heart") heart++;
+                if (r.reaction === "broken") broken++;
+            });
+            return { heart: heart, broken: broken };
+        } catch (e) { return { heart: 0, broken: 0 }; }
+    }
+    function reactionsHtml(counts, postId) {
+        return '<div class="reactions" data-id="' + postId + '">' +
+            '<button type="button" class="react-btn" data-reaction="heart">♥ ' + counts.heart + '</button>' +
+            '<button type="button" class="react-btn" data-reaction="broken">♡ ' + counts.broken + '</button></div>';
+    }
+    async function bindReactions(box, postId) {
+        if (!box) return;
+        box.querySelectorAll(".react-btn").forEach(function (btn) {
+            btn.onclick = async function () {
+                var uid = await currentUserId();
+                if (!uid) { alert("Войди через ★"); return; }
+                var reaction = btn.getAttribute("data-reaction");
+                await sb.from("reactions").delete().eq("post_id", postId).eq("user_id", uid);
+                var { error } = await sb.from("reactions").insert({ post_id: postId, user_id: uid, reaction: reaction });
+                if (error) { alert(error.message); return; }
+                var counts = await loadReactions(postId);
+                box.outerHTML = reactionsHtml(counts, postId);
+                var parent = document.querySelector('.reactions[data-id="' + postId + '"]');
+                if (parent) bindReactions(parent, postId);
+            };
+        });
     }
 
     async function loadDreams() {
