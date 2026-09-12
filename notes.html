@@ -898,6 +898,7 @@ a, button, .star, .top-menu .star, input, textarea, .react-btn, .post-menu butto
 </div>
     <a href="#top" class="back-to-top-fixed" aria-label="Back to top">↑</a>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="kinqsy-core.js"></script>
     <script src="./notes-supabase.js"></script>
     <script>
 (function () {
@@ -984,15 +985,12 @@ document.getElementById("edit-save").onclick = async function () {
     function openCompose() {
         composeOverlay.classList.add("open");
     }
-    function closeCompose() {
+    window.openNotesCompose = openCompose;
+function closeCompose() {
         composeOverlay.classList.remove("open");
     }
 
-    document.getElementById("admin-star").onclick = async function () {
-        var { data: { session } } = await sb.auth.getSession();
-        if (session) openCompose();
-        else openAuth();
-    };
+    /* star -> core */
 
     document.getElementById("auth-close").onclick = closeAuth;
     document.getElementById("compose-close").onclick = closeCompose;
@@ -1146,5 +1144,26 @@ updateComposePreview();
 })();
 </script>
     
+
+<script>
+(function () {
+  if (!window.Kinqsy) return;
+  Kinqsy.init({
+    onLoginSuccess: async function () {
+      if (typeof window.openNotesCompose === "function") window.openNotesCompose();
+      else if (typeof openCompose === "function") openCompose();
+      else location.reload();
+    },
+    onStarLoggedIn: async function () {
+      if (typeof window.openNotesCompose === "function") window.openNotesCompose();
+      else {
+        var c = document.getElementById("compose-overlay");
+        if (c) c.classList.add("open");
+      }
+    }
+  });
+})();
+</script>
+
 </body>
 </html>
