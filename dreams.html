@@ -621,7 +621,7 @@ font-family: Arial, sans-serif;
 (function () {
     var SUPABASE_URL = "https://rgkfegdtxaojceknnzlr.supabase.co";
     var SUPABASE_KEY = "sb_publishable_uK7zrVyq8AlHpoj13pGQ6g_q3L47Akw";
-    var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    var sb = window.__kinqsy_sb || (window.__kinqsy_sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: true, storageKey: "kinqsy-auth" } }));
 
     var OWNER_ID = "4923abc5-5c86-48c2-904b-a267c2e21703";
     var OWNER_SLUG = "kinqsy";
