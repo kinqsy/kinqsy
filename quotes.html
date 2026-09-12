@@ -370,6 +370,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="kinqsy-core.js"></script>
     <script>
 (function () {
     var SUPABASE_URL = "https://rgkfegdtxaojceknnzlr.supabase.co";
@@ -711,20 +712,10 @@
     function openAuth() { authOverlay.classList.add("open"); document.getElementById("auth-error").textContent = ""; }
     function closeAuth() { authOverlay.classList.remove("open"); }
     function openCompose() { composeOverlay.classList.add("open"); document.getElementById("compose-error").textContent = ""; }
+    window.__openQuoteCompose = openCompose;
     function closeCompose() { composeOverlay.classList.remove("open"); }
 
-    document.getElementById("admin-star").onclick = async function () {
-        var uid = await currentUserId();
-        if (!uid) { openAuth(); return; }
-        if (mode === "mine") {
-            var viewed = await resolveViewedUser();
-            if (viewed && String(viewed) !== String(uid)) {
-                alert("Чужая доска. Своя: quotes.html?u=ТВОЙ_НИК");
-                return;
-            }
-        }
-        openCompose();
-    };
+    /* star -> core */
 
     document.getElementById("auth-close").onclick = closeAuth;
     document.getElementById("compose-close").onclick = closeCompose;
@@ -886,5 +877,21 @@
     loadBoard();
 })();
     </script>
+
+<script>
+(function () {
+  if (!window.Kinqsy) return;
+  Kinqsy.init({
+    onLoginSuccess: async function () {
+      if (typeof window.__openQuoteCompose === "function") window.__openQuoteCompose();
+      else location.reload();
+    },
+    onStarLoggedIn: async function (uid) {
+      if (typeof window.__openQuoteCompose === "function") window.__openQuoteCompose();
+    }
+  });
+})();
+</script>
+
 </body>
 </html>
