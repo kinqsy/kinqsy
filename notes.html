@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -77,7 +78,6 @@ a, button, .star, .top-menu .star, input, textarea, .react-btn, .post-menu butto
         margin-top: 42px;
         padding: 58px 20px 80px;
         background: transparent;
-        border-radius: 0 0 30px 30px;
         overflow: visible;
     }
     .notes-bg {
@@ -699,6 +699,19 @@ a, button, .star, .top-menu .star, input, textarea, .react-btn, .post-menu butto
         flex: 1;
         min-width: 160px;
     }
+    
+        .post-media img, .compose-preview-box img, #edit-preview {
+            -webkit-user-drag: none;
+            user-select: none;
+            pointer-events: auto;
+        }
+        .react-btn {
+            display: inline-flex; align-items: center; gap: 4px;
+            color: #5a3040; background: rgba(255,255,255,0.35);
+            border: 1px solid rgba(255,255,255,0.4); border-radius: 999px;
+            padding: 4px 10px; font-size: 13px;
+        }
+        .react-ico { display: block; }
     </style>
 </head>
 <body id="top">
@@ -717,8 +730,9 @@ a, button, .star, .top-menu .star, input, textarea, .react-btn, .post-menu butto
 <main class="notes-page">
         </div>
         <h1 class="notes-title">NOTES</h1>
-        <div class="notes-subtitle" id="notes-user-label">notes · @kinqsy</div>
-        <div class="notes-subtitle">things I probably shouldn't publish</div>
+            <div class="notes-subtitle">things I probably shouldn't publish</div>
+            <div class="notes-subtitle" id="notes-user-label" style="font-style:normal;opacity:.75;margin-top:6px">notes · @kinqsy</div>
+<div class="notes-subtitle">things I probably shouldn't publish</div>
     <div class="notes-search">
         <input id="notes-search" type="search" placeholder="search notes..." autocomplete="off">
     <input id="notes-date" type="text" placeholder="дд.мм.гггг" maxlength="10" inputmode="numeric">
@@ -951,29 +965,35 @@ document.getElementById("edit-media-url").oninput = function () {
 document.getElementById("edit-save").onclick = async function () {
     var err = document.getElementById("edit-error");
     err.textContent = "";
-    if (!editingPostId) return;
-    var title = document.getElementById("edit-title").value.trim();
-    var content = document.getElementById("edit-content").value.trim();
-    var media_url = document.getElementById("edit-media-url").value.trim();
+    if (!editingPostId) { err.textContent = "нет поста"; return; }
+    var { data: { session } } = await sb.auth.getSession();
+    if (!session) { err.textContent = "войди через ★"; return; }
     var payload = {
-    title: title,
-    content: content,
-    title_font: document.getElementById("edit-title-font").value,
-    body_font: document.getElementById("edit-body-font").value,
-    title_color: document.getElementById("edit-title-color").value,
-    body_color: document.getElementById("edit-body-color").value
-};
-    if (media_url) {
-        payload.media_url = media_url;
-        payload.media_type = /\.gif(\?|$)/i.test(media_url) ? "gif" : "image";
-    } else {
-        payload.media_url = null;
-        payload.media_type = null;
+        title: document.getElementById("edit-title").value.trim(),
+        content: document.getElementById("edit-content").value.trim(),
+        media_url: document.getElementById("edit-media-url").value.trim() || null,
+        title_font: document.getElementById("edit-title-font") ? document.getElementById("edit-title-font").value : null,
+        body_font: document.getElementById("edit-body-font") ? document.getElementById("edit-body-font").value : null,
+        title_color: document.getElementById("edit-title-color") ? document.getElementById("edit-title-color").value : null,
+        body_color: document.getElementById("edit-body-color") ? document.getElementById("edit-body-color").value : null,
+        post_bg: document.getElementById("edit-post-bg") ? document.getElementById("edit-post-bg").value : null
+    };
+    Object.keys(payload).forEach(function (k) { if (payload[k] === null || payload[k] === "") delete payload[k]; });
+    if (payload.media_url) {
+        payload.media_type = /\.gif(\?|$)/i.test(payload.media_url) ? "gif" : "image";
     }
     var { error } = await sb.from("posts").update(payload).eq("id", editingPostId);
-    if (error) { err.textContent = error.message; return; }
+    if (error) {
+        // retry minimal fields only
+        var basic = { title: payload.title || "", content: payload.content || "" };
+        if (payload.media_url) basic.media_url = payload.media_url;
+        var r2 = await sb.from("posts").update(basic).eq("id", editingPostId);
+        if (r2.error) { err.textContent = r2.error.message; return; }
+        err.textContent = "сохранено без части стилей (нет колонок)";
+    }
     closeEdit();
-    location.reload();
+    if (typeof loadNotes === "function") loadNotes();
+    else if (window.location) location.reload();
 };
 
     function openAuth() {
@@ -1165,5 +1185,13 @@ updateComposePreview();
 })();
 </script>
 
+<script>
+document.addEventListener("contextmenu", function (e) {
+  if (e.target && e.target.closest && e.target.closest(".post-media")) e.preventDefault();
+});
+document.addEventListener("dragstart", function (e) {
+  if (e.target && e.target.tagName === "IMG" && e.target.closest(".post-media")) e.preventDefault();
+});
+</script>
 </body>
 </html>
