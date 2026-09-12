@@ -499,8 +499,7 @@ font-family: Arial, sans-serif;
             <h1 class="dreams-title">DREAMS</h1>
             <div class="dreams-subtitle">things I probably shouldn't publish</div>
             <div class="dreams-subtitle" id="dreams-user-label" style="font-style:normal;opacity:.75;margin-top:6px">dreams · @kinqsy</div>
-
-        </div>
+</div>
         <section class="feed" id="feed"></section>
     </main>
 
@@ -590,8 +589,18 @@ font-family: Arial, sans-serif;
             </select>
             <label for="compose-title-color">цвет заголовка</label>
             <input id="compose-title-color" type="color" value="#1a0f14">
+            <label for="compose-body-font">шрифт текста</label>
+            <select id="compose-body-font">
+                <option value="Georgia, serif">Georgia</option>
+                <option value="'Poiret One', sans-serif">Poiret One</option>
+                <option value="'Amatic SC', cursive">Amatic SC</option>
+                <option value="'Bad Script', cursive">Bad Script</option>
+            </select>
             <label for="compose-body-color">цвет текста</label>
             <input id="compose-body-color" type="color" value="#1a0f14">
+            <div class="auth-hint" style="margin-top:8px">превью:</div>
+            <div id="compose-live-title" style="font-weight:bold;margin-top:4px">заголовок…</div>
+            <div id="compose-live-body" style="font-style:italic;opacity:.85">текст…</div>
             <label for="compose-media">ссылка на фото/gif</label>
             <input id="compose-media" type="url" placeholder="https://...">
             <label for="compose-file">или файл с устройства</label>
@@ -739,8 +748,7 @@ font-family: Arial, sans-serif;
                         : '<div class="comment-meta">пока нет комментариев</div>') +
                 '</div>' +
                 '<form class="comment-form">' +
-                    '<input name="author_name" type="text" placeholder="имя" maxlength="40" required>' +
-                    '<textarea name="content" placeholder="комментарий" maxlength="500" required></textarea>' +
+                    '<textarea name="content" placeholder="комментарий (нужен вход)" maxlength="500" required></textarea>' +
                     '<button type="submit">отправить</button>' +
                 '</form>' +
             '</div>';
@@ -751,13 +759,16 @@ font-family: Arial, sans-serif;
 
         form.addEventListener("submit", async function (e) {
             e.preventDefault();
-            var name = form.querySelector('[name="author_name"]').value.trim();
             var content = form.querySelector('[name="content"]').value.trim();
-            if (!name || !content) return;
+            if (!content) return;
             var uid = await currentUserId();
+            if (!uid) { alert("Войди через ★ чтобы комментировать"); return; }
+            var author_name = "user";
+            var pr = await sb.from("profiles").select("display_name").eq("id", uid).maybeSingle();
+            if (pr.data && pr.data.display_name) author_name = pr.data.display_name;
             var { error } = await sb.from("comments").insert({
                 post_id: post.id,
-                author_name: name,
+                author_name: author_name,
                 content: content,
                 user_id: uid
             });
@@ -927,6 +938,7 @@ font-family: Arial, sans-serif;
             category: "dreams",
             user_id: uid,
             title_font: document.getElementById("compose-title-font") ? document.getElementById("compose-title-font").value : null,
+            body_font: document.getElementById("compose-body-font") ? document.getElementById("compose-body-font").value : null,
             title_color: document.getElementById("compose-title-color") ? document.getElementById("compose-title-color").value : null,
             body_color: document.getElementById("compose-body-color") ? document.getElementById("compose-body-color").value : null
         };
@@ -944,7 +956,23 @@ font-family: Arial, sans-serif;
         document.getElementById("compose-media").value = "";
         document.getElementById("compose-preview").style.display = "none";
         closeCompose();
-        await loadDreams();
+        await function updateDreamComposePreview() {
+        var t = document.getElementById("compose-live-title");
+        var b = document.getElementById("compose-live-body");
+        if (!t || !b) return;
+        t.textContent = document.getElementById("compose-title").value || "заголовок…";
+        b.textContent = document.getElementById("compose-content").value || "текст…";
+        t.style.fontFamily = document.getElementById("compose-title-font").value;
+        t.style.color = document.getElementById("compose-title-color").value;
+        var bf = document.getElementById("compose-body-font");
+        b.style.fontFamily = bf ? bf.value : "Georgia, serif";
+        b.style.color = document.getElementById("compose-body-color").value;
+    }
+    ["compose-title","compose-content","compose-title-font","compose-body-font","compose-title-color","compose-body-color"].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) { el.addEventListener("input", updateDreamComposePreview); el.addEventListener("change", updateDreamComposePreview); }
+    });
+    loadDreams();
     };
 
     document.getElementById("post-menu-delete").onclick = async function () {
@@ -974,28 +1002,41 @@ font-family: Arial, sans-serif;
     };
     document.getElementById("edit-save").onclick = async function () {
         var err = document.getElementById("edit-error");
-        err.textContent = "";
+        if (err) err.textContent = "";
         var id = window.__editingDreamId;
-        if (!id) return;
+        if (!id) { if (err) err.textContent = "нет поста"; return; }
+        var sess = await sb.auth.getSession();
+        if (!(sess.data && sess.data.session)) { if (err) err.textContent = "войди через ★"; return; }
         var payload = {
             title: document.getElementById("edit-title").value.trim(),
             content: document.getElementById("edit-content").value.trim()
         };
         var media = document.getElementById("edit-media");
-        if (media && media.value.trim()) payload.media_url = media.value.trim();
+        if (media) {
+            var mu = media.value.trim();
+            payload.media_url = mu || null;
+            if (mu) payload.media_type = /\.gif(\?|$)/i.test(mu) ? "gif" : "image";
+        }
         var tf = document.getElementById("edit-title-font");
-        if (tf) payload.title_font = tf.value;
         var tc = document.getElementById("edit-title-color");
-        if (tc) payload.title_color = tc.value;
         var bc = document.getElementById("edit-body-color");
+        if (tf) payload.title_font = tf.value;
+        if (tc) payload.title_color = tc.value;
         if (bc) payload.body_color = bc.value;
-        var { error } = await sb.from("posts").update(payload).eq("id", id);
-        if (error) {
-            var r2 = await sb.from("posts").update({ title: payload.title, content: payload.content }).eq("id", id);
-            if (r2.error) { err.textContent = r2.error.message; return; }
+        var res = await sb.from("posts").update(payload).eq("id", id).select("id");
+        if (res.error || !res.data || !res.data.length) {
+            var basic = { title: payload.title, content: payload.content };
+            if (payload.media_url) basic.media_url = payload.media_url;
+            var r2 = await sb.from("posts").update(basic).eq("id", id).select("id");
+            if (r2.error) { if (err) err.textContent = r2.error.message; return; }
+            if (!r2.data || !r2.data.length) {
+                if (err) err.textContent = "RLS: не обновилось (войди как автор)";
+                return;
+            }
         }
         document.getElementById("edit-overlay").classList.remove("open");
-        loadDreams();
+        window.__editingDreamId = null;
+        if (typeof loadDreams === "function") loadDreams();
     };
 
     document.addEventListener("click", function (e) {
