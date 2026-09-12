@@ -917,7 +917,7 @@ a, button, .star, .top-menu .star, input, textarea, .react-btn, .post-menu butto
 (function () {
     var SUPABASE_URL = "https://rgkfegdtxaojceknnzlr.supabase.co";
     var SUPABASE_KEY = "sb_publishable_uK7zrVyq8AlHpoj13pGQ6g_q3L47Akw";
-    var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    var sb = window.__kinqsy_sb || (window.__kinqsy_sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: true, storageKey: "kinqsy-auth" } }));
 
     var authOverlay = document.getElementById("auth-overlay");
     var composeOverlay = document.getElementById("compose-overlay");
