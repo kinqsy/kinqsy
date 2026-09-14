@@ -241,7 +241,63 @@
 .kq-tagline, .quotes-subtitle { font-size: var(--kq-tagline) !important; font-weight: bold !important; }
 .kq-user { font-size: var(--kq-user) !important; }
 .support-line a { text-decoration: none !important; font-weight: normal !important; color: var(--kq-pink) !important; }
-</style></head>
+</style><style id="kq-quotes-fix">
+.kq-title, .quotes-title, .kq-tagline, .quotes-subtitle, .kq-user {
+  color: #1a0f14 !important;
+}
+.kq-bg {
+  position: fixed !important;
+  top: 42px; left: 0; right: 0; bottom: 0;
+  background: #1a0f14 url("quotes-bg.jpg") center center / cover no-repeat !important;
+  border-radius: 0 0 30px 30px !important;
+  z-index: 0;
+}
+.kq-bg::before {
+  content: "";
+  position: absolute; inset: 0;
+  background: inherit;
+  background-size: cover;
+  filter: blur(14px);
+  transform: scale(1.05);
+  border-radius: 0 0 30px 30px;
+}
+.kq-grain {
+  position: fixed; top: 42px; left: 0; right: 0; bottom: 0; z-index: 1;
+  border-radius: 0 0 30px 30px;
+}
+.attr-list label {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  font-size: 12px !important;
+  font-weight: normal !important;
+  padding: 6px 10px !important;
+  margin: 3px 0 !important;
+  border-radius: 10px !important;
+  background: rgba(255,255,255,.22) !important;
+  border: 1px solid rgba(255,255,255,.3) !important;
+  line-height: 1.3 !important;
+}
+.attr-list input[type="radio"] {
+  width: 14px !important;
+  height: 14px !important;
+  accent-color: #f0c9d6 !important;
+  flex-shrink: 0 !important;
+  margin: 0 !important;
+}
+.compose-live {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(255,255,255,.25);
+  border: 1px solid rgba(255,255,255,.35);
+  font-size: 14px;
+}
+.compose-live .prev-title { font-weight: bold; margin-bottom: 6px; }
+.compose-live .prev-body { font-style: italic; opacity: .9; white-space: pre-wrap; }
+.kq-bottom { background: #000; position: relative; z-index: 5; }
+</style>
+</head>
 <body id="top">
 
     <nav class="top-menu">
