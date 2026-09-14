@@ -305,7 +305,15 @@ footer {
   footer { grid-template-columns: 1fr; gap: 12px; text-align: center; }
 }
 </style>
-</head>
+<style id="kq-bg-page">.kq-bg{background-image:url("dreams-bg.jpg")}</style>
+<style id="kq-dreams-override">
+.kq-title { font-size: var(--kq-title) !important; letter-spacing: var(--kq-title-track) !important; }
+.kq-tagline { font-size: var(--kq-tagline) !important; }
+.kq-user { font-size: var(--kq-user) !important; }
+.post { border: 0 !important; background: var(--kq-glass) !important; }
+.author-badge { color: var(--kq-badge) !important; }
+.support-line a { text-decoration: none !important; font-weight: normal !important; }
+</style></head>
 <body id="top">
 
 <nav class="top-menu">
@@ -317,10 +325,10 @@ footer {
   <span class="star" id="admin-star">★</span>
 </nav>
 
-<div class="dreams-shell">
-  <div class="dreams-bg" aria-hidden="true"></div>
-  <div class="dreams-grain" aria-hidden="true"></div>
-  <div class="dreams-inner">
+<div class="kq-bg" aria-hidden="true"></div>
+<div class="kq-grain" aria-hidden="true"></div>
+<div class="kq-shell dreams-shell">
+  <div class="kq-inner dreams-inner">
     <h1 class="kq-title">DREAMS</h1>
     <div class="kq-tagline">things I probably shouldn't publish</div>
     <div class="kq-user" id="dreams-user-label">dreams · @kinqsy</div>
@@ -328,7 +336,7 @@ footer {
   </div>
 </div>
 
-<div class="dreams-bottom">
+<div class="kq-bottom dreams-bottom">
 <div class="support-line">
   <a href="https://boosty.to/kinqsy/donate" target="_blank" rel="noopener noreferrer">support the diary</a>
 </div>
