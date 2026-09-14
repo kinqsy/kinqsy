@@ -223,6 +223,7 @@
         if (res.error) { err.textContent = res.error.message; return; }
         closeAuth();
         await refreshChip();
+        hideGate();
         if (typeof onLoginSuccess === "function") await onLoginSuccess();
         return;
       }
@@ -251,6 +252,174 @@
       }
       setAuthMode("login");
     };
+  }
+
+  var DEFAULT_PRIVACY = {
+    home: "public",
+    about: "public",
+    notes: "friends",
+    dreams: "friends",
+    quotes: "friends"
+  };
+
+  var privacyCache = {};
+
+  async function areFriends(a, b) {
+    if (!a || !b) return false;
+    if (String(a) === String(b)) return true;
+    sb = getClient();
+    if (!sb) return false;
+    try {
+      var q1 = await sb.from("friendships").select("id,status")
+        .eq("requester_id", a).eq("addressee_id", b).eq("status", "accepted").maybeSingle();
+      if (q1.data) return true;
+      var q2 = await sb.from("friendships").select("id,status")
+        .eq("requester_id", b).eq("addressee_id", a).eq("status", "accepted").maybeSingle();
+      return !!q2.data;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  async function privacyFor(viewedId) {
+    var key = String(viewedId || "");
+    if (privacyCache[key]) return privacyCache[key];
+    var out = Object.assign({}, DEFAULT_PRIVACY);
+    if (!viewedId) {
+      privacyCache[key] = out;
+      return out;
+    }
+    sb = getClient();
+    try {
+      var { data } = await sb.from("profiles").select("privacy").eq("id", viewedId).maybeSingle();
+      if (data && data.privacy && typeof data.privacy === "object") {
+        Object.keys(DEFAULT_PRIVACY).forEach(function (k) {
+          if (data.privacy[k]) out[k] = data.privacy[k];
+        });
+      }
+    } catch (e) {}
+    privacyCache[key] = out;
+    return out;
+  }
+
+  async function checkAccess(page, viewedId) {
+    var uid = await currentUserId();
+    if (viewedId && uid && String(viewedId) === String(uid)) {
+      return { ok: true, reason: "owner", guest: false };
+    }
+    var priv = await privacyFor(viewedId);
+    var rule = priv[page] || "friends";
+    if (rule === "public") return { ok: true, reason: "public", guest: !uid, rule: rule };
+    if (!uid) return { ok: false, reason: "guest", guest: true, rule: rule };
+    if (rule === "friends") {
+      var ok = await areFriends(uid, viewedId);
+      return { ok: ok, reason: ok ? "friend" : "friends", guest: false, rule: rule };
+    }
+    return { ok: false, reason: rule, guest: !uid, rule: rule };
+  }
+
+  function ensureGateStyles() {
+    if (document.getElementById("kinqsy-gate-style")) return;
+    var st = document.createElement("style");
+    st.id = "kinqsy-gate-style";
+    st.textContent = [
+      "@keyframes kqAurora{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}",
+      ".kq-gate{display:none;z-index:1400;align-items:center;justify-content:center;padding:24px;box-sizing:border-box}",
+      ".kq-gate.open{display:flex}",
+      ".kq-gate.guest{position:fixed;inset:0;top:42px}",
+      ".kq-gate.friends{position:absolute;left:0;right:0;top:0;min-height:70vh;width:100%;border-radius:24px}",
+      ".kq-gate-grad{position:absolute;inset:-8%;background:linear-gradient(120deg,#1a0f14,#5a3048,#f0c9d6,#7a4a60,#2a1520,#d4a0b8,#3a2030);background-size:400% 400%;animation:kqAurora 16s ease infinite;filter:blur(48px);transform:scale(1.2);pointer-events:none}",
+      ".kq-gate.friends .kq-gate-grad{display:none}",
+      ".kq-gate.friends{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.32);backdrop-filter:blur(28px) saturate(140%);-webkit-backdrop-filter:blur(28px) saturate(140%);box-shadow:0 20px 50px rgba(0,0,0,.18)}",
+      ".kq-gate-card{position:relative;z-index:2;width:min(92vw,420px);padding:28px 24px;border-radius:22px;background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.4);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);color:#1a0f14;text-align:center}",
+      ".kq-gate-lock{width:54px;height:54px;margin:0 auto 14px;border-radius:16px;background:rgba(255,255,255,.28);display:flex;align-items:center;justify-content:center}",
+      ".kq-gate-lock svg{width:28px;height:28px;fill:#3a2030}",
+      ".kq-gate-card h2{margin:0 0 8px;font-family:Georgia,serif;font-weight:normal;font-size:26px}",
+      ".kq-gate-card p{margin:0 0 18px;font-size:15px;line-height:1.45;opacity:.82}",
+      ".kq-gate-actions{display:flex;flex-direction:column;gap:8px}",
+      ".kq-gate-actions button,.kq-gate-actions a.kq-gate-btn{display:block;width:100%;box-sizing:border-box;min-height:48px;padding:12px 14px;border:0;border-radius:999px;background:#f0c9d6;color:#3a2030;font-weight:bold;font-family:Arial,sans-serif;font-size:15px;text-decoration:none;line-height:24px}",
+      ".kq-gate-actions button.secondary,.kq-gate-actions a.secondary{background:rgba(255,255,255,.42);font-weight:normal}",
+      "#feed{position:relative}",
+      ".kq-feed-wrap{position:relative;min-height:70vh}"
+    ].join("");
+    document.head.appendChild(st);
+  }
+
+  function ensureGate() {
+    ensureGateStyles();
+    var gate = document.getElementById("kq-gate");
+    if (gate) return gate;
+    gate = document.createElement("div");
+    gate.id = "kq-gate";
+    gate.className = "kq-gate";
+    gate.innerHTML = [
+      '<div class="kq-gate-grad" aria-hidden="true"></div>',
+      '<div class="kq-gate-card">',
+      '<div class="kq-gate-lock"><svg viewBox="0 0 24 24"><path d="M17 8V7a5 5 0 0 0-10 0v1H5v14h14V8h-2zm-8-1a3 3 0 0 1 6 0v1H9V7zm3 6a2 2 0 0 1 1 3.7V18h-2v-2.3A2 2 0 0 1 12 13z"/></svg></div>',
+      '<h2 id="kq-gate-title">только для друзей</h2>',
+      '<p id="kq-gate-text">смотреть эту ленту могут только друзья.</p>',
+      '<div class="kq-gate-actions">',
+      '<button type="button" id="kq-gate-signup">зарегистрироваться</button>',
+      '<button type="button" id="kq-gate-login" class="secondary">уже есть аккаунт? войти</button>',
+      '<a class="kq-gate-btn secondary" id="kq-gate-about" href="about.html">профиль</a>',
+      "</div></div>"
+    ].join("");
+    document.body.appendChild(gate);
+    var su = document.getElementById("kq-gate-signup");
+    var li = document.getElementById("kq-gate-login");
+    if (su) su.onclick = function (e) { e.preventDefault(); openAuth("signup"); };
+    if (li) li.onclick = function (e) { e.preventDefault(); openAuth("login"); };
+    return gate;
+  }
+
+  function hideGate() {
+    var g = document.getElementById("kq-gate");
+    if (g) g.classList.remove("open", "guest", "friends");
+  }
+
+  function showGate(opts) {
+    opts = opts || {};
+    var gate = ensureGate();
+    var mode = opts.mode === "guest" ? "guest" : "friends";
+    var title = document.getElementById("kq-gate-title");
+    var text = document.getElementById("kq-gate-text");
+    var su = document.getElementById("kq-gate-signup");
+    var li = document.getElementById("kq-gate-login");
+    var ab = document.getElementById("kq-gate-about");
+    var slug = getU();
+    if (ab) ab.href = "about.html?u=" + encodeURIComponent(slug);
+
+    gate.className = "kq-gate open " + mode;
+
+    if (mode === "guest") {
+      if (title) title.textContent = "добро пожаловать в kinqsy";
+      if (text) text.textContent = "зарегистрируйтесь, чтобы вести дневник и читать закрытые записи. уже есть аккаунт — войдите.";
+      if (su) su.style.display = "block";
+      if (li) li.style.display = "block";
+      document.body.appendChild(gate);
+    } else {
+      if (title) title.textContent = "только для друзей";
+      if (text) text.textContent = "смотреть notes и dreams могут только друзья. about открыт, а в quotation — общая лента.";
+      if (su) su.style.display = opts.guest ? "block" : "none";
+      if (li) {
+        li.style.display = "block";
+        li.textContent = opts.guest ? "уже есть аккаунт? войти" : "открыть профиль / друзья";
+        li.onclick = function (e) {
+          e.preventDefault();
+          if (opts.guest) openAuth("login");
+          else location.href = "about.html?u=" + encodeURIComponent(slug);
+        };
+      }
+      var host = document.getElementById("feed") || document.querySelector(".kq-inner");
+      if (host) {
+        host.style.position = "relative";
+        host.style.minHeight = "70vh";
+        host.appendChild(gate);
+      } else {
+        document.body.appendChild(gate);
+      }
+    }
+    return gate;
   }
 
   function init(options) {
@@ -296,6 +465,11 @@
     openAuth: openAuth,
     closeAuth: closeAuth,
     refreshChip: refreshChip,
-    init: init
+    init: init,
+    areFriends: areFriends,
+    checkAccess: checkAccess,
+    showGate: showGate,
+    hideGate: hideGate,
+    privacyFor: privacyFor
   };
 })(window);
