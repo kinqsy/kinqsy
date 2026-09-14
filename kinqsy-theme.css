@@ -1,60 +1,36 @@
-/* shared layout tokens for all kinqsy pages */
+/* ========== KINQSY unified visual ========== */
 :root {
   --kq-menu-h: 42px;
-  --kq-title-size: clamp(52px, 12vw, 96px);
-  --kq-title-track: -4px;
-  --kq-tagline-size: 15px;
-  --kq-user-size: 13px;
-  --kq-stack-gap: 10px;
-  --kq-section-top: 56px;
+  --kq-ink: #1a0f14;
+  --kq-pink: #F1B9D0;
+  --kq-pink-deep: #f0c9d6;
+  --kq-badge: #e8a0b8;
+  --kq-glass: rgba(255, 255, 255, 0.18);
+  --kq-glass-border: transparent;
   --kq-radius-end: 30px;
-  --kq-support-size: 14px;
-  --kq-footer-icon: 22px;
+  --kq-title: clamp(70px, 11vw, 150px);
+  --kq-title-track: -6px;
+  --kq-tagline: 17px;
+  --kq-user: 13px;
 }
 
-.kq-page-header {
-  max-width: 900px;
-  margin: 0 auto 28px;
-  text-align: left;
-}
-.kq-title {
-  margin: 0;
-  font-family: "Bodoni 72", Didot, "Bodoni MT", Georgia, serif;
-  font-size: var(--kq-title-size);
-  font-weight: 400;
-  line-height: 0.85;
-  letter-spacing: var(--kq-title-track);
-  text-shadow: 0 2px 0 rgba(255,255,255,.28), 0 8px 22px rgba(0,0,0,.2);
-}
-.kq-tagline {
-  margin: var(--kq-stack-gap) 0 0;
-  font-size: var(--kq-tagline-size);
-  font-style: italic;
-  font-weight: bold;
-  opacity: 0.95;
-}
-.kq-user {
-  margin: 8px 0 0;
-  font-size: var(--kq-user-size);
-  font-family: Arial, Helvetica, sans-serif;
-  font-style: normal;
-  font-weight: normal;
-  opacity: 0.75;
-}
+/* selection + base links in footer */
+::selection { background: rgba(240, 201, 214, 0.9); color: #3a2030; }
 
-/* fixed bg shell with end rounding */
+/* ----- fixed static background (как notes) ----- */
 .kq-bg {
   position: fixed;
   top: var(--kq-menu-h);
-  left: 0; right: 0; bottom: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   z-index: 0;
   pointer-events: none;
-  border-radius: 0 0 var(--kq-radius-end) var(--kq-radius-end);
-  overflow: hidden;
   background-color: #1a0f14;
-  background-position: center;
+  background-position: center center;
   background-size: cover;
   background-repeat: no-repeat;
+  border-radius: 0 0 var(--kq-radius-end) var(--kq-radius-end);
 }
 .kq-bg::before {
   content: "";
@@ -64,12 +40,15 @@
   background-size: cover;
   background-position: center;
   filter: blur(14px);
-  transform: scale(1.06);
+  transform: scale(1.05);
+  border-radius: 0 0 var(--kq-radius-end) var(--kq-radius-end);
 }
 .kq-grain {
   position: fixed;
   top: var(--kq-menu-h);
-  left: 0; right: 0; bottom: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   z-index: 1;
   pointer-events: none;
   opacity: 0.4;
@@ -79,14 +58,150 @@
   mix-blend-mode: soft-light;
 }
 
-.kq-main {
+/* page shell over fixed bg */
+.kq-shell {
   position: relative;
   z-index: 2;
-  min-height: calc(100vh - var(--kq-menu-h));
   margin-top: var(--kq-menu-h);
-  padding: var(--kq-section-top) 20px 80px;
+  min-height: calc(100vh - var(--kq-menu-h));
+  background: transparent;
+  border-radius: 0 0 var(--kq-radius-end) var(--kq-radius-end);
+}
+.kq-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 58px 20px 80px;
 }
 
+/* ----- header stack (как notes) ----- */
+.kq-title {
+  margin: 0;
+  font-family: "Bodoni 72", Didot, "Bodoni MT", Georgia, serif;
+  font-size: var(--kq-title);
+  font-weight: 400;
+  line-height: 0.85;
+  letter-spacing: var(--kq-title-track);
+  color: var(--kq-ink);
+  text-shadow: 0 2px 0 rgba(255,255,255,.28), 0 8px 22px rgba(0,0,0,.18);
+}
+.kq-tagline {
+  margin: 12px 0 0;
+  font-size: var(--kq-tagline);
+  font-style: italic;
+  font-weight: bold;
+  color: var(--kq-ink);
+}
+.kq-user {
+  margin: 8px 0 28px;
+  font-size: var(--kq-user);
+  font-family: Arial, Helvetica, sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  opacity: 0.75;
+  color: var(--kq-ink);
+}
+
+/* ----- posts (как dreams: glass, без белой рамки) ----- */
+.kq-post,
+.post {
+  position: relative;
+  margin: 0 0 18px;
+  padding: 22px;
+  border-radius: 20px;
+  background: var(--kq-glass);
+  border: 0;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 10px 28px rgba(0,0,0,.1);
+  color: var(--kq-ink);
+}
+.kq-post .post-date,
+.post-date {
+  font-size: 12px;
+  font-family: Arial, sans-serif;
+  opacity: 0.65;
+  margin-bottom: 8px;
+}
+.kq-post .post-title,
+.post-title {
+  margin: 0 0 10px;
+  font-size: 29px;
+  line-height: 1.2;
+}
+.kq-post .post-content,
+.post-content {
+  font-size: 17px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.kq-post .post-media,
+.post-media {
+  margin: 0 0 12px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: rgba(0,0,0,.1);
+}
+.kq-post .post-media img,
+.post-media img {
+  display: block;
+  width: 100%;
+  max-height: 480px;
+  object-fit: contain;
+  -webkit-user-drag: none;
+}
+
+/* comments count line (как notes) */
+.kq-post .post-footer,
+.post-footer {
+  margin-top: 12px;
+  font-size: 12px;
+  font-family: Arial, sans-serif;
+  opacity: 0.7;
+}
+
+/* reactions unified */
+.reactions {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0 8px;
+}
+.react-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(255,255,255,.4);
+  background: rgba(255,255,255,.28);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 13px;
+  color: #5a3040;
+  overflow: visible;
+}
+.react-btn svg,
+.react-ico {
+  width: 16px;
+  height: 16px;
+  display: block;
+  overflow: visible;
+  flex-shrink: 0;
+}
+
+/* author badge (как dreams) */
+.author-badge {
+  color: var(--kq-badge);
+  font-weight: bold;
+}
+.author-badge::before {
+  content: "✦ ";
+}
+
+/* ----- bottom black bar (как dreams) ----- */
+.kq-bottom {
+  position: relative;
+  z-index: 5;
+  background: #000;
+}
 .support-line {
   position: relative;
   z-index: 5;
@@ -95,17 +210,25 @@
   background: #000;
 }
 .support-line a {
-  color: #F1B9D0;
-  text-decoration: none;
-  font-size: var(--kq-support-size);
+  color: var(--kq-pink);
+  text-decoration: none !important;
+  font-weight: normal !important;
+  font-size: 14px;
   font-family: Georgia, "Times New Roman", serif;
 }
-footer.kq-footer {
+.support-line a:hover {
+  text-decoration: none !important;
+  font-weight: normal !important;
+  opacity: 0.9;
+}
+footer.kq-footer,
+.kq-bottom footer,
+footer {
   position: relative;
   z-index: 5;
   min-height: 100px;
   background: #000;
-  color: #F1B9D0;
+  color: var(--kq-pink);
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
@@ -113,24 +236,28 @@ footer.kq-footer {
   font-size: 14px;
   font-family: Georgia, "Times New Roman", serif;
 }
-footer.kq-footer .socials {
+footer .socials,
+.kq-footer .socials {
   display: flex;
   gap: 16px;
   justify-content: center;
 }
-footer.kq-footer .socials a {
+footer .socials a,
+.kq-footer .socials a {
   width: 28px;
   height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #F1B9D0;
+  color: var(--kq-pink);
 }
-footer.kq-footer .socials svg {
-  width: var(--kq-footer-icon);
-  height: var(--kq-footer-icon);
+footer .socials svg,
+.kq-footer .socials svg {
+  width: 22px;
+  height: 22px;
   fill: currentColor;
 }
+
 .back-to-top-fixed {
   position: fixed;
   right: 22px;
@@ -149,4 +276,39 @@ footer.kq-footer .socials svg {
   font-size: 18px;
   font-weight: bold;
   backdrop-filter: blur(16px);
+}
+
+/* top menu shared tint */
+.top-menu {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: var(--kq-menu-h);
+  background: rgba(240, 201, 214, 0.35);
+  backdrop-filter: blur(22px) saturate(160%);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  border-bottom: 1px solid rgba(255,255,255,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  z-index: 1000;
+}
+.top-menu a {
+  color: #050505;
+  text-decoration: none;
+  font-size: 21px;
+  font-weight: bold;
+  white-space: nowrap;
+}
+.top-menu .star {
+  color: #111;
+  font-size: 18px;
+  opacity: 0.75;
+  margin-left: 6px;
+}
+
+@media (max-width: 700px) {
+  .kq-title { font-size: clamp(55px, 17vw, 100px); letter-spacing: -4px; }
+  .top-menu { justify-content: flex-start; overflow-x: auto; padding: 0 8px; gap: 12px; }
+  .top-menu a { font-size: 16px; }
+  footer, .kq-footer { grid-template-columns: 1fr; gap: 12px; text-align: center; }
 }
