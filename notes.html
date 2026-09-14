@@ -482,11 +482,21 @@ a, button, .star, .top-menu .star, input, textarea, .react-btn, .post-menu butto
         background: #000;
     }
     .support-line a {
-        color: #f1b9d0;
-        text-decoration: none;
-        font-weight: bold;
+        color: #F1B9D0;
+        text-decoration: none !important;
+        font-weight: normal !important;
+        font-size: 14px;
+        font-family: Georgia, "Times New Roman", serif;
     }
-    .support-line a:hover { text-decoration: underline; 
+    .support-line a:hover {
+        text-decoration: none !important;
+        font-weight: normal !important;
+        opacity: 0.9;
+    }
+    .support-line a:hover {
+        text-decoration: none;
+        font-weight: normal;
+        opacity: 0.9;
     }
         .auth-overlay {
         display: none;
@@ -714,6 +724,34 @@ a, button, .star, .top-menu .star, input, textarea, .react-btn, .post-menu butto
             padding: 4px 10px; font-size: 13px;
         }
         .react-ico { display: block; }
+    
+        .reason-list label {
+            display: flex; gap: 8px; align-items: center; font-weight: normal;
+            margin: 4px 0; font-size: 12px; line-height: 1.25;
+            padding: 6px 10px; border-radius: 10px;
+            background: rgba(255,255,255,.2);
+            border: 1px solid rgba(255,255,255,.28);
+            color: #2a1822;
+        }
+        .reason-list input[type="radio"] {
+            width: 14px; height: 14px; accent-color: #f0c9d6; flex-shrink: 0;
+        }
+        #reason-other-box, #rules-detail { display: none; margin-top: 10px; }
+        #reason-other-text {
+            width: 100%; min-height: 64px; padding: 8px 10px; border-radius: 10px;
+            border: 1px solid rgba(255,255,255,.45); background: rgba(255,255,255,.3);
+            font-family: Georgia, serif; font-size: 13px;
+        }
+        .auth-actions button.danger { background: rgba(180,80,100,.85); color: #fff; }
+        .c-del {
+            position: absolute; top: 8px; right: 0;
+            border: 0; background: transparent; color: #7a4050;
+            font-size: 12px; opacity: 0; transition: opacity .2s;
+        }
+        .comment { position: relative; }
+        .comment:hover .c-del { opacity: .85; }
+        .react-btn { overflow: visible; }
+        .react-ico { overflow: visible; flex-shrink: 0; }
     </style>
 </head>
 <body id="top">
@@ -1233,5 +1271,64 @@ document.addEventListener("dragstart", function (e) {
   if (e.target && e.target.tagName === "IMG" && e.target.closest(".post-media")) e.preventDefault();
 });
 </script>
+
+<div class="auth-overlay" id="del-post-modal">
+  <div class="auth-modal">
+    <h2>удалить пост?</h2>
+    <p style="margin:0 0 12px;font-size:14px">Вы точно хотите удалить этот notes?</p>
+    <div class="auth-actions">
+      <button type="button" id="del-post-yes" class="danger">да, удалить</button>
+      <button type="button" id="del-post-no" class="secondary">нет</button>
+    </div>
+  </div>
+</div>
+<div class="auth-overlay" id="del-c-modal">
+  <div class="auth-modal">
+    <h2>удалить комментарий?</h2>
+    <p style="margin:0 0 12px;font-size:14px">Вы хотите удалить этот комментарий?</p>
+    <div class="auth-actions">
+      <button type="button" id="del-c-yes" class="danger">да</button>
+      <button type="button" id="del-c-no" class="secondary">нет</button>
+    </div>
+  </div>
+</div>
+<div class="auth-overlay" id="del-reason-modal">
+  <div class="auth-modal">
+    <h2>почему удаляете?</h2>
+    <p class="auth-hint" style="font-size:11px;opacity:.7;margin:0 0 10px;font-family:Arial,sans-serif">Удаление комментария не значит, что пользователь нарушил правила.</p>
+    <div class="reason-list" id="reason-list">
+      <label><input type="radio" name="reason" value="rules"> комментарий нарушает правила KINQSY</label>
+      <label><input type="radio" name="reason" value="abuse"> оскорбление или травля</label>
+      <label><input type="radio" name="reason" value="privacy"> раскрывает личную информацию</label>
+      <label><input type="radio" name="reason" value="spam"> спам или реклама</label>
+      <label><input type="radio" name="reason" value="threat"> угроза или опасный контент</label>
+      <label><input type="radio" name="reason" value="provocation"> провокация</label>
+      <label><input type="radio" name="reason" value="offtopic"> не относится к публикации</label>
+      <label><input type="radio" name="reason" value="prefer"> просто не хочу видеть под своим постом</label>
+      <label><input type="radio" name="reason" value="other"> другая причина</label>
+    </div>
+    <div id="rules-detail">
+      <label>какое правило нарушено?</label>
+      <select id="rules-which">
+        <option value="insult">оскорбление</option>
+        <option value="threat">угроза</option>
+        <option value="spam">спам</option>
+        <option value="privacy">приватность</option>
+        <option value="banned">запрещённый контент</option>
+        <option value="other">другое</option>
+      </select>
+    </div>
+    <div id="reason-other-box">
+      <label for="reason-other-text">опишите причину (обязательно)</label>
+      <textarea id="reason-other-text" maxlength="300" placeholder="коротко, почему удаляете"></textarea>
+    </div>
+    <div class="auth-actions">
+      <button type="button" id="reason-submit">подтвердить удаление</button>
+      <button type="button" id="reason-cancel" class="secondary">отмена</button>
+    </div>
+    <div class="auth-error" id="reason-error"></div>
+  </div>
+</div>
+
 </body>
 </html>
