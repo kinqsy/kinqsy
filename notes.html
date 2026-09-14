@@ -1306,8 +1306,7 @@ updateComposePreview();
   if (!window.Kinqsy) return;
   Kinqsy.init({
     onLoginSuccess: async function () {
-      if (typeof window.openNotesCompose === "function") window.openNotesCompose();
-      else if (typeof openCompose === "function") openCompose();
+      if (typeof loadNotes === "function") await loadNotes();
       else location.reload();
     },
     onStarLoggedIn: async function () {
