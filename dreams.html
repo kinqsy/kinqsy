@@ -17,7 +17,7 @@ body, body * {
   cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='%23f0c9d6' stroke='%233a2030' stroke-width='1.2' d='M4 3l12 7.5-5.2 1.4L13 21z'/%3E%3C/svg%3E") 4 2, auto;
 }
 input, textarea, select { user-select: text; -webkit-user-select: text; }
-a, button, .star, .post-del, .c-del {
+a, button, .star, .post-owner-btn, .c-del {
   cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath fill='%23f6dce8' stroke='%233a2030' stroke-width='1.3' d='M8 4l12 8-6 1.5L16 24l-3-7-5 2z'/%3E%3C/svg%3E") 5 2, pointer !important;
 }
 html { scroll-behavior: smooth; }
@@ -34,7 +34,6 @@ html, body { margin: 0; padding: 0; min-height: 100%; background: #000; color: #
 .top-menu a { color: #050505; text-decoration: none; font-size: 21px; font-weight: bold; white-space: nowrap; }
 .top-menu .star { color: #111; font-size: 18px; opacity: .75; margin-left: 6px; }
 
-/* shell grows with content — radius ONLY at end of pink area */
 .dreams-shell {
   position: relative;
   isolation: isolate;
@@ -42,16 +41,18 @@ html, body { margin: 0; padding: 0; min-height: 100%; background: #000; color: #
   min-height: calc(100vh - 42px);
   border-radius: 0 0 30px 30px;
   overflow: hidden;
-  background: #1a0f14 url("dreams-bg.jpg") center center / cover no-repeat;
+  background-color: #1a0f14;
+  background-image: url("dreams-bg.jpg");
+  background-position: center center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 .dreams-shell::before {
   content: "";
   position: absolute; inset: 0; z-index: 0;
-  background: inherit;
-  background-size: cover;
-  background-position: center;
-  filter: blur(14px);
-  transform: scale(1.06);
+  background: rgba(26, 15, 20, 0.22);
+  pointer-events: none;
 }
 .dreams-grain {
   position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: .4;
@@ -62,13 +63,17 @@ html, body { margin: 0; padding: 0; min-height: 100%; background: #000; color: #
 .dreams-inner {
   position: relative; z-index: 2;
   padding: 56px 20px 80px;
-  max-width: 720px;
+  max-width: 900px;
   margin: 0 auto;
 }
 
-.kq-title { margin: 0; font-family: "Bodoni 72", Didot, "Bodoni MT", Georgia, serif;
-  font-size: clamp(52px, 12vw, 96px); font-weight: 400; line-height: .85; letter-spacing: -4px;
-  text-shadow: 0 2px 0 rgba(255,255,255,.28), 0 8px 22px rgba(0,0,0,.2); }
+.kq-title {
+  margin: 0;
+  font-family: "Bodoni 72", Didot, "Bodoni MT", Georgia, serif;
+  font-size: clamp(52px, 12vw, 96px);
+  font-weight: 400; line-height: .85; letter-spacing: -4px;
+  text-shadow: 0 2px 0 rgba(255,255,255,.28), 0 8px 22px rgba(0,0,0,.2);
+}
 .kq-tagline { margin: 10px 0 0; font-size: 15px; font-style: italic; font-weight: bold; }
 .kq-user { margin: 8px 0 28px; font-size: 13px; font-family: Arial, sans-serif; opacity: .75; }
 
@@ -77,24 +82,14 @@ html, body { margin: 0; padding: 0; min-height: 100%; background: #000; color: #
   margin: 0 0 18px;
   padding: 22px;
   border-radius: 20px;
-  background: rgba(255,255,255,.2);
-  border: 1px solid rgba(255,255,255,.35);
+  background: rgba(255,255,255,.18);
+  border: 0;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   box-shadow: 0 10px 28px rgba(0,0,0,.1);
 }
-.post-del {
-  position: absolute; top: 12px; right: 12px;
-  width: 36px; height: 36px; border: 0; border-radius: 50%;
-  background: rgba(255,255,255,.35);
-  color: #5a2030; font-size: 16px;
-  opacity: 0; transform: scale(.9);
-  transition: opacity .2s, transform .2s;
-  display: flex; align-items: center; justify-content: center;
-}
-.post:hover .post-del { opacity: 1; transform: scale(1); }
 .post-date { font-size: 12px; font-family: Arial, sans-serif; opacity: .65; margin-bottom: 8px; }
-.post-title { margin: 0 0 10px; font-size: 26px; line-height: 1.2; padding-right: 40px; }
+.post-title { margin: 0 0 10px; font-size: 26px; line-height: 1.2; }
 .post-media { margin: 0 0 12px; border-radius: 16px; overflow: hidden; }
 .post-media img { width: 100%; display: block; max-height: 420px; object-fit: cover; -webkit-user-drag: none; }
 .post-content { font-size: 16px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
@@ -106,9 +101,29 @@ html, body { margin: 0; padding: 0; min-height: 100%; background: #000; color: #
   background: rgba(255,255,255,.28);
   border-radius: 999px; padding: 6px 12px;
   font-size: 13px; color: #5a3040;
-  backdrop-filter: blur(8px);
 }
 .react-btn svg { width: 16px; height: 16px; display: block; }
+
+.post-footer-row {
+  display: flex; justify-content: flex-end; align-items: center; margin-top: 8px;
+}
+.post-owner-btn {
+  border: 0; background: rgba(255,255,255,.28);
+  border-radius: 999px; width: 32px; height: 32px;
+  font-size: 16px; color: #3a2030; line-height: 1;
+}
+.post-menu {
+  display: none; position: fixed; z-index: 1500; min-width: 140px; padding: 6px;
+  border-radius: 12px; background: rgba(255,255,255,.92);
+  border: 1px solid rgba(255,255,255,.5); box-shadow: 0 12px 30px rgba(0,0,0,.2);
+}
+.post-menu.open { display: block; }
+.post-menu button {
+  display: block; width: 100%; border: 0; background: transparent;
+  padding: 10px 12px; text-align: left; border-radius: 8px;
+  font-family: Arial, sans-serif; font-size: 13px; color: #2a1822;
+}
+.post-menu button.danger { color: #7a2030; }
 
 .comments { margin-top: 12px; }
 .comment {
@@ -116,7 +131,7 @@ html, body { margin: 0; padding: 0; min-height: 100%; background: #000; color: #
   position: relative;
 }
 .comment-meta { font-size: 12px; font-family: Arial, sans-serif; margin-bottom: 4px; }
-.author-badge { color: #c45a7a; font-weight: bold; }
+.author-badge { color: #e8a0b8; font-weight: bold; }
 .author-badge::before { content: "✦ "; }
 .comment-body { font-size: 14px; line-height: 1.4; }
 .c-del {
@@ -135,14 +150,14 @@ html, body { margin: 0; padding: 0; min-height: 100%; background: #000; color: #
   margin-top: 8px; border: 0; border-radius: 999px; padding: 8px 16px;
   background: #f0c9d6; color: #3a2030; font-weight: bold; font-family: Arial, sans-serif;
 }
-
 .empty { text-align: center; font-style: italic; opacity: .8; padding: 40px 0; }
 
 .support-line { text-align: center; padding: 16px; background: #000; }
 .support-line a { color: #F1B9D0; text-decoration: none; font-size: 14px; }
 footer {
   min-height: 100px; background: #000; color: #F1B9D0;
-  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 18px 24px; font-size: 14px;
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+  padding: 18px 24px; font-size: 14px;
 }
 .socials { display: flex; gap: 16px; justify-content: center; }
 .socials a { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: #F1B9D0; }
@@ -183,22 +198,33 @@ footer {
 .auth-actions button.secondary { background: rgba(255,255,255,.4); }
 .auth-actions button.danger { background: rgba(180,80,100,.85); color: #fff; }
 .auth-error { margin-top: 10px; font-size: 13px; color: #7a2030; min-height: 1.2em; }
+.auth-hint { font-size: 11px; opacity: .7; margin: 0 0 10px; font-family: Arial, sans-serif; }
 .compose-preview-box {
   margin-top: 12px; padding: 14px; border-radius: 14px;
   background: rgba(255,255,255,.25); border: 1px solid rgba(255,255,255,.35);
 }
 .prev-title { font-weight: bold; margin-bottom: 6px; }
 .prev-body { font-style: italic; opacity: .9; white-space: pre-wrap; }
+
 .reason-list label {
-  display: flex; gap: 8px; align-items: flex-start; font-weight: normal;
-  margin: 6px 0; font-size: 13px; line-height: 1.3;
+  display: flex; gap: 8px; align-items: center; font-weight: normal;
+  margin: 4px 0; font-size: 12px; line-height: 1.25;
+  padding: 6px 10px; border-radius: 10px;
+  background: rgba(255,255,255,.2);
+  border: 1px solid rgba(255,255,255,.28);
 }
-.reason-list input { width: auto; margin-top: 3px; }
-.auth-hint { font-size: 11px; opacity: .7; margin-top: 8px; font-family: Arial, sans-serif; }
+.reason-list input[type="radio"] {
+  width: 14px; height: 14px; accent-color: #f0c9d6; flex-shrink: 0;
+}
+#reason-other-box, #rules-detail { display: none; margin-top: 10px; }
+#reason-other-text {
+  width: 100%; min-height: 64px; padding: 8px 10px; border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.45); background: rgba(255,255,255,.3);
+  font-family: Georgia, serif; font-size: 13px;
+}
 
 @media (max-width: 700px) {
   .top-menu { justify-content: flex-start; overflow-x: auto; padding: 0 8px; gap: 12px; }
-  .post-del { opacity: .7; }
   footer { grid-template-columns: 1fr; gap: 12px; text-align: center; }
 }
 </style>
@@ -238,7 +264,11 @@ footer {
 </footer>
 <a href="#top" class="back-to-top-fixed">↑</a>
 
-<!-- compose -->
+<div class="post-menu" id="post-menu">
+  <button type="button" id="post-menu-edit">изменить</button>
+  <button type="button" id="post-menu-delete" class="danger">удалить</button>
+</div>
+
 <div class="auth-overlay" id="compose-overlay">
   <div class="auth-modal">
     <h2>новый dream</h2>
@@ -295,7 +325,6 @@ footer {
   </div>
 </div>
 
-<!-- edit -->
 <div class="auth-overlay" id="edit-overlay">
   <div class="auth-modal">
     <h2>изменить dream</h2>
@@ -349,7 +378,6 @@ footer {
   </div>
 </div>
 
-<!-- confirm delete post -->
 <div class="auth-overlay" id="del-post-modal">
   <div class="auth-modal">
     <h2>удалить пост?</h2>
@@ -361,7 +389,6 @@ footer {
   </div>
 </div>
 
-<!-- confirm delete comment -->
 <div class="auth-overlay" id="del-c-modal">
   <div class="auth-modal">
     <h2>удалить комментарий?</h2>
@@ -373,7 +400,6 @@ footer {
   </div>
 </div>
 
-<!-- reason survey -->
 <div class="auth-overlay" id="del-reason-modal">
   <div class="auth-modal">
     <h2>почему удаляете?</h2>
@@ -389,7 +415,7 @@ footer {
       <label><input type="radio" name="reason" value="prefer"> просто не хочу видеть под своим постом</label>
       <label><input type="radio" name="reason" value="other"> другая причина</label>
     </div>
-    <div id="rules-detail" style="display:none;margin-top:10px">
+    <div id="rules-detail">
       <label>какое правило нарушено?</label>
       <select id="rules-which">
         <option value="insult">оскорбление</option>
@@ -400,6 +426,10 @@ footer {
         <option value="other">другое</option>
       </select>
     </div>
+    <div id="reason-other-box">
+      <label for="reason-other-text">опишите причину (обязательно)</label>
+      <textarea id="reason-other-text" maxlength="300" placeholder="коротко, почему удаляете"></textarea>
+    </div>
     <div class="auth-actions">
       <button type="button" id="reason-submit">подтвердить удаление</button>
       <button type="button" id="reason-cancel" class="secondary">отмена</button>
@@ -408,434 +438,8 @@ footer {
   </div>
 </div>
 
-<div class="post-menu" id="post-menu" style="display:none;position:fixed;z-index:1500;min-width:140px;padding:6px;border-radius:12px;background:rgba(255,255,255,.92);box-shadow:0 12px 30px rgba(0,0,0,.2)">
-  <button type="button" id="post-menu-edit" style="display:block;width:100%;border:0;background:transparent;padding:10px;text-align:left;border-radius:8px">изменить</button>
-</div>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="kinqsy-core.js"></script>
-<script>
-(function () {
-  var SUPABASE_URL = "https://rgkfegdtxaojceknnzlr.supabase.co";
-  var SUPABASE_KEY = "sb_publishable_uK7zrVyq8AlHpoj13pGQ6g_q3L47Akw";
-  var sb = window.__kinqsy_sb || (window.__kinqsy_sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-    auth: { persistSession: true, storageKey: "kinqsy-auth" }
-  }));
-  var OWNER_ID = "4923abc5-5c86-48c2-904b-a267c2e21703";
-  var OWNER_SLUG = "kinqsy";
-  var viewedUserId = null;
-  var editingPostId = null;
-  var pendingDeletePostId = null;
-  var pendingDeleteComment = null;
-
-  function escapeHtml(t) {
-    return String(t || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-  }
-  function getU() {
-    if (window.Kinqsy) return Kinqsy.getU();
-    var u = new URLSearchParams(location.search).get("u");
-    return (u && u.trim()) ? u.trim() : OWNER_SLUG;
-  }
-  async function currentUserId() {
-    var { data: { session } } = await sb.auth.getSession();
-    return session ? session.user.id : null;
-  }
-  function formatAuthor(name, userId) {
-    if (userId && String(userId) === OWNER_ID) {
-      return '<span class="author-badge">kinqsy</span>';
-    }
-    return escapeHtml(name || "гость");
-  }
-
-  async function resolveViewed() {
-    var slug = getU();
-    document.getElementById("dreams-user-label").textContent = "dreams · @" + slug;
-    if (window.Kinqsy) Kinqsy.fixMenu();
-    var res = await sb.from("profiles").select("id").ilike("display_name", slug).maybeSingle();
-    if (!res.data && slug.toLowerCase() === OWNER_SLUG) {
-      res = await sb.from("profiles").select("id").eq("id", OWNER_ID).maybeSingle();
-    }
-    viewedUserId = res.data ? res.data.id : (slug.toLowerCase() === OWNER_SLUG ? OWNER_ID : null);
-    return viewedUserId;
-  }
-
-  async function loadComments(postId) {
-    var { data } = await sb.from("comments").select("*").eq("post_id", postId).order("created_at", { ascending: true });
-    return data || [];
-  }
-  async function loadReactions(postId) {
-    try {
-      var { data } = await sb.from("reactions").select("reaction").eq("post_id", postId);
-      var heart = 0, broken = 0;
-      (data || []).forEach(function (r) {
-        if (r.reaction === "heart") heart++;
-        if (r.reaction === "broken") broken++;
-      });
-      return { heart: heart, broken: broken };
-    } catch (e) { return { heart: 0, broken: 0 }; }
-  }
-  function reactionsHtml(c, id) {
-    return '<div class="reactions" data-id="' + id + '">' +
-      '<button type="button" class="react-btn" data-reaction="heart">' +
-      '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 21s-6.7-4.2-9.3-8.2C.7 9.7 2.2 6 5.5 6c1.8 0 3.1 1 3.9 2.1C10.2 7 11.5 6 13.3 6c3.3 0 4.8 3.7 2.8 6.8C18.7 16.8 12 21 12 21z"/></svg> ' +
-      c.heart + '</button>' +
-      '<button type="button" class="react-btn" data-reaction="broken">' +
-      '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 21s-6.7-4.2-9.3-8.2C.7 9.7 2.2 6 5.5 6c1.8 0 3.1 1 3.9 2.1L12 12l.5-1.2C13.3 9.7 14.6 6 17.3 6c3.3 0 4.8 3.7 2.8 6.8C18.7 16.8 12 21 12 21zM12 12l-2 5 2-1 2 1-2-5z"/></svg> ' +
-      c.broken + '</button></div>';
-  }
-
-  async function canEditPost(post) {
-    var uid = await currentUserId();
-    if (!uid) return false;
-    if (post.user_id && String(post.user_id) === String(uid)) return true;
-    if (String(uid) === String(OWNER_ID)) return true;
-    return false;
-  }
-
-  function openEdit(post) {
-    editingPostId = post.id;
-    document.getElementById("edit-title").value = post.title || "";
-    document.getElementById("edit-content").value = post.content || "";
-    document.getElementById("edit-media-url").value = post.media_url || "";
-    if (post.title_font) document.getElementById("edit-title-font").value = post.title_font;
-    if (post.body_font) document.getElementById("edit-body-font").value = post.body_font;
-    if (post.title_color) document.getElementById("edit-title-color").value = post.title_color;
-    if (post.body_color) document.getElementById("edit-body-color").value = post.body_color;
-    document.getElementById("edit-error").textContent = "";
-    updateEditPreview();
-    document.getElementById("edit-overlay").classList.add("open");
-  }
-
-  function updateComposePreview() {
-    var t = document.getElementById("compose-live-title");
-    var b = document.getElementById("compose-live-body");
-    t.textContent = document.getElementById("compose-title").value || "заголовок…";
-    b.textContent = document.getElementById("compose-content").value || "текст…";
-    t.style.fontFamily = document.getElementById("compose-title-font").value;
-    t.style.color = document.getElementById("compose-title-color").value;
-    b.style.fontFamily = document.getElementById("compose-body-font").value;
-    b.style.color = document.getElementById("compose-body-color").value;
-  }
-  function updateEditPreview() {
-    var t = document.getElementById("edit-live-title");
-    var b = document.getElementById("edit-live-body");
-    t.textContent = document.getElementById("edit-title").value || "заголовок…";
-    b.textContent = document.getElementById("edit-content").value || "текст…";
-    t.style.fontFamily = document.getElementById("edit-title-font").value;
-    t.style.color = document.getElementById("edit-title-color").value;
-    b.style.fontFamily = document.getElementById("edit-body-font").value;
-    b.style.color = document.getElementById("edit-body-color").value;
-  }
-  ["compose-title","compose-content","compose-title-font","compose-body-font","compose-title-color","compose-body-color"].forEach(function (id) {
-    var el = document.getElementById(id);
-    if (el) { el.addEventListener("input", updateComposePreview); el.addEventListener("change", updateComposePreview); }
-  });
-  ["edit-title","edit-content","edit-title-font","edit-body-font","edit-title-color","edit-body-color"].forEach(function (id) {
-    var el = document.getElementById(id);
-    if (el) { el.addEventListener("input", updateEditPreview); el.addEventListener("change", updateEditPreview); }
-  });
-
-  document.getElementById("compose-media-url").oninput = function () {
-    var u = this.value.trim();
-    var img = document.getElementById("compose-preview");
-    if (u) { img.style.display = "block"; img.src = u; }
-    else { img.style.display = "none"; }
-  };
-  document.getElementById("compose-media-file").onchange = async function () {
-    var file = this.files && this.files[0];
-    if (!file) return;
-    var uid = await currentUserId();
-    if (!uid) { document.getElementById("compose-error").textContent = "нужен вход"; return; }
-    var ext = (file.name.split(".").pop() || "jpg").toLowerCase();
-    var path = uid + "/" + Date.now() + "." + ext;
-    var up = await sb.storage.from("media").upload(path, file, { upsert: true });
-    if (up.error) {
-      // fallback data URL small files
-      if (file.size < 1.2 * 1024 * 1024) {
-        var reader = new FileReader();
-        reader.onload = function () {
-          document.getElementById("compose-media-url").value = reader.result;
-          var img = document.getElementById("compose-preview");
-          img.style.display = "block"; img.src = reader.result;
-        };
-        reader.readAsDataURL(file);
-      } else {
-        document.getElementById("compose-error").textContent = up.error.message;
-      }
-      return;
-    }
-    var { data } = sb.storage.from("media").getPublicUrl(path);
-    document.getElementById("compose-media-url").value = data.publicUrl;
-    var img = document.getElementById("compose-preview");
-    img.style.display = "block"; img.src = data.publicUrl;
-  };
-
-  async function makePost(post) {
-    var article = document.createElement("article");
-    article.className = "post";
-    article.id = "post-" + post.id;
-
-    var titleStyle = "font-family:" + escapeHtml(post.title_font || "Georgia, serif") +
-      ";color:" + escapeHtml(post.title_color || "#1a0f14");
-    var bodyStyle = "font-family:" + escapeHtml(post.body_font || "Georgia, serif") +
-      ";color:" + escapeHtml(post.body_color || "#1a0f14");
-
-    var media = post.media_url
-      ? '<div class="post-media"><img src="' + escapeHtml(post.media_url) + '" alt=""></div>'
-      : "";
-    var comments = await loadComments(post.id);
-    var rcounts = await loadReactions(post.id);
-    var can = await canEditPost(post);
-
-    var commentsHtml = comments.map(function (c) {
-      return '<div class="comment" data-cid="' + c.id + '">' +
-        '<div class="comment-meta">' + formatAuthor(c.author_name, c.user_id) +
-        ' · ' + new Date(c.created_at).toLocaleDateString("en-GB") + '</div>' +
-        '<div class="comment-body">' + escapeHtml(c.content) + '</div>' +
-        (can ? '<button type="button" class="c-del" data-cid="' + c.id + '">удалить</button>' : '') +
-        '</div>';
-    }).join("");
-
-    article.innerHTML =
-      (can ? '<button type="button" class="post-del" title="удалить">🗑</button>' : '') +
-      '<div class="post-date">' + new Date(post.created_at).toLocaleDateString("en-GB") +
-      (can ? ' · <button type="button" class="edit-link" style="border:0;background:transparent;color:#5a3040;font-size:12px;text-decoration:underline">изменить</button>' : '') +
-      '</div>' +
-      (post.title ? '<h2 class="post-title" style="' + titleStyle + '">' + escapeHtml(post.title) + '</h2>' : '') +
-      media +
-      (post.content ? '<div class="post-content" style="' + bodyStyle + '">' + escapeHtml(post.content) + '</div>' : '') +
-      reactionsHtml(rcounts, post.id) +
-      '<div class="comments">' + commentsHtml +
-      '<form class="comment-form"><textarea name="content" placeholder="комментарий" maxlength="500" required></textarea>' +
-      '<button type="submit">отправить</button></form></div>';
-
-    // delete post
-    var delBtn = article.querySelector(".post-del");
-    if (delBtn) delBtn.onclick = function () {
-      pendingDeletePostId = post.id;
-      document.getElementById("del-post-modal").classList.add("open");
-    };
-    var editLink = article.querySelector(".edit-link");
-    if (editLink) editLink.onclick = function () { openEdit(post); };
-
-    // reactions
-    article.querySelectorAll(".react-btn").forEach(function (btn) {
-      btn.onclick = async function () {
-        var uid = await currentUserId();
-        if (!uid) { if (window.Kinqsy) Kinqsy.openAuth("login"); else alert("войди"); return; }
-        var reaction = btn.getAttribute("data-reaction");
-        await sb.from("reactions").delete().eq("post_id", post.id).eq("user_id", uid);
-        var { error } = await sb.from("reactions").insert({ post_id: post.id, user_id: uid, reaction: reaction });
-        if (error) alert(error.message);
-        else loadDreams();
-      };
-    });
-
-    // delete comments
-    article.querySelectorAll(".c-del").forEach(function (btn) {
-      btn.onclick = function () {
-        pendingDeleteComment = { id: btn.getAttribute("data-cid"), postId: post.id };
-        document.getElementById("del-c-modal").classList.add("open");
-      };
-    });
-
-    // comment form
-    var form = article.querySelector(".comment-form");
-    form.addEventListener("submit", async function (e) {
-      e.preventDefault();
-      var content = form.querySelector('[name="content"]').value.trim();
-      if (!content) return;
-      var uid = await currentUserId();
-      if (!uid) { if (window.Kinqsy) Kinqsy.openAuth("login"); return; }
-      var author_name = "user";
-      var pr = await sb.from("profiles").select("display_name").eq("id", uid).maybeSingle();
-      if (pr.data && pr.data.display_name) author_name = pr.data.display_name;
-      var { error } = await sb.from("comments").insert({
-        post_id: post.id, author_name: author_name, content: content, user_id: uid
-      });
-      if (error) alert(error.message);
-      else loadDreams();
-    });
-
-    return article;
-  }
-
-  async function loadDreams() {
-    var feed = document.getElementById("feed");
-    feed.innerHTML = '<div class="empty">loading...</div>';
-    var uid = await resolveViewed();
-    if (!uid) {
-      feed.innerHTML = '<div class="empty">профиль не найден</div>';
-      return;
-    }
-    var { data, error } = await sb.from("posts").select("*").eq("category", "dreams").eq("user_id", uid).order("created_at", { ascending: false });
-    if (error || !data || !data.length) {
-      if (getU().toLowerCase() === OWNER_SLUG) {
-        var all = await sb.from("posts").select("*").eq("category", "dreams").order("created_at", { ascending: false });
-        data = (all.data || []).filter(function (p) {
-          return !p.user_id || String(p.user_id) === String(uid);
-        });
-      }
-    }
-    if (!data || !data.length) {
-      feed.innerHTML = '<div class="empty">пока нет снов — ★ написать</div>';
-      return;
-    }
-    feed.innerHTML = "";
-    for (var i = 0; i < data.length; i++) {
-      feed.appendChild(await makePost(data[i]));
-    }
-  }
-
-  // compose publish
-  document.getElementById("compose-close").onclick = function () {
-    document.getElementById("compose-overlay").classList.remove("open");
-  };
-  document.getElementById("compose-publish").onclick = async function () {
-    var err = document.getElementById("compose-error");
-    err.textContent = "";
-    var uid = await currentUserId();
-    if (!uid) { err.textContent = "нужен вход"; return; }
-    var title = document.getElementById("compose-title").value.trim();
-    var content = document.getElementById("compose-content").value.trim();
-    if (!title && !content) { err.textContent = "пустой пост"; return; }
-    var media_url = document.getElementById("compose-media-url").value.trim();
-    var payload = {
-      title: title,
-      content: content,
-      category: "dreams",
-      user_id: uid,
-      title_font: document.getElementById("compose-title-font").value,
-      body_font: document.getElementById("compose-body-font").value,
-      title_color: document.getElementById("compose-title-color").value,
-      body_color: document.getElementById("compose-body-color").value
-    };
-    if (media_url) {
-      payload.media_url = media_url;
-      payload.media_type = /\.gif(\?|$)/i.test(media_url) ? "gif" : "image";
-    }
-    var { error } = await sb.from("posts").insert(payload);
-    if (error) {
-      var basic = { title: title, content: content, category: "dreams", user_id: uid };
-      if (media_url) basic.media_url = media_url;
-      var r2 = await sb.from("posts").insert(basic);
-      if (r2.error) { err.textContent = r2.error.message; return; }
-    }
-    document.getElementById("compose-overlay").classList.remove("open");
-    loadDreams();
-  };
-
-  // edit save
-  document.getElementById("edit-close").onclick = function () {
-    document.getElementById("edit-overlay").classList.remove("open");
-    editingPostId = null;
-  };
-  document.getElementById("edit-save").onclick = async function () {
-    var err = document.getElementById("edit-error");
-    err.textContent = "";
-    if (!editingPostId) return;
-    var uid = await currentUserId();
-    if (!uid) { err.textContent = "войди через ★"; return; }
-    var payload = {
-      title: document.getElementById("edit-title").value.trim(),
-      content: document.getElementById("edit-content").value.trim(),
-      title_font: document.getElementById("edit-title-font").value,
-      body_font: document.getElementById("edit-body-font").value,
-      title_color: document.getElementById("edit-title-color").value,
-      body_color: document.getElementById("edit-body-color").value
-    };
-    var mu = document.getElementById("edit-media-url").value.trim();
-    if (mu) {
-      payload.media_url = mu;
-      payload.media_type = /\.gif(\?|$)/i.test(mu) ? "gif" : "image";
-    }
-    var res = await sb.from("posts").update(payload).eq("id", editingPostId).select("id");
-    if (res.error || !res.data || !res.data.length) {
-      var basic = { title: payload.title, content: payload.content };
-      if (mu) basic.media_url = mu;
-      var r2 = await sb.from("posts").update(basic).eq("id", editingPostId).select("id");
-      if (r2.error) { err.textContent = r2.error.message; return; }
-      if (!r2.data || !r2.data.length) {
-        err.textContent = "не сохранилось (RLS / чужой пост)";
-        return;
-      }
-      err.textContent = "сохранено без стилей — добавь колонки title_font/title_color в posts";
-    }
-    document.getElementById("edit-overlay").classList.remove("open");
-    editingPostId = null;
-    loadDreams();
-  };
-
-  // delete post confirm
-  document.getElementById("del-post-no").onclick = function () {
-    document.getElementById("del-post-modal").classList.remove("open");
-    pendingDeletePostId = null;
-  };
-  document.getElementById("del-post-yes").onclick = async function () {
-    if (!pendingDeletePostId) return;
-    var { error } = await sb.from("posts").delete().eq("id", pendingDeletePostId);
-    document.getElementById("del-post-modal").classList.remove("open");
-    pendingDeletePostId = null;
-    if (error) alert(error.message);
-    else loadDreams();
-  };
-
-  // delete comment flow
-  document.getElementById("del-c-no").onclick = function () {
-    document.getElementById("del-c-modal").classList.remove("open");
-    pendingDeleteComment = null;
-  };
-  document.getElementById("del-c-yes").onclick = function () {
-    document.getElementById("del-c-modal").classList.remove("open");
-    document.getElementById("reason-error").textContent = "";
-    document.querySelectorAll('input[name="reason"]').forEach(function (r) { r.checked = false; });
-    document.getElementById("rules-detail").style.display = "none";
-    document.getElementById("del-reason-modal").classList.add("open");
-  };
-  document.querySelectorAll('input[name="reason"]').forEach(function (r) {
-    r.onchange = function () {
-      document.getElementById("rules-detail").style.display =
-        r.value === "rules" && r.checked ? "block" : "none";
-    };
-  });
-  document.getElementById("reason-cancel").onclick = function () {
-    document.getElementById("del-reason-modal").classList.remove("open");
-    pendingDeleteComment = null;
-  };
-  document.getElementById("reason-submit").onclick = async function () {
-    var err = document.getElementById("reason-error");
-    var chosen = document.querySelector('input[name="reason"]:checked');
-    if (!chosen) { err.textContent = "выбери причину"; return; }
-    if (!pendingDeleteComment) return;
-    // log reason optionally later; delete now
-    var { error } = await sb.from("comments").delete().eq("id", pendingDeleteComment.id);
-    document.getElementById("del-reason-modal").classList.remove("open");
-    pendingDeleteComment = null;
-    if (error) alert(error.message);
-    else loadDreams();
-  };
-
-  window.__openDreamCompose = function () {
-    document.getElementById("compose-error").textContent = "";
-    document.getElementById("compose-overlay").classList.add("open");
-    updateComposePreview();
-  };
-
-  if (window.Kinqsy) {
-    Kinqsy.init({
-      onLoginSuccess: async function () { window.__openDreamCompose(); },
-      onStarLoggedIn: async function (uid) {
-        if (viewedUserId && String(viewedUserId) !== String(uid)) {
-          alert("Чужой дневник. Свой: dreams.html?u=ТВОЙ_НИК");
-          return;
-        }
-        window.__openDreamCompose();
-      }
-    });
-  }
-
-  loadDreams();
-})();
-</script>
+<script src="dreams-app.js"></script>
 </body>
 </html>
