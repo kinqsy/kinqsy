@@ -313,7 +313,55 @@ footer {
 .post { border: 0 !important; background: var(--kq-glass) !important; }
 .author-badge { color: var(--kq-badge) !important; }
 .support-line a { text-decoration: none !important; font-weight: normal !important; }
-</style></head>
+</style><style id="kq-dreams-fix">
+.kq-bg {
+  position: fixed !important;
+  top: 42px !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+  height: auto !important;
+  z-index: 0 !important;
+  background: #1a0f14 url("dreams-bg.jpg") center center / cover no-repeat !important;
+  border-radius: 0 0 30px 30px !important;
+  pointer-events: none !important;
+}
+.kq-bg::before {
+  content: "" !important;
+  position: absolute !important; inset: 0 !important;
+  background: inherit !important;
+  background-size: cover !important;
+  filter: blur(14px) !important;
+  transform: scale(1.05) !important;
+  border-radius: 0 0 30px 30px !important;
+}
+.kq-grain {
+  position: fixed !important;
+  top: 42px !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+  z-index: 1 !important;
+  border-radius: 0 0 30px 30px !important;
+}
+.kq-shell, .dreams-shell {
+  position: relative !important;
+  z-index: 2 !important;
+  background: transparent !important;
+  min-height: calc(100vh - 42px) !important;
+}
+.kq-title, .kq-tagline, .kq-user {
+  color: #1a0f14 !important;
+  opacity: 1 !important;
+}
+.kq-tagline { opacity: 0.95 !important; }
+.kq-user { opacity: 0.75 !important; }
+.comment-form textarea {
+  background: rgba(255,255,255,.3) !important;
+  border: 1px solid rgba(255,255,255,.45) !important;
+  border-radius: 12px !important;
+  color: #1a0f14 !important;
+}
+.comment-form textarea::placeholder {
+  color: rgba(26,15,20,.45) !important;
+}
+.kq-bottom { background: #000 !important; position: relative; z-index: 5; }
+</style>
+</head>
 <body id="top">
 
 <nav class="top-menu">
@@ -329,9 +377,9 @@ footer {
 <div class="kq-grain" aria-hidden="true"></div>
 <div class="kq-shell dreams-shell">
   <div class="kq-inner dreams-inner">
-    <h1 class="kq-title">DREAMS</h1>
-    <div class="kq-tagline">things I probably shouldn't publish</div>
-    <div class="kq-user" id="dreams-user-label">dreams · @kinqsy</div>
+    <h1 class="kq-title" style="color:#1a0f14!important">DREAMS</h1>
+    <div class="kq-tagline" style="color:#1a0f14!important">things I probably shouldn't publish</div>
+    <div class="kq-user" id="dreams-user-label" style="color:#1a0f14!important;opacity:.75">dreams · @kinqsy</div>
     <section id="feed"></section>
   </div>
 </div>
