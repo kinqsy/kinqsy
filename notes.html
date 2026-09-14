@@ -753,6 +753,17 @@ a, button, .star, .top-menu .star, input, textarea, .react-btn, .post-menu butto
         .react-btn { overflow: visible; }
         .react-ico { overflow: visible; flex-shrink: 0; }
     </style>
+<style id="kq-bg-page">.kq-bg{background-image:url("notes-bg.jpg")}</style>
+
+<style id="kq-notes-override">
+.notes-title, .kq-title { font-size: var(--kq-title) !important; letter-spacing: var(--kq-title-track) !important; }
+.notes-subtitle, .kq-tagline { font-size: var(--kq-tagline) !important; font-weight: bold !important; }
+.kq-user, #notes-user-label { font-size: var(--kq-user) !important; opacity: 0.75 !important; }
+.post { border: 0 !important; background: var(--kq-glass) !important; }
+.author-badge { color: var(--kq-badge) !important; }
+.support-line a { text-decoration: none !important; font-weight: normal !important; color: var(--kq-pink) !important; }
+.support-line a:hover { text-decoration: none !important; font-weight: normal !important; }
+</style>
 </head>
 <body id="top">
 
@@ -765,8 +776,10 @@ a, button, .star, .top-menu .star, input, textarea, .react-btn, .post-menu butto
         <span class="star" id="admin-star">★</span>
     </nav>
 
-    <div class="notes-bg" aria-hidden="true"></div>
-<div class="notes-grain" aria-hidden="true"></div>
+    <div class="kq-bg" aria-hidden="true"></div>
+<div class="kq-grain" aria-hidden="true"></div>
+<div class="notes-bg" style="display:none" aria-hidden="true"></div>
+<div class="notes-grain" style="display:none" aria-hidden="true"></div>
 <main class="notes-page">
         </div>
         <div class="kq-page-header">
@@ -782,7 +795,7 @@ a, button, .star, .top-menu .star, input, textarea, .react-btn, .post-menu butto
     <section class="feed" id="feed"></section>
     </main>
 
-    <div class="support-line">
+    <div class="kq-bottom"><div class="support-line">
     <a href="https://boosty.to/kinqsy/donate" target="_blank" rel="noopener noreferrer">support the diary</a>
 </div>
 
@@ -800,7 +813,7 @@ a, button, .star, .top-menu .star, input, textarea, .react-btn, .post-menu butto
             </a>
         </div>
         <div></div>
-    </footer>
+    </footer></div><!--kq-bottom-->
 
     <div class="auth-overlay" id="auth-overlay">
     <div class="auth-modal">
