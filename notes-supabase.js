@@ -48,7 +48,7 @@ async function resolveViewedUser() {
 
 function formatAuthor(name, userId) {
     if (userId && String(userId) === OWNER_ID) {
-        return '<span class="author-badge">✦ kinqsy</span>';
+        return '<span class="author-badge">kinqsy</span>';
     }
     return escapeHtml(name || "гость");
 }
@@ -79,7 +79,7 @@ function reactionsHtml(counts, kind, id) {
   return (
     '<div class="reactions" data-kind="' + kind + '" data-id="' + id + '">' +
       '<button type="button" class="react-btn" data-reaction="heart" aria-label="heart">' +
-        '<svg class="react-ico" viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M12 21s-6.7-4.2-9.3-8.2C.7 9.7 2.2 6 5.5 6c1.8 0 3.1 1 3.9 2.1C10.2 7 11.5 6 13.3 6c3.3 0 4.8 3.7 2.8 6.8C18.7 16.8 12 21 12 21z"/></svg> ' +
+        '<svg class="react-ico" viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> ' +
         counts.heart +
       "</button>" +
       '<button type="button" class="react-btn" data-reaction="broken" aria-label="broken">' +
@@ -89,25 +89,27 @@ function reactionsHtml(counts, kind, id) {
     "</div>"
   );
 }
-async function renderComments(comments) { if (!comments.length) { return '<div class="comment-meta">пока нет комментариев</div>'; }
-const parts = [];
-for (const c of comments) {
-    const counts = await countReactions({ comment_id: c.id });
-    parts.push(
-        '<div class="comment">' +
-            '<div class="comment-meta">' +
-                formatAuthor(c.author_name, c.user_id) +
-                " · " +
-                new Date(c.created_at).toLocaleDateString("en-GB") +
-            "</div>" +
-            "<div>" + escapeHtml(c.content) + "</div>" +
-            '<div class="comment-reactions">' +
-                reactionsHtml(counts, "comment", c.id) +
-            "</div>" +
-        "</div>"
-    );
-}
-return parts.join("");
+async function renderComments(comments, canDelete) {
+    if (!comments.length) { return '<div class="comment-meta">пока нет комментариев</div>'; }
+    const parts = [];
+    for (const c of comments) {
+        const counts = await countReactions({ comment_id: c.id });
+        parts.push(
+            '<div class="comment" data-cid="' + c.id + '">' +
+                '<div class="comment-meta">' +
+                    formatAuthor(c.author_name, c.user_id) +
+                    " · " +
+                    new Date(c.created_at).toLocaleDateString("en-GB") +
+                "</div>" +
+                '<div class="comment-body">' + escapeHtml(c.content) + "</div>" +
+                (canDelete ? '<button type="button" class="c-del" data-cid="' + c.id + '">удалить</button>' : "") +
+                '<div class="comment-reactions">' +
+                    reactionsHtml(counts, "comment", c.id) +
+                "</div>" +
+            "</div>"
+        );
+    }
+    return parts.join("");
 }
 function reactionKey(kind, id) { return "rx:" + kind + ":" + id; }
 function bindReactions(root) { root.querySelectorAll(".reactions").forEach(function (box) { const kind = box.getAttribute("data-kind"); const id = box.getAttribute("data-id"); const key = reactionKey(kind, id); const already = localStorage.getItem(key);
@@ -181,7 +183,8 @@ else if (bgKey === "clear") article.style.background = "rgba(255, 255, 255, 0.08
 
     const comments = await loadComments(post.id);
     const postCounts = await countReactions({ post_id: post.id });
-    const commentsHtml = await renderComments(comments);
+    const canDel = await canEditPost(post);
+    const commentsHtml = await renderComments(comments, canDel);
 
     article.innerHTML =
         '<div class="post-date">' +
@@ -352,6 +355,8 @@ if (clearBtn) {
 }
 }
 var activePostMenu = null;
+var pendingDeletePostId = null;
+var pendingDeleteComment = null;
 async function canEditPost(post) {
   var { data: { session } } = await supabaseClient.auth.getSession();
   if (!session) return false;
@@ -405,7 +410,7 @@ btn.addEventListener("click", async function (e) {
 
 document.addEventListener("click", function (e) { var menu = document.getElementById("post-menu"); if (!menu || !menu.classList.contains("open")) return; if (e.target.closest("#post-menu")) return; if (e.target.closest(".post-owner-btn")) return; hidePostMenu(); });
 var delBtn = document.getElementById("post-menu-delete"); var editBtn = document.getElementById("post-menu-edit");
-if (delBtn) { delBtn.onclick = async function () { if (!activePostMenu) return; if (!confirm("Удалить пост?")) return; var { error } = await supabaseClient.from("posts").delete().eq("id", activePostMenu.id); hidePostMenu(); if (error) { alert(error.message); return; } loadNotes(); }; }
+if (delBtn) { delBtn.onclick = async function () { if (!activePostMenu) return; pendingDeletePostId = activePostMenu.id; hidePostMenu(); var mm = document.getElementById("del-post-modal"); if (mm) mm.classList.add("open"); }; }
 if (editBtn) {
     editBtn.onclick = function () {
         if (!activePostMenu) return;
@@ -416,5 +421,97 @@ if (editBtn) {
         }
     };
 }
+
+(function wireDeleteModals() {
+  var delPostYes = document.getElementById("del-post-yes");
+  var delPostNo = document.getElementById("del-post-no");
+  if (delPostNo) delPostNo.onclick = function () {
+    var m = document.getElementById("del-post-modal");
+    if (m) m.classList.remove("open");
+    pendingDeletePostId = null;
+  };
+  if (delPostYes) delPostYes.onclick = async function () {
+    if (!pendingDeletePostId) return;
+    var { error } = await supabaseClient.from("posts").delete().eq("id", pendingDeletePostId);
+    var m = document.getElementById("del-post-modal");
+    if (m) m.classList.remove("open");
+    pendingDeletePostId = null;
+    if (error) alert(error.message);
+    else loadNotes();
+  };
+
+  var delCYes = document.getElementById("del-c-yes");
+  var delCNo = document.getElementById("del-c-no");
+  if (delCNo) delCNo.onclick = function () {
+    document.getElementById("del-c-modal").classList.remove("open");
+    pendingDeleteComment = null;
+  };
+  if (delCYes) delCYes.onclick = function () {
+    document.getElementById("del-c-modal").classList.remove("open");
+    var err = document.getElementById("reason-error");
+    if (err) err.textContent = "";
+    document.querySelectorAll('input[name="reason"]').forEach(function (r) { r.checked = false; });
+    var rd = document.getElementById("rules-detail");
+    var ob = document.getElementById("reason-other-box");
+    if (rd) rd.style.display = "none";
+    if (ob) ob.style.display = "none";
+    var ot = document.getElementById("reason-other-text");
+    if (ot) ot.value = "";
+    document.getElementById("del-reason-modal").classList.add("open");
+  };
+
+  document.querySelectorAll('input[name="reason"]').forEach(function (r) {
+    r.onchange = function () {
+      var rd = document.getElementById("rules-detail");
+      var ob = document.getElementById("reason-other-box");
+      if (rd) rd.style.display = (r.value === "rules" && r.checked) ? "block" : "none";
+      if (ob) ob.style.display = (r.value === "other" && r.checked) ? "block" : "none";
+    };
+  });
+
+  var reasonCancel = document.getElementById("reason-cancel");
+  if (reasonCancel) reasonCancel.onclick = function () {
+    document.getElementById("del-reason-modal").classList.remove("open");
+    pendingDeleteComment = null;
+  };
+
+  var reasonSubmit = document.getElementById("reason-submit");
+  if (reasonSubmit) reasonSubmit.onclick = async function () {
+    var err = document.getElementById("reason-error");
+    if (err) err.textContent = "";
+    var chosen = document.querySelector('input[name="reason"]:checked');
+    if (!chosen) { if (err) err.textContent = "выбери причину"; return; }
+    if (chosen.value === "other") {
+      var note = (document.getElementById("reason-other-text") || {}).value || "";
+      if (!note.trim()) { if (err) err.textContent = "для «другая причина» нужен комментарий"; return; }
+    }
+    if (!pendingDeleteComment) { if (err) err.textContent = "комментарий не выбран"; return; }
+    var cid = pendingDeleteComment.id;
+    var del = await supabaseClient.from("comments").delete().eq("id", cid).select("id");
+    if (del.error) { if (err) err.textContent = del.error.message; return; }
+    if (!del.data || !del.data.length) {
+      var del2 = await supabaseClient.from("comments").delete().eq("id", Number(cid)).select("id");
+      if (del2.error) { if (err) err.textContent = del2.error.message; return; }
+      if (!del2.data || !del2.data.length) {
+        if (err) err.textContent = "не удалилось — RLS на comments";
+        return;
+      }
+    }
+    document.getElementById("del-reason-modal").classList.remove("open");
+    pendingDeleteComment = null;
+    loadNotes();
+  };
+})();
+
+document.addEventListener("click", function (e) {
+  var btn = e.target.closest(".c-del");
+  if (!btn) return;
+  e.preventDefault();
+  e.stopPropagation();
+  pendingDeleteComment = { id: btn.getAttribute("data-cid") };
+  var m = document.getElementById("del-c-modal");
+  if (m) m.classList.add("open");
+});
+
 window.loadNotes = loadNotes;
 loadNotes(); setupFilters();
