@@ -63,7 +63,7 @@
   function reactionsHtml(c, id) {
     return '<div class="reactions" data-id="' + id + '">' +
       '<button type="button" class="react-btn" data-reaction="heart">' +
-      '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 21s-6.7-4.2-9.3-8.2C.7 9.7 2.2 6 5.5 6c1.8 0 3.1 1 3.9 2.1C10.2 7 11.5 6 13.3 6c3.3 0 4.8 3.7 2.8 6.8C18.7 16.8 12 21 12 21z"/></svg> ' +
+      '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> ' +
       c.heart + "</button>" +
       '<button type="button" class="react-btn" data-reaction="broken">' +
       '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 21s-6.7-4.2-9.3-8.2C.7 9.7 2.2 6 5.5 6c1.8 0 3.1 1 3.9 2.1L12 12l.5-1.2C13.3 9.7 14.6 6 17.3 6c3.3 0 4.8 3.7 2.8 6.8C18.7 16.8 12 21 12 21zM12 12l-2 5 2-1 2 1-2-5z"/></svg> ' +
@@ -178,7 +178,7 @@
       ";color:" + escapeHtml(post.body_color || "#1a0f14");
 
     var media = post.media_url
-      ? '<div class="post-media"><img src="' + escapeHtml(post.media_url) + '" alt=""></div>'
+      ? '<div class="post-media ratio-landscape"><img src="' + escapeHtml(post.media_url) + '" alt="" loading="lazy"></div>'
       : "";
     var comments = await loadComments(post.id);
     var rcounts = await loadReactions(post.id);
@@ -261,6 +261,23 @@
       if (error) alert(error.message);
       else loadDreams();
     });
+
+
+    var mediaBox = article.querySelector(".post-media");
+    var mediaImg = article.querySelector(".post-media img");
+    if (mediaImg && mediaBox) {
+      function applyRatio() {
+        var w = mediaImg.naturalWidth || 1;
+        var h = mediaImg.naturalHeight || 1;
+        var r = w / h;
+        mediaBox.classList.remove("ratio-square", "ratio-landscape", "ratio-portrait");
+        if (r > 1.15) mediaBox.classList.add("ratio-landscape");
+        else if (r < 0.85) mediaBox.classList.add("ratio-portrait"); // вертикаль → квадрат
+        else mediaBox.classList.add("ratio-square");
+      }
+      if (mediaImg.complete && mediaImg.naturalWidth) applyRatio();
+      else mediaImg.onload = applyRatio;
+    }
 
     return article;
   }
