@@ -1,1121 +1,841 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DREAMS — KINQSY.LOL</title>
-    <link rel="icon" href="icon-192.png" type="image/png">
-    <link rel="stylesheet" href="kinqsy-theme.css">
-    <link rel="icon" href="favicon.png" type="image/png">
-    <style>
-        * { box-sizing: border-box; }
-        ::selection {
-        background: rgba(240, 201, 214, 0.9);
-        color: #3a2030;
-    }
-    ::-moz-selection {
-        background: rgba(240, 201, 214, 0.9);
-        color: #3a2030;
-    }
-    body, body * {
-        cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='%23f0c9d6' stroke='%233a2030' stroke-width='1.2' d='M4 3l12 7.5-5.2 1.4L13 21z'/%3E%3C/svg%3E") 4 2, auto;
-    }
-    a, button, .star, input, textarea, .react-btn, .post-menu button, .post-owner-btn {
-        cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath fill='%23f6dce8' stroke='%233a2030' stroke-width='1.3' d='M8 4l12 8-6 1.5L16 24l-3-7-5 2z'/%3E%3C/svg%3E") 5 2, pointer;
-    }
-
-        html { scroll-behavior: smooth; }
-        html, body { margin: 0; padding: 0; min-height: 100%; }
-
-        body {
-        background: #000;
-        color: #000;
-        font-family: Georgia, "Times New Roman", serif;
-    }
-
-        .top-menu {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 42px;
-        background: rgba(240, 201, 214, 0.35);
-        backdrop-filter: blur(22px) saturate(160%);
-        -webkit-backdrop-filter: blur(22px) saturate(160%);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.35);
-        box-shadow: 0 4px 24px rgba(110, 64, 87, 0.12);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 18px;
-        z-index: 1000;
-    }
-        .top-menu a {
-            color: #050505;
-            text-decoration: none;
-            font-size: 21px;
-            font-weight: bold;
-        }
-        .top-menu a:hover { text-decoration: underline; }
-        .top-menu .star {
-            color: #111;
-            font-size: 18px;
-            opacity: 0.75;
-            margin-left: 6px;
-            user-select: none;
-        }
-        .top-menu .star:hover { opacity: 1; }
-
-        .dreams-page {
-        position: relative;
-        isolation: isolate;
-        min-height: calc(100vh - 42px);
-        margin-top: 42px;
-        padding: 58px 20px 80px;
-        background: transparent;
-        overflow: visible;
-    }
-    .dreams-bg {
-        position: fixed;
-        top: 42px;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        z-index: 0;
-        background: #1a0f14 url("dreams-bg.jpg") center center / cover no-repeat;
-        pointer-events: none;
-    }
-    .dreams-bg::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: inherit;
-        background-size: cover;
-        background-position: center;
-        filter: blur(14px);
-        transform: scale(1.06);
-    }
-    .dreams-grain {
-        position: fixed;
-        top: 42px;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        z-index: 1;
-        pointer-events: none;
-        opacity: 0.45;
-        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-        background-size: 220px 220px;
-        mix-blend-mode: overlay;
-    }
-    .dreams-page > * {
-        position: relative;
-        z-index: 2;
-    }
-        .dreams-header {
-            max-width: 900px;
-            margin: 0 auto 40px;
-            padding: 0;
-            background: none;
-            border: none;
-            box-shadow: none;
-            backdrop-filter: none;
-            -webkit-backdrop-filter: none;
-        }
-
-        .dreams-title {
-            user-select: none;
-        -webkit-user-select: none;
-            margin: 0 0 14px;
-            color: #000;
-            font-family: "Bodoni 72", Didot, "Bodoni MT", Georgia, serif;
-            font-size: clamp(70px, 11vw, 150px);
-            font-weight: 400;
-            line-height: .8;
-            letter-spacing: -5px;
-            text-shadow: 0 2px 0 rgba(255,255,255,.35), 0 8px 24px rgba(0,0,0,.25);
-        }
-
-        .dreams-subtitle {
-            user-select: none;
-        -webkit-user-select: none;
-            margin: 0;
-            font-size: 17px;
-            font-style: italic;
-            font-weight: bold;
-            text-shadow: 0 2px 10px rgba(0,0,0,.2);
-        }
-
-        .feed {
-            max-width: 900px;
-            margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            gap: 28px;
-        }
-
-        .post {
-        user-select: none;
-        -webkit-user-select: none;
-        position: relative;
-        padding: 28px;
-        border-radius: 22px;
-        background: rgba(255, 255, 255, 0.18);
-        border: 0;
-        box-shadow: none;
-        backdrop-filter: blur(16px) saturate(140%);
-        -webkit-backdrop-filter: blur(16px) saturate(140%);
-        overflow: hidden;
-    }
-
-        .post > * { position: relative; z-index: 2; }
-
-        .post-date {
-            margin-bottom: 12px;
-font-family: Arial, sans-serif;
-            font-size: 11px;
-            font-weight: bold;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            opacity: .6;
-        }
-        .post-title { margin: 0 0 15px; font-size: 29px; }
-        .post-content { font-size: 17px; line-height: 1.65; }
-        .post-media {
-        margin: 14px 0 6px;
-        border-radius: 16px;
-        overflow: hidden;
-        line-height: 0;
-    }
-    .post-media img {
-        display: block;
-        max-width: 550px;
-        max-height: 550px;
-        width: 100%;
-        height: auto;
-        object-fit: cover;
-        margin: 0 auto;
-        border-radius: 16px;
-    }
-
-        .post-footer {
-            margin-top: 24px;
-            padding-top: 14px;
-            border-top: 1px solid rgba(0,0,0,.14);
-            font-family: Arial, sans-serif;
-            font-size: 12px;
-            font-weight: bold;
-        }
-        .comments {
-            margin-top: 18px;
-            padding-top: 14px;
-            border-top: 1px solid rgba(0,0,0,.12);
-        }
-        .comment {
-            margin-bottom: 10px;
-            padding: 10px 12px;
-            border-radius: 12px;
-            background: rgba(255,255,255,.25);
-            font-size: 14px;
-            line-height: 1.4;
-        }
-        .comment-meta {
-            font-family: Arial, sans-serif;
-            font-size: 11px;
-            font-weight: bold;
-            opacity: .65;
-            margin-bottom: 4px;
-        }
-        .comment-form {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-top: 12px;
-        }
-        .comment-form input,
-        .comment-form textarea {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid rgba(0,0,0,.15);
-            border-radius: 10px;
-            background: rgba(255,255,255,.7);
-            font-family: Georgia, serif;
-            font-size: 14px;
-        }
-        .comment-form textarea {
-            min-height: 70px;
-            resize: vertical;
-        }
-        .comment-form button {
-            align-self: flex-start;
-            margin-top: 4px;
-            padding: 8px 16px;
-            border: 0;
-            border-radius: 999px;
-            background: #885069;
-            color: #fff;
-            font-family: Arial, sans-serif;
-            font-size: 13px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .empty {
-            padding: 60px 20px;
-            text-align: center;
-            font-style: italic;
-            opacity: .75;
-            background: rgba(255,255,255,.28);
-            border-radius: 18px;
-            backdrop-filter: blur(10px);
-        }
-        .support-line {
-        position: relative;
-        z-index: 5;
-        text-align: center;
-        padding: 10px 16px;
-        background: #000;
-    }
-    .support-line a {
-        color: #f1b9d0;
-        font-weight: bold;
-        text-decoration: none;
-    }
-        footer {
-        position: relative;
-        z-index: 5;
-        min-height: 110px;
-        background: #000;
-        color: #F1B9D0;
-        display: grid;
-        grid-template-columns: 1fr auto 1fr;
-        align-items: center;
-        padding: 20px 28px;
-    }
-        .socials {
-            display: flex;
-            gap: 16px;
-            justify-content: center;
-            align-items: center;
-        }
-        .socials a {
-            width: 28px;
-            height: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #F1B9D0;
-            text-decoration: none;
-        }
-        .socials a:hover { opacity: 0.8; transform: scale(1.08); }
-        .socials svg { width: 22px; height: 22px; fill: currentColor; }
-
-        .back-to-top-fixed {
-        position: fixed;
-        right: 22px;
-        bottom: 22px;
-        z-index: 999;
-        width: 44px;
-        height: 44px;
-        border-radius: 50%;
-        border: 1px solid rgba(255, 255, 255, 0.25);
-        background: rgba(255, 255, 255, 0.14);
-        color: #f6dce8;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-decoration: none;
-        font-size: 18px;
-        font-weight: bold;
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
-    }
-        .back-to-top-fixed:hover {
-            transform: translateY(-2px);
-            opacity: 0.9;
-        }
-
-        @media (max-width: 700px) {
-            .top-menu {
-                padding: 0 8px;
-                gap: 11px;
-                justify-content: flex-start;
-                overflow-x: auto;
-                scrollbar-width: none;
-            }
-            .top-menu::-webkit-scrollbar { display: none; }
-            .top-menu a { font-size: 16px; }
-            .dreams-page {
-    padding: 43px 12px 50px;
-    border-radius: 0 0 20px 20px;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DREAMS — KINQSY.LOL</title>
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="stylesheet" href="kinqsy-theme.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alumni+Sans+Collegiate+One&family=Amatic+SC:wght@400;700&family=Bad+Script&family=Kaisei+Decol:wght@400;700&family=Poiret+One&family=Press+Start+2P&family=Rubik+Beastly&family=Rubik+80s+Fade&family=Shafarik&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; }
+::selection { background: rgba(240,201,214,.9); color: #3a2030; }
+body, body * {
+  user-select: none; -webkit-user-select: none;
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='%23f0c9d6' stroke='%233a2030' stroke-width='1.2' d='M4 3l12 7.5-5.2 1.4L13 21z'/%3E%3C/svg%3E") 4 2, auto;
 }
-            .dreams-title { font-size: clamp(55px, 17vw, 100px); letter-spacing: -4px; }
-            .post { padding: 20px; border-radius: 16px; }
-            .post-title { font-size: 24px; }
-            .post-content { font-size: 16px; }
-            footer { grid-template-columns: 1fr; gap: 18px; text-align: center; }
-            .back-to-top-fixed { right: 16px; bottom: 16px; width: 40px; height: 40px; }
-        }
-        .post-footer-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        margin-top: 8px;
-    }
-    .post-owner-btn {
-        border: 0;
-        background: rgba(255, 255, 255, 0.25);
-        border-radius: 999px;
-        width: 34px;
-        height: 34px;
-        font-size: 18px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        color: #2a1822;
-    }
-    .post-menu {
-        display: none;
-        position: fixed;
-        z-index: 3000;
-        min-width: 150px;
-        padding: 8px;
-        border-radius: 16px;
-        border: 1px solid rgba(255, 255, 255, 0.35);
-        background: rgba(255, 255, 255, 0.2);
-        backdrop-filter: blur(18px);
-        -webkit-backdrop-filter: blur(18px);
-        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
-    }
-    .post-menu.open { display: block; }
-    .post-menu button {
-        display: block;
-        width: 100%;
-        border: 0;
-        background: transparent;
-        padding: 12px 14px;
-        text-align: left;
-        font-family: Arial, sans-serif;
-        font-size: 14px;
-        font-weight: bold;
-        border-radius: 12px;
-        color: #2a1822;
-    }
-    .post-menu button:hover { background: rgba(255, 255, 255, 0.35); }
-    .post-menu button.danger { color: #7a2030; }
-    
-    .auth-overlay {
-        display: none;
-        position: fixed;
-        inset: 0;
-        z-index: 2000;
-        background: rgba(20, 10, 16, 0.45);
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-    }
-    .auth-overlay.open { display: flex; }
-    .auth-modal {
-        width: min(92vw, 420px);
-        max-height: 88vh;
-        overflow-y: auto;
-        padding: 24px;
-        border-radius: 20px;
-        border: 1px solid rgba(255, 255, 255, 0.4);
-        background: rgba(255, 255, 255, 0.22);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        color: #2a1822;
-        box-sizing: border-box;
-    }
-    .auth-modal h2 { margin: 0 0 14px; font-weight: normal; font-size: 22px; }
-    .auth-modal label {
-        display: block;
-        font-size: 12px;
-        font-weight: bold;
-        margin: 10px 0 4px;
-        font-family: Arial, sans-serif;
-    }
-    .auth-modal input, .auth-modal textarea {
-        width: 100%;
-        padding: 10px 12px;
-        border-radius: 12px;
-        border: 1px solid rgba(255,255,255,.5);
-        background: rgba(255,255,255,.35);
-        font-family: Georgia, serif;
-        font-size: 15px;
-        box-sizing: border-box;
-    }
-    .auth-modal textarea { min-height: 100px; resize: vertical; }
-    .auth-actions {
-        display: flex;
-        gap: 10px;
-        margin-top: 16px;
-        flex-wrap: wrap;
-    }
-    .auth-actions button {
-        flex: 1;
-        min-width: 90px;
-        padding: 10px 14px;
-        border: 0;
-        border-radius: 999px;
-        background: #f0c9d6;
-        color: #3a2030;
-        font-weight: bold;
-        font-family: Arial, sans-serif;
-    }
-    .auth-actions button.secondary { background: rgba(255,255,255,.4); }
-    .auth-error {
-        margin-top: 10px;
-        font-size: 13px;
-        color: #7a2030;
-        min-height: 1.2em;
-    }
-    .compose-preview {
-        margin-top: 10px;
-        max-width: 100%;
-        border-radius: 12px;
-        display: none;
-    }
+input, textarea, select { user-select: text; -webkit-user-select: text; }
+a, button, .star, .post-del, .c-del {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath fill='%23f6dce8' stroke='%233a2030' stroke-width='1.3' d='M8 4l12 8-6 1.5L16 24l-3-7-5 2z'/%3E%3C/svg%3E") 5 2, pointer !important;
+}
+html { scroll-behavior: smooth; }
+html, body { margin: 0; padding: 0; min-height: 100%; background: #000; color: #1a0f14; font-family: Georgia, serif; }
 
-    </style>
+.top-menu {
+  position: fixed; top: 0; left: 0; width: 100%; height: 42px;
+  background: rgba(240,201,214,.35);
+  backdrop-filter: blur(22px) saturate(160%);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  border-bottom: 1px solid rgba(255,255,255,.35);
+  display: flex; align-items: center; justify-content: center; gap: 18px; z-index: 1000;
+}
+.top-menu a { color: #050505; text-decoration: none; font-size: 21px; font-weight: bold; white-space: nowrap; }
+.top-menu .star { color: #111; font-size: 18px; opacity: .75; margin-left: 6px; }
+
+/* shell grows with content — radius ONLY at end of pink area */
+.dreams-shell {
+  position: relative;
+  isolation: isolate;
+  margin-top: 42px;
+  min-height: calc(100vh - 42px);
+  border-radius: 0 0 30px 30px;
+  overflow: hidden;
+  background: #1a0f14 url("dreams-bg.jpg") center center / cover no-repeat;
+}
+.dreams-shell::before {
+  content: "";
+  position: absolute; inset: 0; z-index: 0;
+  background: inherit;
+  background-size: cover;
+  background-position: center;
+  filter: blur(14px);
+  transform: scale(1.06);
+}
+.dreams-grain {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: .4;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+  mix-blend-mode: soft-light;
+}
+.dreams-inner {
+  position: relative; z-index: 2;
+  padding: 56px 20px 80px;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.kq-title { margin: 0; font-family: "Bodoni 72", Didot, "Bodoni MT", Georgia, serif;
+  font-size: clamp(52px, 12vw, 96px); font-weight: 400; line-height: .85; letter-spacing: -4px;
+  text-shadow: 0 2px 0 rgba(255,255,255,.28), 0 8px 22px rgba(0,0,0,.2); }
+.kq-tagline { margin: 10px 0 0; font-size: 15px; font-style: italic; font-weight: bold; }
+.kq-user { margin: 8px 0 28px; font-size: 13px; font-family: Arial, sans-serif; opacity: .75; }
+
+.post {
+  position: relative;
+  margin: 0 0 18px;
+  padding: 22px;
+  border-radius: 20px;
+  background: rgba(255,255,255,.2);
+  border: 1px solid rgba(255,255,255,.35);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 10px 28px rgba(0,0,0,.1);
+}
+.post-del {
+  position: absolute; top: 12px; right: 12px;
+  width: 36px; height: 36px; border: 0; border-radius: 50%;
+  background: rgba(255,255,255,.35);
+  color: #5a2030; font-size: 16px;
+  opacity: 0; transform: scale(.9);
+  transition: opacity .2s, transform .2s;
+  display: flex; align-items: center; justify-content: center;
+}
+.post:hover .post-del { opacity: 1; transform: scale(1); }
+.post-date { font-size: 12px; font-family: Arial, sans-serif; opacity: .65; margin-bottom: 8px; }
+.post-title { margin: 0 0 10px; font-size: 26px; line-height: 1.2; padding-right: 40px; }
+.post-media { margin: 0 0 12px; border-radius: 16px; overflow: hidden; }
+.post-media img { width: 100%; display: block; max-height: 420px; object-fit: cover; -webkit-user-drag: none; }
+.post-content { font-size: 16px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
+
+.reactions { display: flex; gap: 8px; margin: 14px 0 8px; }
+.react-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 1px solid rgba(255,255,255,.4);
+  background: rgba(255,255,255,.28);
+  border-radius: 999px; padding: 6px 12px;
+  font-size: 13px; color: #5a3040;
+  backdrop-filter: blur(8px);
+}
+.react-btn svg { width: 16px; height: 16px; display: block; }
+
+.comments { margin-top: 12px; }
+.comment {
+  padding: 10px 0; border-top: 1px solid rgba(255,255,255,.2);
+  position: relative;
+}
+.comment-meta { font-size: 12px; font-family: Arial, sans-serif; margin-bottom: 4px; }
+.author-badge { color: #c45a7a; font-weight: bold; }
+.author-badge::before { content: "✦ "; }
+.comment-body { font-size: 14px; line-height: 1.4; }
+.c-del {
+  position: absolute; top: 8px; right: 0;
+  border: 0; background: transparent; color: #7a4050;
+  font-size: 12px; opacity: 0; transition: opacity .2s;
+}
+.comment:hover .c-del { opacity: .85; }
+
+.comment-form textarea {
+  width: 100%; min-height: 64px; padding: 10px 12px; border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.45); background: rgba(255,255,255,.3);
+  font-family: Georgia, serif; font-size: 14px; resize: vertical;
+}
+.comment-form button {
+  margin-top: 8px; border: 0; border-radius: 999px; padding: 8px 16px;
+  background: #f0c9d6; color: #3a2030; font-weight: bold; font-family: Arial, sans-serif;
+}
+
+.empty { text-align: center; font-style: italic; opacity: .8; padding: 40px 0; }
+
+.support-line { text-align: center; padding: 16px; background: #000; }
+.support-line a { color: #F1B9D0; text-decoration: none; font-size: 14px; }
+footer {
+  min-height: 100px; background: #000; color: #F1B9D0;
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 18px 24px; font-size: 14px;
+}
+.socials { display: flex; gap: 16px; justify-content: center; }
+.socials a { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: #F1B9D0; }
+.socials svg { width: 22px; height: 22px; fill: currentColor; }
+.back-to-top-fixed {
+  position: fixed; right: 22px; bottom: 22px; z-index: 999;
+  width: 44px; height: 44px; border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.25);
+  background: rgba(255,255,255,.14); color: #f6dce8;
+  display: flex; align-items: center; justify-content: center;
+  text-decoration: none; font-size: 18px; font-weight: bold;
+  backdrop-filter: blur(16px);
+}
+
+.auth-overlay {
+  display: none; position: fixed; inset: 0; z-index: 2000;
+  background: rgba(20,10,16,.45); align-items: center; justify-content: center; padding: 16px;
+}
+.auth-overlay.open { display: flex; }
+.auth-modal {
+  width: min(94vw, 440px); max-height: 90vh; overflow-y: auto; padding: 22px;
+  border-radius: 20px; border: 1px solid rgba(255,255,255,.4);
+  background: rgba(255,255,255,.22); backdrop-filter: blur(16px); color: #2a1822; text-align: left;
+}
+.auth-modal h2 { margin: 0 0 12px; font-weight: normal; }
+.auth-modal label { display: block; font-size: 12px; font-weight: bold; margin: 10px 0 4px; font-family: Arial, sans-serif; }
+.auth-modal input, .auth-modal textarea, .auth-modal select {
+  width: 100%; padding: 10px 12px; border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.5); background: rgba(255,255,255,.35);
+  font-family: Georgia, serif; font-size: 15px;
+}
+.auth-modal textarea { min-height: 100px; resize: vertical; }
+.auth-actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+.auth-actions button {
+  flex: 1; min-width: 90px; min-height: 44px; padding: 10px; border: 0; border-radius: 999px;
+  background: #f0c9d6; color: #3a2030; font-weight: bold; font-family: Arial, sans-serif;
+}
+.auth-actions button.secondary { background: rgba(255,255,255,.4); }
+.auth-actions button.danger { background: rgba(180,80,100,.85); color: #fff; }
+.auth-error { margin-top: 10px; font-size: 13px; color: #7a2030; min-height: 1.2em; }
+.compose-preview-box {
+  margin-top: 12px; padding: 14px; border-radius: 14px;
+  background: rgba(255,255,255,.25); border: 1px solid rgba(255,255,255,.35);
+}
+.prev-title { font-weight: bold; margin-bottom: 6px; }
+.prev-body { font-style: italic; opacity: .9; white-space: pre-wrap; }
+.reason-list label {
+  display: flex; gap: 8px; align-items: flex-start; font-weight: normal;
+  margin: 6px 0; font-size: 13px; line-height: 1.3;
+}
+.reason-list input { width: auto; margin-top: 3px; }
+.auth-hint { font-size: 11px; opacity: .7; margin-top: 8px; font-family: Arial, sans-serif; }
+
+@media (max-width: 700px) {
+  .top-menu { justify-content: flex-start; overflow-x: auto; padding: 0 8px; gap: 12px; }
+  .post-del { opacity: .7; }
+  footer { grid-template-columns: 1fr; gap: 12px; text-align: center; }
+}
+</style>
 </head>
 <body id="top">
 
-    <nav class="top-menu">
-        <a href="index.html" id="nav-home">home</a>
-        <a href="notes.html" id="nav-notes">notes</a>
-        <a href="dreams.html" id="nav-dreams">dreams</a>
-        <a href="quotes.html" id="nav-quotes">quotation/definition</a>
-        <a href="about.html" id="nav-about">about</a>
-        <span class="star" id="admin-star">★</span>
-    </nav>
+<nav class="top-menu">
+  <a href="index.html" id="nav-home">home</a>
+  <a href="notes.html" id="nav-notes">notes</a>
+  <a href="dreams.html" id="nav-dreams">dreams</a>
+  <a href="quotes.html" id="nav-quotes">quotation/definition</a>
+  <a href="about.html" id="nav-about">about</a>
+  <span class="star" id="admin-star">★</span>
+</nav>
 
-    <div class="dreams-bg" aria-hidden="true"></div>
-    <div class="dreams-grain" aria-hidden="true"></div>
-
-    <main class="dreams-page">
-        <div class="dreams-header">
-            <div class="kq-page-header">
-            <h1 class="kq-title dreams-title">DREAMS</h1>
-            <div class="kq-tagline">things I probably shouldn't publish</div>
-            <div class="kq-user" id="dreams-user-label">dreams · @kinqsy</div>
-        </div>
+<div class="dreams-shell">
+  <div class="dreams-grain" aria-hidden="true"></div>
+  <div class="dreams-inner">
+    <h1 class="kq-title">DREAMS</h1>
+    <div class="kq-tagline">things I probably shouldn't publish</div>
+    <div class="kq-user" id="dreams-user-label">dreams · @kinqsy</div>
+    <section id="feed"></section>
+  </div>
 </div>
-        <section class="feed" id="feed"></section>
-    </main>
 
-    <div class="support-line">
-        <a href="https://boosty.to/kinqsy/donate" target="_blank" rel="noopener noreferrer">support the diary</a>
+<div class="support-line">
+  <a href="https://boosty.to/kinqsy/donate" target="_blank" rel="noopener noreferrer">support the diary</a>
+</div>
+<footer>
+  <div>© 2026 kinqsy.lol</div>
+  <div class="socials">
+    <a href="https://t.me/kinqsy_notes" target="_blank" rel="noopener noreferrer" aria-label="Telegram"><svg viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg></a>
+    <a href="https://pin.it/7q2l8cx9W" target="_blank" rel="noopener noreferrer" aria-label="Pinterest"><svg viewBox="0 0 24 24"><path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.401.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.354-.629-2.758-1.379l-.749 2.848c-.269 1.045-1.004 2.352-1.498 3.146 1.123.345 2.306.535 3.55.535 6.607 0 11.985-5.365 11.985-11.987C23.97 5.39 18.592.026 11.985.026L12.017 0z"/></svg></a>
+    <a href="https://youtube.com/@kinggggggggggggggggggggg" target="_blank" rel="noopener noreferrer" aria-label="YouTube"><svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+  </div>
+  <div></div>
+</footer>
+<a href="#top" class="back-to-top-fixed">↑</a>
+
+<!-- compose -->
+<div class="auth-overlay" id="compose-overlay">
+  <div class="auth-modal">
+    <h2>новый dream</h2>
+    <label for="compose-title">заголовок</label>
+    <input id="compose-title" type="text">
+    <label for="compose-content">текст</label>
+    <textarea id="compose-content" rows="5"></textarea>
+    <label for="compose-title-font">шрифт заголовка</label>
+    <select id="compose-title-font">
+<option value="Georgia, serif">Georgia</option>
+<option value="'Rubik Beastly', system-ui">Rubik Beastly</option>
+<option value="'Poiret One', sans-serif">Poiret One</option>
+<option value="'Kaisei Decol', serif">Kaisei Decol</option>
+<option value="'Bad Script', cursive">Bad Script</option>
+<option value="'Alumni Sans Collegiate One', sans-serif">Alumni Sans Collegiate One</option>
+<option value="'Rubik 80s Fade', system-ui">Rubik 80s Fade</option>
+<option value="'Climate Crisis', sans-serif">Climate Crisis</option>
+<option value="'Press Start 2P', monospace">Press Start 2P</option>
+<option value="'Amatic SC', cursive">Amatic SC</option>
+<option value="'Shafarik', serif">Shafarik</option>
+</select>
+    <label for="compose-body-font">шрифт текста</label>
+    <select id="compose-body-font">
+<option value="Georgia, serif">Georgia</option>
+<option value="'Rubik Beastly', system-ui">Rubik Beastly</option>
+<option value="'Poiret One', sans-serif">Poiret One</option>
+<option value="'Kaisei Decol', serif">Kaisei Decol</option>
+<option value="'Bad Script', cursive">Bad Script</option>
+<option value="'Alumni Sans Collegiate One', sans-serif">Alumni Sans Collegiate One</option>
+<option value="'Rubik 80s Fade', system-ui">Rubik 80s Fade</option>
+<option value="'Climate Crisis', sans-serif">Climate Crisis</option>
+<option value="'Press Start 2P', monospace">Press Start 2P</option>
+<option value="'Amatic SC', cursive">Amatic SC</option>
+<option value="'Shafarik', serif">Shafarik</option>
+</select>
+    <label for="compose-title-color">цвет заголовка</label>
+    <input id="compose-title-color" type="color" value="#1a0f14">
+    <label for="compose-body-color">цвет текста</label>
+    <input id="compose-body-color" type="color" value="#1a0f14">
+    <label for="compose-media-url">ссылка на фото/gif</label>
+    <input id="compose-media-url" type="url" placeholder="https://...">
+    <label for="compose-media-file">или файл с устройства</label>
+    <input id="compose-media-file" type="file" accept="image/*,.gif">
+    <div class="compose-preview-box">
+      <div class="prev-title" id="compose-live-title">заголовок…</div>
+      <div class="prev-body" id="compose-live-body">текст…</div>
+      <img id="compose-preview" alt="" style="display:none;max-width:100%;border-radius:12px;margin-top:8px">
     </div>
-
-    <footer>
-        <div>© 2026 kinqsy.lol</div>
-        <div class="socials">
-            <a href="https://t.me/kinqsy_notes" target="_blank" rel="noopener noreferrer" aria-label="Telegram">
-                <svg viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
-            </a>
-            <a href="https://pin.it/7q2l8cx9W" target="_blank" rel="noopener noreferrer" aria-label="Pinterest">
-                <svg viewBox="0 0 24 24"><path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.401.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.354-.629-2.758-1.379l-.749 2.848c-.269 1.045-1.004 2.352-1.498 3.146 1.123.345 2.306.535 3.55.535 6.607 0 11.985-5.365 11.985-11.987C23.97 5.39 18.592.026 11.985.026L12.017 0z"/></svg>
-            </a>
-            <a href="https://youtube.com/@kinggggggggggggggggggggg" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
-                <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-            </a>
-        </div>
-        <div></div>
-    </footer>
-
-    <a href="#top" class="back-to-top-fixed" aria-label="Наверх">↑</a>
-
-    <div class="post-menu" id="post-menu">
-        <button type="button" id="post-menu-edit">изменить</button>
-        <button type="button" id="post-menu-delete" class="danger">удалить</button>
+    <div class="auth-actions">
+      <button type="button" id="compose-publish">опубликовать</button>
+      <button type="button" id="compose-close" class="secondary">закрыть</button>
     </div>
+    <div class="auth-error" id="compose-error"></div>
+  </div>
+</div>
 
-    <div class="auth-overlay" id="auth-overlay">
-        <div class="auth-modal">
-            <h2>вход</h2>
-            <label for="auth-email">email</label>
-            <input id="auth-email" type="email" autocomplete="username">
-            <label for="auth-password">пароль</label>
-            <input id="auth-password" type="password" autocomplete="current-password">
-            <div class="auth-actions">
-                <button type="button" id="auth-login">войти</button>
-                <button type="button" id="auth-signup" class="secondary">регистрация</button>
-                <button type="button" id="auth-close" class="secondary">закрыть</button>
-            </div>
-            <div class="auth-error" id="auth-error"></div>
-        </div>
+<!-- edit -->
+<div class="auth-overlay" id="edit-overlay">
+  <div class="auth-modal">
+    <h2>изменить dream</h2>
+    <label for="edit-title">заголовок</label>
+    <input id="edit-title" type="text">
+    <label for="edit-content">текст</label>
+    <textarea id="edit-content" rows="5"></textarea>
+    <label for="edit-title-font">шрифт заголовка</label>
+    <select id="edit-title-font">
+<option value="Georgia, serif">Georgia</option>
+<option value="'Rubik Beastly', system-ui">Rubik Beastly</option>
+<option value="'Poiret One', sans-serif">Poiret One</option>
+<option value="'Kaisei Decol', serif">Kaisei Decol</option>
+<option value="'Bad Script', cursive">Bad Script</option>
+<option value="'Alumni Sans Collegiate One', sans-serif">Alumni Sans Collegiate One</option>
+<option value="'Rubik 80s Fade', system-ui">Rubik 80s Fade</option>
+<option value="'Climate Crisis', sans-serif">Climate Crisis</option>
+<option value="'Press Start 2P', monospace">Press Start 2P</option>
+<option value="'Amatic SC', cursive">Amatic SC</option>
+<option value="'Shafarik', serif">Shafarik</option>
+</select>
+    <label for="edit-body-font">шрифт текста</label>
+    <select id="edit-body-font">
+<option value="Georgia, serif">Georgia</option>
+<option value="'Rubik Beastly', system-ui">Rubik Beastly</option>
+<option value="'Poiret One', sans-serif">Poiret One</option>
+<option value="'Kaisei Decol', serif">Kaisei Decol</option>
+<option value="'Bad Script', cursive">Bad Script</option>
+<option value="'Alumni Sans Collegiate One', sans-serif">Alumni Sans Collegiate One</option>
+<option value="'Rubik 80s Fade', system-ui">Rubik 80s Fade</option>
+<option value="'Climate Crisis', sans-serif">Climate Crisis</option>
+<option value="'Press Start 2P', monospace">Press Start 2P</option>
+<option value="'Amatic SC', cursive">Amatic SC</option>
+<option value="'Shafarik', serif">Shafarik</option>
+</select>
+    <label for="edit-title-color">цвет заголовка</label>
+    <input id="edit-title-color" type="color" value="#1a0f14">
+    <label for="edit-body-color">цвет текста</label>
+    <input id="edit-body-color" type="color" value="#1a0f14">
+    <label for="edit-media-url">ссылка на фото/gif</label>
+    <input id="edit-media-url" type="url">
+    <div class="compose-preview-box">
+      <div class="prev-title" id="edit-live-title">заголовок…</div>
+      <div class="prev-body" id="edit-live-body">текст…</div>
     </div>
+    <div class="auth-actions">
+      <button type="button" id="edit-save">сохранить</button>
+      <button type="button" id="edit-close" class="secondary">отмена</button>
+    </div>
+    <div class="auth-error" id="edit-error"></div>
+  </div>
+</div>
 
-    <div class="auth-overlay" id="edit-overlay">
-        <div class="auth-modal">
-            <h2>изменить сон</h2>
-            <label for="edit-title">заголовок</label>
-            <input id="edit-title" type="text">
-            <label for="edit-content">текст</label>
-            <textarea id="edit-content" rows="5"></textarea>
-            <label for="edit-media">ссылка на фото/gif</label>
-            <input id="edit-media" type="url">
-            <label for="edit-title-font">шрифт заголовка</label>
-            <select id="edit-title-font">
-                <option value="Georgia, serif">Georgia</option>
-                <option value="'Poiret One', sans-serif">Poiret One</option>
-                <option value="'Amatic SC', cursive">Amatic SC</option>
-                <option value="'Bad Script', cursive">Bad Script</option>
-            </select>
-            <label for="edit-title-color">цвет заголовка</label>
-            <input id="edit-title-color" type="color" value="#1a0f14">
-            <label for="edit-body-color">цвет текста</label>
-            <input id="edit-body-color" type="color" value="#1a0f14">
-            <div class="auth-actions">
-                <button type="button" id="edit-save">сохранить</button>
-                <button type="button" id="edit-close" class="secondary">закрыть</button>
-            </div>
-            <div class="auth-error" id="edit-error"></div>
-        </div>
+<!-- confirm delete post -->
+<div class="auth-overlay" id="del-post-modal">
+  <div class="auth-modal">
+    <h2>удалить пост?</h2>
+    <p style="margin:0 0 12px;font-size:14px">Вы точно хотите удалить этот dream?</p>
+    <div class="auth-actions">
+      <button type="button" id="del-post-yes" class="danger">да, удалить</button>
+      <button type="button" id="del-post-no" class="secondary">нет</button>
     </div>
-    <div class="auth-overlay" id="compose-overlay">
-        <div class="auth-modal">
-            <h2>новый сон</h2>
-            <label for="compose-title">заголовок</label>
-            <input id="compose-title" type="text">
-            <label for="compose-content">текст</label>
-            <textarea id="compose-content" rows="5"></textarea>
-            <label for="compose-title-font">шрифт заголовка</label>
-            <select id="compose-title-font">
-                <option value="Georgia, serif">Georgia</option>
-                <option value="'Poiret One', sans-serif">Poiret One</option>
-                <option value="'Amatic SC', cursive">Amatic SC</option>
-                <option value="'Bad Script', cursive">Bad Script</option>
-            </select>
-            <label for="compose-title-color">цвет заголовка</label>
-            <input id="compose-title-color" type="color" value="#1a0f14">
-            <label for="compose-body-font">шрифт текста</label>
-            <select id="compose-body-font">
-                <option value="Georgia, serif">Georgia</option>
-                <option value="'Poiret One', sans-serif">Poiret One</option>
-                <option value="'Amatic SC', cursive">Amatic SC</option>
-                <option value="'Bad Script', cursive">Bad Script</option>
-            </select>
-            <label for="compose-body-color">цвет текста</label>
-            <input id="compose-body-color" type="color" value="#1a0f14">
-            <div class="auth-hint" style="margin-top:8px">превью:</div>
-            <div id="compose-live-title" style="font-weight:bold;margin-top:4px">заголовок…</div>
-            <div id="compose-live-body" style="font-style:italic;opacity:.85">текст…</div>
-            <label for="compose-media">ссылка на фото/gif</label>
-            <input id="compose-media" type="url" placeholder="https://...">
-            <label for="compose-file">или файл с устройства</label>
-            <input id="compose-file" type="file" accept="image/*,.gif">
-            <img id="compose-preview" class="compose-preview" alt="">
-            <div class="auth-hint" id="compose-preview-text" style="margin-top:8px;font-style:italic"></div>
-            <div class="auth-actions">
-                <button type="button" id="compose-save">опубликовать</button>
-                <button type="button" id="compose-close" class="secondary">закрыть</button>
-            </div>
-            <div class="auth-error" id="compose-error"></div>
-        </div>
-    </div>
+  </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="kinqsy-core.js"></script>
-    <script>
+<!-- confirm delete comment -->
+<div class="auth-overlay" id="del-c-modal">
+  <div class="auth-modal">
+    <h2>удалить комментарий?</h2>
+    <p style="margin:0 0 12px;font-size:14px">Вы хотите удалить этот комментарий?</p>
+    <div class="auth-actions">
+      <button type="button" id="del-c-yes" class="danger">да</button>
+      <button type="button" id="del-c-no" class="secondary">нет</button>
+    </div>
+  </div>
+</div>
+
+<!-- reason survey -->
+<div class="auth-overlay" id="del-reason-modal">
+  <div class="auth-modal">
+    <h2>почему удаляете?</h2>
+    <p class="auth-hint">Удаление комментария не значит, что пользователь нарушил правила.</p>
+    <div class="reason-list" id="reason-list">
+      <label><input type="radio" name="reason" value="rules"> комментарий нарушает правила KINQSY</label>
+      <label><input type="radio" name="reason" value="abuse"> оскорбление или травля</label>
+      <label><input type="radio" name="reason" value="privacy"> раскрывает личную информацию</label>
+      <label><input type="radio" name="reason" value="spam"> спам или реклама</label>
+      <label><input type="radio" name="reason" value="threat"> угроза или опасный контент</label>
+      <label><input type="radio" name="reason" value="provocation"> провокация</label>
+      <label><input type="radio" name="reason" value="offtopic"> не относится к публикации</label>
+      <label><input type="radio" name="reason" value="prefer"> просто не хочу видеть под своим постом</label>
+      <label><input type="radio" name="reason" value="other"> другая причина</label>
+    </div>
+    <div id="rules-detail" style="display:none;margin-top:10px">
+      <label>какое правило нарушено?</label>
+      <select id="rules-which">
+        <option value="insult">оскорбление</option>
+        <option value="threat">угроза</option>
+        <option value="spam">спам</option>
+        <option value="privacy">приватность</option>
+        <option value="banned">запрещённый контент</option>
+        <option value="other">другое</option>
+      </select>
+    </div>
+    <div class="auth-actions">
+      <button type="button" id="reason-submit">подтвердить удаление</button>
+      <button type="button" id="reason-cancel" class="secondary">отмена</button>
+    </div>
+    <div class="auth-error" id="reason-error"></div>
+  </div>
+</div>
+
+<div class="post-menu" id="post-menu" style="display:none;position:fixed;z-index:1500;min-width:140px;padding:6px;border-radius:12px;background:rgba(255,255,255,.92);box-shadow:0 12px 30px rgba(0,0,0,.2)">
+  <button type="button" id="post-menu-edit" style="display:block;width:100%;border:0;background:transparent;padding:10px;text-align:left;border-radius:8px">изменить</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="kinqsy-core.js"></script>
+<script>
 (function () {
-    var SUPABASE_URL = "https://rgkfegdtxaojceknnzlr.supabase.co";
-    var SUPABASE_KEY = "sb_publishable_uK7zrVyq8AlHpoj13pGQ6g_q3L47Akw";
-    var sb = window.__kinqsy_sb || (window.__kinqsy_sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: true, storageKey: "kinqsy-auth" } }));
+  var SUPABASE_URL = "https://rgkfegdtxaojceknnzlr.supabase.co";
+  var SUPABASE_KEY = "sb_publishable_uK7zrVyq8AlHpoj13pGQ6g_q3L47Akw";
+  var sb = window.__kinqsy_sb || (window.__kinqsy_sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+    auth: { persistSession: true, storageKey: "kinqsy-auth" }
+  }));
+  var OWNER_ID = "4923abc5-5c86-48c2-904b-a267c2e21703";
+  var OWNER_SLUG = "kinqsy";
+  var viewedUserId = null;
+  var editingPostId = null;
+  var pendingDeletePostId = null;
+  var pendingDeleteComment = null;
 
-    var OWNER_ID = "4923abc5-5c86-48c2-904b-a267c2e21703";
-    var OWNER_SLUG = "kinqsy";
-    var viewedUserId = null;
-    var activePostMenu = null;
-
-    function escapeHtml(t) {
-        return String(t || "")
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;");
+  function escapeHtml(t) {
+    return String(t || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+  function getU() {
+    if (window.Kinqsy) return Kinqsy.getU();
+    var u = new URLSearchParams(location.search).get("u");
+    return (u && u.trim()) ? u.trim() : OWNER_SLUG;
+  }
+  async function currentUserId() {
+    var { data: { session } } = await sb.auth.getSession();
+    return session ? session.user.id : null;
+  }
+  function formatAuthor(name, userId) {
+    if (userId && String(userId) === OWNER_ID) {
+      return '<span class="author-badge">kinqsy</span>';
     }
+    return escapeHtml(name || "гость");
+  }
 
-    function getU() {
-        var u = new URLSearchParams(location.search).get("u");
-        return (u && u.trim()) ? u.trim() : OWNER_SLUG;
+  async function resolveViewed() {
+    var slug = getU();
+    document.getElementById("dreams-user-label").textContent = "dreams · @" + slug;
+    if (window.Kinqsy) Kinqsy.fixMenu();
+    var res = await sb.from("profiles").select("id").ilike("display_name", slug).maybeSingle();
+    if (!res.data && slug.toLowerCase() === OWNER_SLUG) {
+      res = await sb.from("profiles").select("id").eq("id", OWNER_ID).maybeSingle();
     }
+    viewedUserId = res.data ? res.data.id : (slug.toLowerCase() === OWNER_SLUG ? OWNER_ID : null);
+    return viewedUserId;
+  }
 
-    function menuUrl(page) {
-        return page + "?u=" + encodeURIComponent(getU());
-    }
+  async function loadComments(postId) {
+    var { data } = await sb.from("comments").select("*").eq("post_id", postId).order("created_at", { ascending: true });
+    return data || [];
+  }
+  async function loadReactions(postId) {
+    try {
+      var { data } = await sb.from("reactions").select("reaction").eq("post_id", postId);
+      var heart = 0, broken = 0;
+      (data || []).forEach(function (r) {
+        if (r.reaction === "heart") heart++;
+        if (r.reaction === "broken") broken++;
+      });
+      return { heart: heart, broken: broken };
+    } catch (e) { return { heart: 0, broken: 0 }; }
+  }
+  function reactionsHtml(c, id) {
+    return '<div class="reactions" data-id="' + id + '">' +
+      '<button type="button" class="react-btn" data-reaction="heart">' +
+      '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 21s-6.7-4.2-9.3-8.2C.7 9.7 2.2 6 5.5 6c1.8 0 3.1 1 3.9 2.1C10.2 7 11.5 6 13.3 6c3.3 0 4.8 3.7 2.8 6.8C18.7 16.8 12 21 12 21z"/></svg> ' +
+      c.heart + '</button>' +
+      '<button type="button" class="react-btn" data-reaction="broken">' +
+      '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 21s-6.7-4.2-9.3-8.2C.7 9.7 2.2 6 5.5 6c1.8 0 3.1 1 3.9 2.1L12 12l.5-1.2C13.3 9.7 14.6 6 17.3 6c3.3 0 4.8 3.7 2.8 6.8C18.7 16.8 12 21 12 21zM12 12l-2 5 2-1 2 1-2-5z"/></svg> ' +
+      c.broken + '</button></div>';
+  }
 
-    function fixMenu() {
-        var map = {
-            "nav-home": "index.html",
-            "nav-notes": "notes.html",
-            "nav-dreams": "dreams.html",
-            "nav-quotes": "quotes.html",
-            "nav-about": "about.html"
-        };
-        Object.keys(map).forEach(function (id) {
-            var el = document.getElementById(id);
-            if (el) el.href = menuUrl(map[id]);
-        });
-    }
+  async function canEditPost(post) {
+    var uid = await currentUserId();
+    if (!uid) return false;
+    if (post.user_id && String(post.user_id) === String(uid)) return true;
+    if (String(uid) === String(OWNER_ID)) return true;
+    return false;
+  }
 
-    async function resolveViewedUser() {
-        fixMenu();
-        var slug = getU();
-        var label = document.getElementById("dreams-user-label");
-        if (label) label.textContent = "dreams · @" + slug;
+  function openEdit(post) {
+    editingPostId = post.id;
+    document.getElementById("edit-title").value = post.title || "";
+    document.getElementById("edit-content").value = post.content || "";
+    document.getElementById("edit-media-url").value = post.media_url || "";
+    if (post.title_font) document.getElementById("edit-title-font").value = post.title_font;
+    if (post.body_font) document.getElementById("edit-body-font").value = post.body_font;
+    if (post.title_color) document.getElementById("edit-title-color").value = post.title_color;
+    if (post.body_color) document.getElementById("edit-body-color").value = post.body_color;
+    document.getElementById("edit-error").textContent = "";
+    updateEditPreview();
+    document.getElementById("edit-overlay").classList.add("open");
+  }
 
-        var res = await sb.from("profiles").select("id, display_name").ilike("display_name", slug).maybeSingle();
-        if (!res.data && slug.toLowerCase() === OWNER_SLUG) {
-            res = await sb.from("profiles").select("id, display_name").eq("id", OWNER_ID).maybeSingle();
-        }
-        viewedUserId = res.data ? res.data.id : (slug.toLowerCase() === OWNER_SLUG ? OWNER_ID : null);
-        window.__dreamsViewedUserId = viewedUserId;
-        return viewedUserId;
-    }
+  function updateComposePreview() {
+    var t = document.getElementById("compose-live-title");
+    var b = document.getElementById("compose-live-body");
+    t.textContent = document.getElementById("compose-title").value || "заголовок…";
+    b.textContent = document.getElementById("compose-content").value || "текст…";
+    t.style.fontFamily = document.getElementById("compose-title-font").value;
+    t.style.color = document.getElementById("compose-title-color").value;
+    b.style.fontFamily = document.getElementById("compose-body-font").value;
+    b.style.color = document.getElementById("compose-body-color").value;
+  }
+  function updateEditPreview() {
+    var t = document.getElementById("edit-live-title");
+    var b = document.getElementById("edit-live-body");
+    t.textContent = document.getElementById("edit-title").value || "заголовок…";
+    b.textContent = document.getElementById("edit-content").value || "текст…";
+    t.style.fontFamily = document.getElementById("edit-title-font").value;
+    t.style.color = document.getElementById("edit-title-color").value;
+    b.style.fontFamily = document.getElementById("edit-body-font").value;
+    b.style.color = document.getElementById("edit-body-color").value;
+  }
+  ["compose-title","compose-content","compose-title-font","compose-body-font","compose-title-color","compose-body-color"].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) { el.addEventListener("input", updateComposePreview); el.addEventListener("change", updateComposePreview); }
+  });
+  ["edit-title","edit-content","edit-title-font","edit-body-font","edit-title-color","edit-body-color"].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) { el.addEventListener("input", updateEditPreview); el.addEventListener("change", updateEditPreview); }
+  });
 
-    async function currentUserId() {
-        var { data: { session } } = await sb.auth.getSession();
-        return session ? session.user.id : null;
-    }
-
-    async function canEditPost(post) {
-        var uid = await currentUserId();
-        if (!uid) return false;
-        if (post.user_id && String(post.user_id) === String(uid)) return true;
-        return false;
-    }
-
-    async function loadComments(postId) {
-        var { data, error } = await sb.from("comments").select("*").eq("post_id", postId).order("created_at", { ascending: true });
-        if (error) return [];
-        return data || [];
-    }
-
-    function hidePostMenu() {
-        var menu = document.getElementById("post-menu");
-        if (menu) menu.classList.remove("open");
-        activePostMenu = null;
-    }
-
-    function showPostMenuNearFooter(article, post) {
-        var menu = document.getElementById("post-menu");
-        if (!menu) return;
-        var footer = article.querySelector(".post-footer-row") || article.querySelector(".post-footer");
-        if (!footer) return;
-        activePostMenu = post;
-        menu.classList.add("open");
-        var rect = footer.getBoundingClientRect();
-        var menuW = 160;
-        var left = rect.right - menuW;
-        var top = rect.top;
-        if (left < 8) left = 8;
-        if (left + menuW > window.innerWidth - 8) left = window.innerWidth - menuW - 8;
-        menu.style.left = left + "px";
-        menu.style.top = top + "px";
-    }
-
-    async function renderPost(post) {
-        var article = document.createElement("article");
-        article.className = "post";
-        article.id = "post-" + post.id;
-
-        var mediaHtml = "";
-        if (post.media_url) {
-            mediaHtml = '<div class="post-media"><img src="' + escapeHtml(post.media_url) + '" alt=""></div>';
-        }
-
-        var comments = await loadComments(post.id);
-        var rcounts = await loadReactions(post.id);
-
-        article.innerHTML =
-            '<div class="post-date">' + new Date(post.created_at).toLocaleDateString("en-GB") + '</div>' +
-            '<h2 class="post-title">' + escapeHtml(post.title || "") + '</h2>' +
-            mediaHtml +
-            '<div class="post-content">' + escapeHtml(post.content || "") + '</div>' +
-            '<div class="post-footer-row">' +
-                reactionsHtml(rcounts, post.id) +
-            '<div class="post-footer">comments · ' + comments.length + '</div>' +
-                '<button type="button" class="post-owner-btn" aria-label="menu">⋯</button>' +
-            '</div>' +
-            '<div class="comments">' +
-                '<div class="comments-list">' +
-                    (comments.length
-                        ? comments.map(function (c) {
-                            return '<div class="comment"><div class="comment-meta">' +
-                                escapeHtml(c.author_name || "гость") + " · " +
-                                new Date(c.created_at).toLocaleDateString("en-GB") +
-                                '</div><div>' + escapeHtml(c.content) + '</div></div>';
-                        }).join("")
-                        : '<div class="comment-meta">пока нет комментариев</div>') +
-                '</div>' +
-                '<form class="comment-form">' +
-                    '<textarea name="content" placeholder="комментарий (нужен вход)" maxlength="500" required></textarea>' +
-                    '<button type="submit">отправить</button>' +
-                '</form>' +
-            '</div>';
-
-        var form = article.querySelector(".comment-form");
-        var list = article.querySelector(".comments-list");
-        var footer = article.querySelector(".post-footer");
-
-        form.addEventListener("submit", async function (e) {
-            e.preventDefault();
-            var content = form.querySelector('[name="content"]').value.trim();
-            if (!content) return;
-            var uid = await currentUserId();
-            if (!uid) { alert("Войди через ★ чтобы комментировать"); return; }
-            var author_name = "user";
-            var pr = await sb.from("profiles").select("display_name").eq("id", uid).maybeSingle();
-            if (pr.data && pr.data.display_name) author_name = pr.data.display_name;
-            var { error } = await sb.from("comments").insert({
-                post_id: post.id,
-                author_name: author_name,
-                content: content,
-                user_id: uid
-            });
-            if (error) { alert(error.message); return; }
-            form.querySelector('[name="content"]').value = "";
-            var fresh = await loadComments(post.id);
-            list.innerHTML = fresh.map(function (c) {
-                return '<div class="comment"><div class="comment-meta">' +
-                    escapeHtml(c.author_name || "гость") + " · " +
-                    new Date(c.created_at).toLocaleDateString("en-GB") +
-                    '</div><div>' + escapeHtml(c.content) + '</div></div>';
-            }).join("") || '<div class="comment-meta">пока нет комментариев</div>';
-            footer.textContent = "comments · " + fresh.length;
-        });
-
-        var btn = article.querySelector(".post-owner-btn");
-        btn.addEventListener("click", async function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            if (!(await canEditPost(post))) {
-                alert("Войди через ★ — править можно только свои сны");
-                return;
-            }
-            if (activePostMenu && String(activePostMenu.id) === String(post.id)) {
-                hidePostMenu();
-                return;
-            }
-            showPostMenuNearFooter(article, post);
-        });
-
-        return article;
-    }
-
-    
-    async function loadReactions(postId) {
-        try {
-            var { data } = await sb.from("reactions").select("reaction").eq("post_id", postId);
-            var heart = 0, broken = 0;
-            (data || []).forEach(function (r) {
-                if (r.reaction === "heart") heart++;
-                if (r.reaction === "broken") broken++;
-            });
-            return { heart: heart, broken: broken };
-        } catch (e) { return { heart: 0, broken: 0 }; }
-    }
-    function reactionsHtml(counts, postId) {
-        return '<div class="reactions" data-id="' + postId + '">' +
-            '<button type="button" class="react-btn" data-reaction="heart">♥ ' + counts.heart + '</button>' +
-            '<button type="button" class="react-btn" data-reaction="broken">♡ ' + counts.broken + '</button></div>';
-    }
-    async function bindReactions(box, postId) {
-        if (!box) return;
-        box.querySelectorAll(".react-btn").forEach(function (btn) {
-            btn.onclick = async function () {
-                var uid = await currentUserId();
-                if (!uid) { alert("Войди через ★"); return; }
-                var reaction = btn.getAttribute("data-reaction");
-                await sb.from("reactions").delete().eq("post_id", postId).eq("user_id", uid);
-                var { error } = await sb.from("reactions").insert({ post_id: postId, user_id: uid, reaction: reaction });
-                if (error) { alert(error.message); return; }
-                var counts = await loadReactions(postId);
-                box.outerHTML = reactionsHtml(counts, postId);
-                var parent = document.querySelector('.reactions[data-id="' + postId + '"]');
-                if (parent) bindReactions(parent, postId);
-            };
-        });
-    }
-
-    async function loadDreams() {
-        var feed = document.getElementById("feed");
-        if (!feed) return;
-        feed.innerHTML = '<div class="empty">loading...</div>';
-
-        var uid = await resolveViewedUser();
-        if (!uid) {
-            feed.innerHTML = '<div class="empty">профиль не найден</div>';
-            return;
-        }
-
-        var { data, error } = await sb
-            .from("posts")
-            .select("*")
-            .eq("category", "dreams")
-            .eq("user_id", uid)
-            .order("created_at", { ascending: false });
-
-        if (error) {
-            feed.innerHTML = '<div class="empty">Supabase error: ' + error.message + '</div>';
-            return;
-        }
-
-        if ((!data || !data.length) && getU().toLowerCase() === OWNER_SLUG) {
-            var all = await sb.from("posts").select("*").eq("category", "dreams").order("created_at", { ascending: false });
-            if (!all.error) {
-                data = (all.data || []).filter(function (p) {
-                    return !p.user_id || String(p.user_id) === String(uid);
-                });
-            }
-        }
-
-        data = data || [];
-        if (!data.length) {
-            feed.innerHTML = '<div class="empty">no dreams yet.</div>';
-            return;
-        }
-
-        feed.innerHTML = "";
-        for (var i = 0; i < data.length; i++) {
-            feed.appendChild(await renderPost(data[i]));
-        }
-    }
-
-    // auth + compose
-    var authOverlay = document.getElementById("auth-overlay");
-    var composeOverlay = document.getElementById("compose-overlay");
-
-    function openAuth() { authOverlay.classList.add("open"); document.getElementById("auth-error").textContent = ""; }
-    function closeAuth() { authOverlay.classList.remove("open"); }
-    function openCompose() { composeOverlay.classList.add("open"); document.getElementById("compose-error").textContent = ""; }
-    window.__openDreamCompose = openCompose;
-    function closeCompose() { composeOverlay.classList.remove("open"); }
-
-    /* star -> core */
-
-    document.getElementById("auth-close").onclick = closeAuth;
-    document.getElementById("compose-close").onclick = closeCompose;
-
-    document.getElementById("auth-login").onclick = async function () {
-        var err = document.getElementById("auth-error");
-        err.textContent = "";
-        var email = document.getElementById("auth-email").value.trim();
-        var password = document.getElementById("auth-password").value;
-        var { error } = await sb.auth.signInWithPassword({ email: email, password: password });
-        if (error) { err.textContent = error.message; return; }
-        closeAuth();
-        var uid = await currentUserId();
-        var { data: prof } = await sb.from("profiles").select("display_name").eq("id", uid).maybeSingle();
-        if (prof && prof.display_name && getU().toLowerCase() !== String(prof.display_name).toLowerCase()) {
-            location.href = "dreams.html?u=" + encodeURIComponent(prof.display_name);
-            return;
-        }
-        openCompose();
-    };
-
-    document.getElementById("auth-signup").onclick = async function () {
-        var err = document.getElementById("auth-error");
-        err.textContent = "";
-        var email = document.getElementById("auth-email").value.trim();
-        var password = document.getElementById("auth-password").value;
-        var { data, error } = await sb.auth.signUp({ email: email, password: password });
-        if (error) { err.textContent = error.message; return; }
-        err.textContent = "аккаунт создан — подтверди почту, потом войди";
-        if (data && data.user) {
-            var nick = email.split("@")[0].slice(0, 32) || "user";
-            var code = "KQ-" + Math.random().toString(36).slice(2, 8).toUpperCase();
-            await sb.from("profiles").upsert({
-                id: data.user.id,
-                display_name: nick,
-                friend_code: code,
-                updated_at: new Date().toISOString()
-            }, { onConflict: "id" });
-        }
-    };
-
-    var fileInput = document.getElementById("compose-file");
-    if (fileInput) fileInput.onchange = function () {
-        var f = fileInput.files && fileInput.files[0];
-        if (!f) return;
-        if (f.size > 1.5 * 1024 * 1024) { alert("файл до 1.5MB"); return; }
+  document.getElementById("compose-media-url").oninput = function () {
+    var u = this.value.trim();
+    var img = document.getElementById("compose-preview");
+    if (u) { img.style.display = "block"; img.src = u; }
+    else { img.style.display = "none"; }
+  };
+  document.getElementById("compose-media-file").onchange = async function () {
+    var file = this.files && this.files[0];
+    if (!file) return;
+    var uid = await currentUserId();
+    if (!uid) { document.getElementById("compose-error").textContent = "нужен вход"; return; }
+    var ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+    var path = uid + "/" + Date.now() + "." + ext;
+    var up = await sb.storage.from("media").upload(path, file, { upsert: true });
+    if (up.error) {
+      // fallback data URL small files
+      if (file.size < 1.2 * 1024 * 1024) {
         var reader = new FileReader();
         reader.onload = function () {
-            document.getElementById("compose-media").value = reader.result;
-            var img = document.getElementById("compose-preview");
-            img.style.display = "block"; img.src = reader.result;
+          document.getElementById("compose-media-url").value = reader.result;
+          var img = document.getElementById("compose-preview");
+          img.style.display = "block"; img.src = reader.result;
         };
-        reader.readAsDataURL(f);
-    };
-    document.getElementById("compose-media").oninput = function () {
-        var u = document.getElementById("compose-media").value.trim();
-        var img = document.getElementById("compose-preview");
-        if (u) { img.style.display = "block"; img.src = u; }
-        else { img.style.display = "none"; img.src = ""; }
-    };
-
-    document.getElementById("compose-save").onclick = async function () {
-        var err = document.getElementById("compose-error");
-        err.textContent = "";
-        var uid = await currentUserId();
-        if (!uid) { err.textContent = "нужен вход"; return; }
-
-        var title = document.getElementById("compose-title").value.trim();
-        var content = document.getElementById("compose-content").value.trim();
-        var media_url = document.getElementById("compose-media").value.trim();
-        if (!title && !content) {
-            err.textContent = "напиши заголовок или текст";
-            return;
-        }
-
-        var payload = {
-            title: title,
-            content: content,
-            category: "dreams",
-            user_id: uid,
-            title_font: document.getElementById("compose-title-font") ? document.getElementById("compose-title-font").value : null,
-            body_font: document.getElementById("compose-body-font") ? document.getElementById("compose-body-font").value : null,
-            title_color: document.getElementById("compose-title-color") ? document.getElementById("compose-title-color").value : null,
-            body_color: document.getElementById("compose-body-color") ? document.getElementById("compose-body-color").value : null
-        };
-        Object.keys(payload).forEach(function (k) { if (payload[k] == null) delete payload[k]; });
-        if (media_url) {
-            payload.media_url = media_url;
-            payload.media_type = /\.gif(\?|$)/i.test(media_url) ? "gif" : "image";
-        }
-
-        var { error } = await sb.from("posts").insert(payload);
-        if (error) { err.textContent = error.message; return; }
-
-        document.getElementById("compose-title").value = "";
-        document.getElementById("compose-content").value = "";
-        document.getElementById("compose-media").value = "";
-        document.getElementById("compose-preview").style.display = "none";
-        closeCompose();
-        await function updateDreamComposePreview() {
-        var t = document.getElementById("compose-live-title");
-        var b = document.getElementById("compose-live-body");
-        if (!t || !b) return;
-        t.textContent = document.getElementById("compose-title").value || "заголовок…";
-        b.textContent = document.getElementById("compose-content").value || "текст…";
-        t.style.fontFamily = document.getElementById("compose-title-font").value;
-        t.style.color = document.getElementById("compose-title-color").value;
-        var bf = document.getElementById("compose-body-font");
-        b.style.fontFamily = bf ? bf.value : "Georgia, serif";
-        b.style.color = document.getElementById("compose-body-color").value;
+        reader.readAsDataURL(file);
+      } else {
+        document.getElementById("compose-error").textContent = up.error.message;
+      }
+      return;
     }
-    ["compose-title","compose-content","compose-title-font","compose-body-font","compose-title-color","compose-body-color"].forEach(function (id) {
-        var el = document.getElementById(id);
-        if (el) { el.addEventListener("input", updateDreamComposePreview); el.addEventListener("change", updateDreamComposePreview); }
-    });
-    loadDreams();
-    };
+    var { data } = sb.storage.from("media").getPublicUrl(path);
+    document.getElementById("compose-media-url").value = data.publicUrl;
+    var img = document.getElementById("compose-preview");
+    img.style.display = "block"; img.src = data.publicUrl;
+  };
 
-    document.getElementById("post-menu-delete").onclick = async function () {
-        if (!activePostMenu) return;
-        if (!confirm("Удалить сон?")) return;
-        var { error } = await sb.from("posts").delete().eq("id", activePostMenu.id);
-        hidePostMenu();
-        if (error) { alert(error.message); return; }
-        loadDreams();
-    };
+  async function makePost(post) {
+    var article = document.createElement("article");
+    article.className = "post";
+    article.id = "post-" + post.id;
 
-    document.getElementById("post-menu-edit").onclick = async function () {
-        if (!activePostMenu) return;
-        var post = activePostMenu;
-        hidePostMenu();
-        document.getElementById("edit-title").value = post.title || "";
-        document.getElementById("edit-content").value = post.content || "";
-        var em = document.getElementById("edit-media");
-        if (em) em.value = post.media_url || "";
-        window.__editingDreamId = post.id;
-        document.getElementById("edit-error").textContent = "";
-        document.getElementById("edit-overlay").classList.add("open");
-    };
-    document.getElementById("edit-close").onclick = function () {
-        document.getElementById("edit-overlay").classList.remove("open");
-        window.__editingDreamId = null;
-    };
-    document.getElementById("edit-save").onclick = async function () {
-        var err = document.getElementById("edit-error");
-        if (err) err.textContent = "";
-        var id = window.__editingDreamId;
-        if (!id) { if (err) err.textContent = "нет поста"; return; }
-        var sess = await sb.auth.getSession();
-        if (!(sess.data && sess.data.session)) { if (err) err.textContent = "войди через ★"; return; }
-        var payload = {
-            title: document.getElementById("edit-title").value.trim(),
-            content: document.getElementById("edit-content").value.trim()
-        };
-        var media = document.getElementById("edit-media");
-        if (media) {
-            var mu = media.value.trim();
-            payload.media_url = mu || null;
-            if (mu) payload.media_type = /\.gif(\?|$)/i.test(mu) ? "gif" : "image";
-        }
-        var tf = document.getElementById("edit-title-font");
-        var tc = document.getElementById("edit-title-color");
-        var bc = document.getElementById("edit-body-color");
-        if (tf) payload.title_font = tf.value;
-        if (tc) payload.title_color = tc.value;
-        if (bc) payload.body_color = bc.value;
-        var res = await sb.from("posts").update(payload).eq("id", id).select("id");
-        if (res.error || !res.data || !res.data.length) {
-            var basic = { title: payload.title, content: payload.content };
-            if (payload.media_url) basic.media_url = payload.media_url;
-            var r2 = await sb.from("posts").update(basic).eq("id", id).select("id");
-            if (r2.error) { if (err) err.textContent = r2.error.message; return; }
-            if (!r2.data || !r2.data.length) {
-                if (err) err.textContent = "RLS: не обновилось (войди как автор)";
-                return;
-            }
-        }
-        document.getElementById("edit-overlay").classList.remove("open");
-        window.__editingDreamId = null;
-        if (typeof loadDreams === "function") loadDreams();
-    };
+    var titleStyle = "font-family:" + escapeHtml(post.title_font || "Georgia, serif") +
+      ";color:" + escapeHtml(post.title_color || "#1a0f14");
+    var bodyStyle = "font-family:" + escapeHtml(post.body_font || "Georgia, serif") +
+      ";color:" + escapeHtml(post.body_color || "#1a0f14");
 
-    document.addEventListener("click", function (e) {
-        var menu = document.getElementById("post-menu");
-        if (!menu || !menu.classList.contains("open")) return;
-        if (e.target.closest("#post-menu") || e.target.closest(".post-owner-btn")) return;
-        hidePostMenu();
+    var media = post.media_url
+      ? '<div class="post-media"><img src="' + escapeHtml(post.media_url) + '" alt=""></div>'
+      : "";
+    var comments = await loadComments(post.id);
+    var rcounts = await loadReactions(post.id);
+    var can = await canEditPost(post);
+
+    var commentsHtml = comments.map(function (c) {
+      return '<div class="comment" data-cid="' + c.id + '">' +
+        '<div class="comment-meta">' + formatAuthor(c.author_name, c.user_id) +
+        ' · ' + new Date(c.created_at).toLocaleDateString("en-GB") + '</div>' +
+        '<div class="comment-body">' + escapeHtml(c.content) + '</div>' +
+        (can ? '<button type="button" class="c-del" data-cid="' + c.id + '">удалить</button>' : '') +
+        '</div>';
+    }).join("");
+
+    article.innerHTML =
+      (can ? '<button type="button" class="post-del" title="удалить">🗑</button>' : '') +
+      '<div class="post-date">' + new Date(post.created_at).toLocaleDateString("en-GB") +
+      (can ? ' · <button type="button" class="edit-link" style="border:0;background:transparent;color:#5a3040;font-size:12px;text-decoration:underline">изменить</button>' : '') +
+      '</div>' +
+      (post.title ? '<h2 class="post-title" style="' + titleStyle + '">' + escapeHtml(post.title) + '</h2>' : '') +
+      media +
+      (post.content ? '<div class="post-content" style="' + bodyStyle + '">' + escapeHtml(post.content) + '</div>' : '') +
+      reactionsHtml(rcounts, post.id) +
+      '<div class="comments">' + commentsHtml +
+      '<form class="comment-form"><textarea name="content" placeholder="комментарий" maxlength="500" required></textarea>' +
+      '<button type="submit">отправить</button></form></div>';
+
+    // delete post
+    var delBtn = article.querySelector(".post-del");
+    if (delBtn) delBtn.onclick = function () {
+      pendingDeletePostId = post.id;
+      document.getElementById("del-post-modal").classList.add("open");
+    };
+    var editLink = article.querySelector(".edit-link");
+    if (editLink) editLink.onclick = function () { openEdit(post); };
+
+    // reactions
+    article.querySelectorAll(".react-btn").forEach(function (btn) {
+      btn.onclick = async function () {
+        var uid = await currentUserId();
+        if (!uid) { if (window.Kinqsy) Kinqsy.openAuth("login"); else alert("войди"); return; }
+        var reaction = btn.getAttribute("data-reaction");
+        await sb.from("reactions").delete().eq("post_id", post.id).eq("user_id", uid);
+        var { error } = await sb.from("reactions").insert({ post_id: post.id, user_id: uid, reaction: reaction });
+        if (error) alert(error.message);
+        else loadDreams();
+      };
     });
 
-    loadDreams();
-})();
-    </script>
+    // delete comments
+    article.querySelectorAll(".c-del").forEach(function (btn) {
+      btn.onclick = function () {
+        pendingDeleteComment = { id: btn.getAttribute("data-cid"), postId: post.id };
+        document.getElementById("del-c-modal").classList.add("open");
+      };
+    });
 
-<script>
-(function () {
-  if (!window.Kinqsy) return;
-  Kinqsy.init({
-    onLoginSuccess: async function () {
-      var openCompose = window.__openDreamCompose;
-      if (typeof openCompose === "function") openCompose();
-      else location.reload();
-    },
-    onStarLoggedIn: async function (uid) {
-      var viewed = window.__dreamsViewedUserId;
-      if (viewed && String(viewed) !== String(uid)) {
-        alert("Чужой дневник. Свой: dreams.html?u=ТВОЙ_НИК");
+    // comment form
+    var form = article.querySelector(".comment-form");
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      var content = form.querySelector('[name="content"]').value.trim();
+      if (!content) return;
+      var uid = await currentUserId();
+      if (!uid) { if (window.Kinqsy) Kinqsy.openAuth("login"); return; }
+      var author_name = "user";
+      var pr = await sb.from("profiles").select("display_name").eq("id", uid).maybeSingle();
+      if (pr.data && pr.data.display_name) author_name = pr.data.display_name;
+      var { error } = await sb.from("comments").insert({
+        post_id: post.id, author_name: author_name, content: content, user_id: uid
+      });
+      if (error) alert(error.message);
+      else loadDreams();
+    });
+
+    return article;
+  }
+
+  async function loadDreams() {
+    var feed = document.getElementById("feed");
+    feed.innerHTML = '<div class="empty">loading...</div>';
+    var uid = await resolveViewed();
+    if (!uid) {
+      feed.innerHTML = '<div class="empty">профиль не найден</div>';
+      return;
+    }
+    var { data, error } = await sb.from("posts").select("*").eq("category", "dreams").eq("user_id", uid).order("created_at", { ascending: false });
+    if (error || !data || !data.length) {
+      if (getU().toLowerCase() === OWNER_SLUG) {
+        var all = await sb.from("posts").select("*").eq("category", "dreams").order("created_at", { ascending: false });
+        data = (all.data || []).filter(function (p) {
+          return !p.user_id || String(p.user_id) === String(uid);
+        });
+      }
+    }
+    if (!data || !data.length) {
+      feed.innerHTML = '<div class="empty">пока нет снов — ★ написать</div>';
+      return;
+    }
+    feed.innerHTML = "";
+    for (var i = 0; i < data.length; i++) {
+      feed.appendChild(await makePost(data[i]));
+    }
+  }
+
+  // compose publish
+  document.getElementById("compose-close").onclick = function () {
+    document.getElementById("compose-overlay").classList.remove("open");
+  };
+  document.getElementById("compose-publish").onclick = async function () {
+    var err = document.getElementById("compose-error");
+    err.textContent = "";
+    var uid = await currentUserId();
+    if (!uid) { err.textContent = "нужен вход"; return; }
+    var title = document.getElementById("compose-title").value.trim();
+    var content = document.getElementById("compose-content").value.trim();
+    if (!title && !content) { err.textContent = "пустой пост"; return; }
+    var media_url = document.getElementById("compose-media-url").value.trim();
+    var payload = {
+      title: title,
+      content: content,
+      category: "dreams",
+      user_id: uid,
+      title_font: document.getElementById("compose-title-font").value,
+      body_font: document.getElementById("compose-body-font").value,
+      title_color: document.getElementById("compose-title-color").value,
+      body_color: document.getElementById("compose-body-color").value
+    };
+    if (media_url) {
+      payload.media_url = media_url;
+      payload.media_type = /\.gif(\?|$)/i.test(media_url) ? "gif" : "image";
+    }
+    var { error } = await sb.from("posts").insert(payload);
+    if (error) {
+      var basic = { title: title, content: content, category: "dreams", user_id: uid };
+      if (media_url) basic.media_url = media_url;
+      var r2 = await sb.from("posts").insert(basic);
+      if (r2.error) { err.textContent = r2.error.message; return; }
+    }
+    document.getElementById("compose-overlay").classList.remove("open");
+    loadDreams();
+  };
+
+  // edit save
+  document.getElementById("edit-close").onclick = function () {
+    document.getElementById("edit-overlay").classList.remove("open");
+    editingPostId = null;
+  };
+  document.getElementById("edit-save").onclick = async function () {
+    var err = document.getElementById("edit-error");
+    err.textContent = "";
+    if (!editingPostId) return;
+    var uid = await currentUserId();
+    if (!uid) { err.textContent = "войди через ★"; return; }
+    var payload = {
+      title: document.getElementById("edit-title").value.trim(),
+      content: document.getElementById("edit-content").value.trim(),
+      title_font: document.getElementById("edit-title-font").value,
+      body_font: document.getElementById("edit-body-font").value,
+      title_color: document.getElementById("edit-title-color").value,
+      body_color: document.getElementById("edit-body-color").value
+    };
+    var mu = document.getElementById("edit-media-url").value.trim();
+    if (mu) {
+      payload.media_url = mu;
+      payload.media_type = /\.gif(\?|$)/i.test(mu) ? "gif" : "image";
+    }
+    var res = await sb.from("posts").update(payload).eq("id", editingPostId).select("id");
+    if (res.error || !res.data || !res.data.length) {
+      var basic = { title: payload.title, content: payload.content };
+      if (mu) basic.media_url = mu;
+      var r2 = await sb.from("posts").update(basic).eq("id", editingPostId).select("id");
+      if (r2.error) { err.textContent = r2.error.message; return; }
+      if (!r2.data || !r2.data.length) {
+        err.textContent = "не сохранилось (RLS / чужой пост)";
         return;
       }
-      if (typeof window.__openDreamCompose === "function") window.__openDreamCompose();
+      err.textContent = "сохранено без стилей — добавь колонки title_font/title_color в posts";
     }
-  });
-})();
-</script>
+    document.getElementById("edit-overlay").classList.remove("open");
+    editingPostId = null;
+    loadDreams();
+  };
 
-<script>
-document.addEventListener("contextmenu", function (e) {
-  if (e.target && e.target.closest && e.target.closest(".post-media")) e.preventDefault();
-});
+  // delete post confirm
+  document.getElementById("del-post-no").onclick = function () {
+    document.getElementById("del-post-modal").classList.remove("open");
+    pendingDeletePostId = null;
+  };
+  document.getElementById("del-post-yes").onclick = async function () {
+    if (!pendingDeletePostId) return;
+    var { error } = await sb.from("posts").delete().eq("id", pendingDeletePostId);
+    document.getElementById("del-post-modal").classList.remove("open");
+    pendingDeletePostId = null;
+    if (error) alert(error.message);
+    else loadDreams();
+  };
+
+  // delete comment flow
+  document.getElementById("del-c-no").onclick = function () {
+    document.getElementById("del-c-modal").classList.remove("open");
+    pendingDeleteComment = null;
+  };
+  document.getElementById("del-c-yes").onclick = function () {
+    document.getElementById("del-c-modal").classList.remove("open");
+    document.getElementById("reason-error").textContent = "";
+    document.querySelectorAll('input[name="reason"]').forEach(function (r) { r.checked = false; });
+    document.getElementById("rules-detail").style.display = "none";
+    document.getElementById("del-reason-modal").classList.add("open");
+  };
+  document.querySelectorAll('input[name="reason"]').forEach(function (r) {
+    r.onchange = function () {
+      document.getElementById("rules-detail").style.display =
+        r.value === "rules" && r.checked ? "block" : "none";
+    };
+  });
+  document.getElementById("reason-cancel").onclick = function () {
+    document.getElementById("del-reason-modal").classList.remove("open");
+    pendingDeleteComment = null;
+  };
+  document.getElementById("reason-submit").onclick = async function () {
+    var err = document.getElementById("reason-error");
+    var chosen = document.querySelector('input[name="reason"]:checked');
+    if (!chosen) { err.textContent = "выбери причину"; return; }
+    if (!pendingDeleteComment) return;
+    // log reason optionally later; delete now
+    var { error } = await sb.from("comments").delete().eq("id", pendingDeleteComment.id);
+    document.getElementById("del-reason-modal").classList.remove("open");
+    pendingDeleteComment = null;
+    if (error) alert(error.message);
+    else loadDreams();
+  };
+
+  window.__openDreamCompose = function () {
+    document.getElementById("compose-error").textContent = "";
+    document.getElementById("compose-overlay").classList.add("open");
+    updateComposePreview();
+  };
+
+  if (window.Kinqsy) {
+    Kinqsy.init({
+      onLoginSuccess: async function () { window.__openDreamCompose(); },
+      onStarLoggedIn: async function (uid) {
+        if (viewedUserId && String(viewedUserId) !== String(uid)) {
+          alert("Чужой дневник. Свой: dreams.html?u=ТВОЙ_НИК");
+          return;
+        }
+        window.__openDreamCompose();
+      }
+    });
+  }
+
+  loadDreams();
+})();
 </script>
 </body>
 </html>
