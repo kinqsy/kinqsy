@@ -752,7 +752,52 @@ a, button, .star, .top-menu .star, input, textarea, .react-btn, .post-menu butto
         .comment:hover .c-del { opacity: .85; }
         .react-btn { overflow: visible; }
         .react-ico { overflow: visible; flex-shrink: 0; }
-    </style>
+    
+<style id="kq-comment-form">
+.comment-form textarea {
+  width: 100% !important;
+  min-height: 64px !important;
+  padding: 10px 12px !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(255,255,255,.45) !important;
+  background: rgba(255,255,255,.3) !important;
+  font-family: Georgia, serif !important;
+  font-size: 14px !important;
+  color: #1a0f14 !important;
+}
+.comment-form textarea::placeholder {
+  color: rgba(26,15,20,.45) !important;
+  opacity: 1 !important;
+}
+.comment-form button {
+  margin-top: 8px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  padding: 8px 16px !important;
+  background: #f0c9d6 !important;
+  color: #3a2030 !important;
+  font-weight: bold !important;
+}
+/* header block centered in column like before */
+.notes-page {
+  max-width: 900px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  text-align: left !important;
+  position: relative;
+  z-index: 2;
+}
+.kq-title, .notes-title, .kq-tagline, .notes-subtitle, .kq-user, #notes-user-label {
+  color: #1a0f14 !important;
+  text-align: left !important;
+}
+/* end radius via fixed bg */
+.kq-bg {
+  border-radius: 0 0 30px 30px !important;
+}
+.auth-overlay.open { display: flex !important; }
+#del-reason-modal.auth-overlay.open { z-index: 2100; }
+</style>
 <style id="kq-bg-page">.kq-bg{background-image:url("notes-bg.jpg")}</style>
 
 <style id="kq-notes-override">
