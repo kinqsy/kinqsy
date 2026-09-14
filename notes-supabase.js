@@ -305,6 +305,7 @@ async function loadNotes() {
     const feed = document.getElementById("feed");
     if (!feed) return;
     feed.innerHTML = '<div class="empty">loading...</div>';
+    if (window.Kinqsy) Kinqsy.hideGate();
 
     const uid = await resolveViewedUser();
     if (!uid) {
@@ -312,6 +313,20 @@ async function loadNotes() {
         window.__allNotes = [];
         applyFilters();
         return;
+    }
+
+    if (window.Kinqsy && Kinqsy.checkAccess) {
+        var acc = await Kinqsy.checkAccess("notes", uid);
+        if (!acc.ok) {
+            window.__allNotes = [];
+            feed.innerHTML = "";
+            Kinqsy.showGate({
+                mode: acc.guest ? "guest" : "friends",
+                guest: acc.guest,
+                page: "notes"
+            });
+            return;
+        }
     }
 
     let { data, error } = await supabaseClient
