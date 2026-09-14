@@ -51,7 +51,20 @@ html, body { margin: 0; padding: 0; min-height: 100%; background: #000; color: #
 .dreams-shell::before {
   content: "";
   position: absolute; inset: 0; z-index: 0;
-  background: rgba(26, 15, 20, 0.22);
+  /* блюр самого фона без растягивания */
+  background-image: inherit;
+  background-position: center center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  filter: blur(14px);
+  transform: scale(1.06);
+  pointer-events: none;
+}
+.dreams-shell::after {
+  content: "";
+  position: absolute; inset: 0; z-index: 0;
+  background: rgba(26, 15, 20, 0.18);
   pointer-events: none;
 }
 .dreams-grain {
@@ -90,8 +103,28 @@ html, body { margin: 0; padding: 0; min-height: 100%; background: #000; color: #
 }
 .post-date { font-size: 12px; font-family: Arial, sans-serif; opacity: .65; margin-bottom: 8px; }
 .post-title { margin: 0 0 10px; font-size: 26px; line-height: 1.2; }
-.post-media { margin: 0 0 12px; border-radius: 16px; overflow: hidden; }
-.post-media img { width: 100%; display: block; max-height: 420px; object-fit: cover; -webkit-user-drag: none; }
+.post-media {
+  margin: 0 0 12px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: rgba(0,0,0,.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.post-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-height: 480px;
+  object-fit: contain; /* не растягиваем, не режем жёстко */
+  -webkit-user-drag: none;
+  background: rgba(255,255,255,.06);
+}
+/* контейнер задаёт рамку по типу кадра */
+.post-media.ratio-square { aspect-ratio: 1 / 1; max-height: 480px; }
+.post-media.ratio-landscape { aspect-ratio: 16 / 10; max-height: 420px; }
+.post-media.ratio-portrait { aspect-ratio: 1 / 1; max-height: 480px; } /* вертикаль → квадрат */
 .post-content { font-size: 16px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
 
 .reactions { display: flex; gap: 8px; margin: 14px 0 8px; }
@@ -102,7 +135,8 @@ html, body { margin: 0; padding: 0; min-height: 100%; background: #000; color: #
   border-radius: 999px; padding: 6px 12px;
   font-size: 13px; color: #5a3040;
 }
-.react-btn svg { width: 16px; height: 16px; display: block; }
+.react-btn { overflow: visible; }
+.react-btn svg { width: 16px; height: 16px; display: block; overflow: visible; flex-shrink: 0; }
 
 .post-footer-row {
   display: flex; justify-content: flex-end; align-items: center; margin-top: 8px;
