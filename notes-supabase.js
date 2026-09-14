@@ -201,7 +201,7 @@ else if (bgKey === "clear") article.style.background = "rgba(255, 255, 255, 0.08
         '<div class="comments">' +
             '<div class="comments-list">' + commentsHtml + '</div>' +
             '<form class="comment-form">' +
-                '<textarea name="content" placeholder="комментарий" maxlength="500" required></textarea>' +
+                '<textarea name="content" placeholder="оставить комментарий" maxlength="500" required></textarea>' +
                 '<button type="submit">отправить</button>' +
             '</form>' +
         '</div>';
@@ -446,8 +446,10 @@ if (editBtn) {
     document.getElementById("del-c-modal").classList.remove("open");
     pendingDeleteComment = null;
   };
-  if (delCYes) delCYes.onclick = function () {
-    document.getElementById("del-c-modal").classList.remove("open");
+  if (delCYes) delCYes.onclick = function (e) {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    var cModal = document.getElementById("del-c-modal");
+    if (cModal) cModal.classList.remove("open");
     var err = document.getElementById("reason-error");
     if (err) err.textContent = "";
     document.querySelectorAll('input[name="reason"]').forEach(function (r) { r.checked = false; });
@@ -457,7 +459,12 @@ if (editBtn) {
     if (ob) ob.style.display = "none";
     var ot = document.getElementById("reason-other-text");
     if (ot) ot.value = "";
-    document.getElementById("del-reason-modal").classList.add("open");
+    // чуть позже, чтобы клик не закрыл второе окно
+    setTimeout(function () {
+      var rm = document.getElementById("del-reason-modal");
+      if (rm) rm.classList.add("open");
+      else alert("нет окна причин — обнови notes.html");
+    }, 50);
   };
 
   document.querySelectorAll('input[name="reason"]').forEach(function (r) {
