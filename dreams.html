@@ -41,31 +41,50 @@ html, body { margin: 0; padding: 0; min-height: 100%; background: #000; color: #
   min-height: calc(100vh - 42px);
   border-radius: 0 0 30px 30px;
   overflow: hidden;
-  background-color: #1a0f14;
+  /* цвет подложки ниже фото — без растягивания картинки */
+  background: #2a1520;
+}
+
+
+/* фото строго высотой экрана — не растёт с лентой */
+.dreams-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.dreams-bg-img {
+  position: absolute;
+  inset: 0;
   background-image: url("dreams-bg.jpg");
   background-position: center center;
   background-size: cover;
   background-repeat: no-repeat;
-  background-attachment: fixed;
 }
-.dreams-shell::before {
-  content: "";
-  position: absolute; inset: 0; z-index: 0;
-  /* блюр самого фона без растягивания */
-  background-image: inherit;
+.dreams-bg-blur {
+  position: absolute;
+  inset: -24px;
+  background-image: url("dreams-bg.jpg");
   background-position: center center;
   background-size: cover;
   background-repeat: no-repeat;
-  background-attachment: fixed;
-  filter: blur(14px);
-  transform: scale(1.06);
-  pointer-events: none;
+  filter: blur(16px);
+  transform: scale(1.05);
 }
-.dreams-shell::after {
-  content: "";
-  position: absolute; inset: 0; z-index: 0;
-  background: rgba(26, 15, 20, 0.18);
-  pointer-events: none;
+.dreams-bg-dim {
+  position: absolute;
+  inset: 0;
+  background: rgba(26, 15, 20, 0.28);
+}
+.dreams-bg-fade {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 40%;
+  background: linear-gradient(to bottom, transparent, #2a1520);
 }
 .dreams-grain {
   position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: .4;
@@ -275,6 +294,12 @@ footer {
 </nav>
 
 <div class="dreams-shell">
+  <div class="dreams-bg" aria-hidden="true">
+    <div class="dreams-bg-img"></div>
+    <div class="dreams-bg-blur"></div>
+    <div class="dreams-bg-dim"></div>
+    <div class="dreams-bg-fade"></div>
+  </div>
   <div class="dreams-grain" aria-hidden="true"></div>
   <div class="dreams-inner">
     <h1 class="kq-title">DREAMS</h1>
