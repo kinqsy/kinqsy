@@ -518,6 +518,8 @@
         return sorted;
     }
 
+    var quotesBoardAllowed = true;
+
     async function currentUserId() {
         var { data: { session } } = await sb.auth.getSession();
         return session ? session.user.id : null;
@@ -721,10 +723,26 @@
         feed.innerHTML = '<div class="empty">loading...</div>';
         await resolveViewedUser();
 
+        quotesBoardAllowed = true;
+        if (window.Kinqsy && Kinqsy.checkAccess) {
+            var acc = await Kinqsy.checkAccess("quotes", viewedUserId);
+            quotesBoardAllowed = !!acc.ok;
+        }
+
+        if (mode === "mine" && !quotesBoardAllowed) {
+            mode = "public";
+            document.getElementById("tab-mine").classList.remove("active");
+            document.getElementById("tab-public").classList.add("active");
+        }
+
         var q = sb.from("posts").select("*").eq("category", "quotes");
 
         if (mode === "public") {
-            q = q.eq("is_public", true).order("created_at", { ascending: false }).limit(120);
+            if (viewedUserId && !quotesBoardAllowed) {
+                q = q.eq("is_public", true).eq("user_id", viewedUserId).order("created_at", { ascending: false }).limit(120);
+            } else {
+                q = q.eq("is_public", true).order("created_at", { ascending: false }).limit(120);
+            }
         } else {
             if (!viewedUserId) {
                 feed.innerHTML = '<div class="empty">профиль не найден</div>';
@@ -771,6 +789,16 @@
 
     // tabs
     document.getElementById("tab-mine").onclick = function () {
+        if (!quotesBoardAllowed) {
+            if (window.Kinqsy) {
+                Kinqsy.showGate({
+                    mode: "friends",
+                    page: "quotes"
+                });
+            }
+            return;
+        }
+        if (window.Kinqsy) Kinqsy.hideGate();
         mode = "mine";
         document.getElementById("tab-mine").classList.add("active");
         document.getElementById("tab-public").classList.remove("active");
@@ -960,8 +988,7 @@
   if (!window.Kinqsy) return;
   Kinqsy.init({
     onLoginSuccess: async function () {
-      if (typeof window.__openQuoteCompose === "function") window.__openQuoteCompose();
-      else location.reload();
+      location.reload();
     },
     onStarLoggedIn: async function (uid) {
       if (typeof window.__openQuoteCompose === "function") window.__openQuoteCompose();
