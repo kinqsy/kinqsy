@@ -286,10 +286,23 @@
   async function loadDreams() {
     var feed = document.getElementById("feed");
     feed.innerHTML = '<div class="empty">loading...</div>';
+    if (window.Kinqsy) Kinqsy.hideGate();
     var uid = await resolveViewed();
     if (!uid) {
       feed.innerHTML = '<div class="empty">профиль не найден</div>';
       return;
+    }
+    if (window.Kinqsy && Kinqsy.checkAccess) {
+      var acc = await Kinqsy.checkAccess("dreams", uid);
+      if (!acc.ok) {
+        feed.innerHTML = "";
+        Kinqsy.showGate({
+          mode: acc.guest ? "guest" : "friends",
+          guest: acc.guest,
+          page: "dreams"
+        });
+        return;
+      }
     }
     var { data, error } = await sb.from("posts").select("*").eq("category", "dreams").eq("user_id", uid).order("created_at", { ascending: false });
     if (error || !data || !data.length) {
@@ -494,7 +507,7 @@
   if (window.Kinqsy) {
     Kinqsy.init({
       onLoginSuccess: async function () {
-        window.__openDreamCompose();
+        await loadDreams();
       },
       onStarLoggedIn: async function (uid) {
         if (viewedUserId && String(viewedUserId) !== String(uid)) {
