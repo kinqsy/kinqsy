@@ -305,7 +305,11 @@
         }
 
     </style>
-</head>
+<style id="kq-bg-page">.kq-bg{background-image:url("about-bg.jpg")}</style>
+<style id="kq-about-override">
+.kq-title, .about-title { font-size: var(--kq-title) !important; letter-spacing: var(--kq-title-track) !important; }
+.support-line a { text-decoration: none !important; font-weight: normal !important; color: var(--kq-pink) !important; }
+</style></head>
 <body id="top">
 
     <nav class="top-menu">
@@ -317,7 +321,9 @@
         <span class="star" id="admin-star">★</span>
     </nav>
 
-    <div class="about-bg" aria-hidden="true"></div>
+    <div class="kq-bg" aria-hidden="true"></div>
+<div class="kq-grain" aria-hidden="true"></div>
+<div class="about-bg" aria-hidden="true"></div>
     <div class="about-grain" aria-hidden="true"></div>
 
     <main class="about-page">
@@ -404,7 +410,7 @@
         </section>
     </main>
 
-    <div class="support-line">
+    <div class="kq-bottom"><div class="support-line">
         <a href="https://boosty.to/kinqsy/donate" target="_blank" rel="noopener noreferrer">support the diary</a>
     </div>
 
@@ -422,7 +428,7 @@
             </a>
         </div>
         <div></div>
-    </footer>
+    </footer></div>
 
     <a href="#top" class="back-to-top-fixed" aria-label="Наверх">↑</a>
 
