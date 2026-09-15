@@ -1,4 +1,7 @@
-/* Необязательно. Бесплатный ключ: https://www.themoviedb.org/settings/api
-   Без ключа поиск идёт через Wikidata + картинки Wikimedia Commons (свободные лицензии).
-   С ключом — настоящие постеры TMDB (нужна строка атрибуции, она уже на about). */
+/* Бесплатный ключ TMDB (v3 API Key):
+   1) зарегистрируйся на https://www.themoviedb.org/signup
+   2) https://www.themoviedb.org/settings/api → Request an API Key → Developer
+   3) вставь сюда API Key (не Read Access Token)
+
+   Без ключа поиск фильмов не работает. */
 window.KINQSY_TMDB_KEY = "https://www.themoviedb.org/signup";
