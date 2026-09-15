@@ -273,10 +273,21 @@
         .search-hit img {
             width: 40px; height: 60px; object-fit: cover; border-radius: 6px; background: rgba(0,0,0,.2); flex-shrink: 0;
         }
-        #film-results { max-height: 240px; overflow: auto; margin-top: 10px; }
+        #film-results { max-height: 260px; overflow: auto; margin-top: 10px; }
+        .film-filters {
+            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin: 10px 0 4px;
+        }
+        .film-filters select {
+            width: 100%; padding: 8px 10px; border-radius: 10px;
+            border: 1px solid rgba(255,255,255,.5); background: rgba(255,255,255,.35);
+            font-family: Georgia, serif; font-size: 13px; color: #1a0f14;
+        }
+        .search-hit .hit-orig { font-size: 13px; }
+        .search-hit .hit-ru { font-size: 11px; opacity: .7; }
         @media (max-width: 600px) {
             .film-hero { grid-template-columns: 1fr; }
             .film-top { grid-template-columns: repeat(3, 1fr); }
+            .film-filters { grid-template-columns: 1fr; }
         }
 
         .support-line { position: relative; z-index: 5; text-align: center; padding: 16px; background: #000; }
@@ -438,11 +449,9 @@
             <div class="film-role" style="margin:0 0 8px">top 5</div>
             <div class="film-top" id="film-top"></div>
             <p class="film-attr">
-                Постеры не хранятся у kinqsy — только выбор фильма.
-                Картинки: <a href="https://www.themoviedb.org/" target="_blank" rel="noopener">TMDB</a>
-                (This product uses the TMDB API but is not endorsed or certified by TMDB)
-                или <a href="https://commons.wikimedia.org/" target="_blank" rel="noopener">Wikimedia Commons</a>.
-                Клик по карточке уводит на страницу фильма.
+                Kinqsy хранит только выбор фильма, не файлы постеров.
+                This product uses the TMDB API but is not endorsed or certified by TMDB.
+                <a href="https://www.themoviedb.org/" target="_blank" rel="noopener">themoviedb.org</a>
             </p>
         </section>
 
@@ -541,8 +550,13 @@
     <div class="auth-overlay" id="film-modal">
         <div class="auth-modal">
             <h2 id="film-modal-title">найти фильм</h2>
-            <label for="film-q">название</label>
-            <input id="film-q" type="text" placeholder="Black Swan, Prada…" autocomplete="off">
+            <label for="film-q">название (можно по-русски)</label>
+            <input id="film-q" type="text" placeholder="чёрный лебедь, дьявол носит prada…" autocomplete="off">
+            <div class="film-filters">
+                <select id="film-genre" aria-label="жанр"></select>
+                <select id="film-year-from" aria-label="год от"></select>
+                <select id="film-year-to" aria-label="год до"></select>
+            </div>
             <div id="film-results"></div>
             <div class="auth-actions">
                 <button type="button" id="film-search">искать</button>
@@ -554,6 +568,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="kinqsy-keys.js"></script>
+    <script src="kinqsy-films.js"></script>
     <script src="kinqsy-core.js"></script>
     <script>
 (function () {
@@ -1261,7 +1276,7 @@
             '<a href="' + escapeHtml(href) + '" target="_blank" rel="noopener noreferrer">' +
             img +
             '<div class="film-meta"><div class="film-role">' + role + "</div>" +
-            '<div class="film-title">' + escapeHtml(movie.title || "") + "</div>" +
+            '<div class="film-title">' + escapeHtml(movie.title || movie.original_title || "") + "</div>" +
             '<div class="film-year">' + escapeHtml(movie.year || "") + "</div></div></a></div>";
     }
 
@@ -1291,71 +1306,14 @@
             slot === "obsession" ? "currently obsessed" :
             slot === "comfort" ? "comfort movie" : "top 5";
         document.getElementById("film-modal").classList.add("open");
-        setTimeout(function () { document.getElementById("film-q").focus(); }, 50);
-    }
-
-    async function searchTmdb(q, key) {
-        var url = "https://api.themoviedb.org/3/search/movie?api_key=" + encodeURIComponent(key) +
-            "&query=" + encodeURIComponent(q) + "&include_adult=false";
-        var r = await fetch(url);
-        var j = await r.json();
-        return (j.results || []).slice(0, 10).map(function (it) {
-            return {
-                source: "tmdb",
-                id: String(it.id),
-                title: it.title || it.original_title,
-                year: (it.release_date || "").slice(0, 4),
-                poster: it.poster_path ? ("https://image.tmdb.org/t/p/w342" + it.poster_path) : "",
-                url: "https://www.themoviedb.org/movie/" + it.id
-            };
-        });
-    }
-
-    async function searchWikidata(q) {
-        var api = "https://www.wikidata.org/w/api.php?action=wbsearchentities&search=" +
-            encodeURIComponent(q) + "&language=en&uselang=en&type=item&limit=10&format=json&origin=*";
-        var r = await fetch(api);
-        var j = await r.json();
-        var hits = j.search || [];
-        if (!hits.length) return [];
-        var ids = hits.map(function (h) { return "wd:" + h.id; }).join(" ");
-        var sparql = "SELECT ?item ?itemLabel ?year ?pic WHERE { VALUES ?item { " + ids + " } " +
-            "OPTIONAL { ?item wdt:P577 ?d. BIND(YEAR(?d) AS ?year) } " +
-            "OPTIONAL { ?item wdt:P18 ?pic } " +
-            "SERVICE wikibase:label { bd:serviceParam wikibase:language \"ru,en\". } }";
-        var extra = {};
-        try {
-            var s = await fetch("https://query.wikidata.org/sparql?format=json&query=" + encodeURIComponent(sparql), {
-                headers: { Accept: "application/sparql-results+json" }
-            });
-            var sj = await s.json();
-            (sj.results && sj.results.bindings ? sj.results.bindings : []).forEach(function (b) {
-                var id = (b.item && b.item.value || "").split("/").pop();
-                extra[id] = {
-                    year: b.year ? b.year.value : "",
-                    pic: b.pic ? (b.pic.value.replace("http://", "https://") + "?width=342") : ""
-                };
-            });
-        } catch (e) {}
-        return hits.map(function (h) {
-            var x = extra[h.id] || {};
-            return {
-                source: "wikidata",
-                id: h.id,
-                title: h.label || h.id,
-                year: x.year || "",
-                poster: x.pic || "",
-                url: "https://www.wikidata.org/wiki/" + h.id
-            };
-        });
-    }
-
-    async function searchMovies(q) {
-        var key = (window.KINQSY_TMDB_KEY || "").trim();
-        if (key) {
-            try { return await searchTmdb(q, key); } catch (e) { console.warn(e); }
+        if (window.KinqsyFilms) {
+            KinqsyFilms.fillFilters(
+                document.getElementById("film-genre"),
+                document.getElementById("film-year-from"),
+                document.getElementById("film-year-to")
+            );
         }
-        return searchWikidata(q);
+        setTimeout(function () { document.getElementById("film-q").focus(); }, 50);
     }
 
     function paintResults(list) {
@@ -1366,11 +1324,13 @@
         }
         box.innerHTML = list.map(function (m, i) {
             var img = m.poster ? '<img src="' + escapeHtml(m.poster) + '" alt="">' : "<span></span>";
+            var ru = m.title_ru
+                ? '<span class="hit-ru">' + escapeHtml(m.title_ru) + "</span>"
+                : "";
             return '<button type="button" class="search-hit" data-pick="' + i + '">' + img +
-                "<span><strong>" + escapeHtml(m.title) + "</strong><br>" +
-                escapeHtml(m.year) + "</span></button>";
+                '<span><span class="hit-orig"><strong>' + escapeHtml(m.title) + "</strong></span><br>" +
+                ru + (ru ? " · " : "") + escapeHtml(m.year) + "</span></button>";
         }).join("");
-        box._list = list;
         box.querySelectorAll("[data-pick]").forEach(function (btn) {
             btn.onclick = function () {
                 pickMovie(list[Number(btn.getAttribute("data-pick"))]);
@@ -1442,14 +1402,26 @@
         var err = document.getElementById("film-error");
         err.textContent = "";
         var q = document.getElementById("film-q").value.trim();
-        if (q.length < 2) { err.textContent = "введи название"; return; }
+        var genre = (document.getElementById("film-genre") || {}).value || "";
+        var yearFrom = (document.getElementById("film-year-from") || {}).value || "";
+        var yearTo = (document.getElementById("film-year-to") || {}).value || "";
+        if (!window.KinqsyFilms) { err.textContent = "нет kinqsy-films.js"; return; }
+        if (!KinqsyFilms.hasKey()) {
+            err.textContent = "впиши TMDB API Key в файл kinqsy-keys.js";
+            return;
+        }
         err.textContent = "ищем…";
         try {
-            var list = await searchMovies(q);
+            var list = await KinqsyFilms.search({
+                q: q,
+                genre: genre,
+                yearFrom: yearFrom,
+                yearTo: yearTo
+            });
             err.textContent = "";
             paintResults(list);
         } catch (e) {
-            err.textContent = "поиск не удался";
+            err.textContent = e.message || "поиск не удался";
         }
     };
     document.getElementById("film-q").addEventListener("keydown", function (e) {
