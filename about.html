@@ -223,6 +223,61 @@
             display: flex; align-items: center; justify-content: center;
             font-size: 11px; font-family: Arial, sans-serif; opacity: 0.7; text-align: center; padding: 6px;
         }
+        .film-hero {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;
+        }
+        .film-card {
+            position: relative; display: block; text-decoration: none; color: inherit;
+            border-radius: 14px; overflow: hidden;
+            background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.3);
+            min-height: 86px;
+        }
+        .film-card.empty {
+            min-height: 120px; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; gap: 6px;
+            border-style: dashed; opacity: .8; cursor: pointer;
+        }
+        .film-card img {
+            width: 100%; aspect-ratio: 2/3; object-fit: cover; display: block;
+            background: rgba(0,0,0,.2);
+        }
+        .film-card .film-meta {
+            padding: 8px 10px 10px;
+        }
+        .film-role {
+            font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+            font-family: Arial, sans-serif; opacity: .65; margin-bottom: 4px;
+        }
+        .film-title { font-size: 14px; line-height: 1.25; }
+        .film-year { font-size: 12px; opacity: .65; font-family: Arial, sans-serif; }
+        .film-top {
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;
+        }
+        .film-top .film-card.empty { min-height: 0; aspect-ratio: 2/3; }
+        .film-x {
+            position: absolute; top: 6px; right: 6px; width: 24px; height: 24px;
+            border: 0; border-radius: 50%; background: rgba(26,15,20,.55); color: #fff;
+            font-size: 14px; line-height: 24px; display: none; z-index: 2;
+        }
+        .film-card.owner-edit .film-x { display: block; }
+        .film-attr {
+            margin-top: 10px; font-size: 10px; line-height: 1.35; opacity: .55;
+            font-family: Arial, sans-serif;
+        }
+        .film-attr a { color: inherit; }
+        .search-hit {
+            display: flex; gap: 10px; align-items: center; width: 100%;
+            padding: 8px; margin: 0 0 6px; border: 0; border-radius: 12px;
+            background: rgba(255,255,255,.22); text-align: left; color: inherit;
+        }
+        .search-hit img {
+            width: 40px; height: 60px; object-fit: cover; border-radius: 6px; background: rgba(0,0,0,.2); flex-shrink: 0;
+        }
+        #film-results { max-height: 240px; overflow: auto; margin-top: 10px; }
+        @media (max-width: 600px) {
+            .film-hero { grid-template-columns: 1fr; }
+            .film-top { grid-template-columns: repeat(3, 1fr); }
+        }
 
         .support-line { position: relative; z-index: 5; text-align: center; padding: 16px; background: #000; }
         .support-line a { color: #F1B9D0; text-decoration: none; font-size: 14px; }
@@ -375,22 +430,25 @@
         </section>
 
         <section class="glass section">
-            <h2>Showcase</h2>
-            <div class="showcase-row">
-                <div class="fave-slot">slot 1</div>
-                <div class="fave-slot">slot 2</div>
-                <div class="fave-slot">slot 3</div>
-                <div class="fave-slot">slot 4</div>
-                <div class="fave-slot">slot 5</div>
+            <h2>Films</h2>
+            <div class="film-hero">
+                <div id="film-obsession"></div>
+                <div id="film-comfort"></div>
             </div>
-            
+            <div class="film-role" style="margin:0 0 8px">top 5</div>
+            <div class="film-top" id="film-top"></div>
+            <p class="film-attr">
+                Постеры не хранятся у kinqsy — только выбор фильма.
+                Картинки: <a href="https://www.themoviedb.org/" target="_blank" rel="noopener">TMDB</a>
+                (This product uses the TMDB API but is not endorsed or certified by TMDB)
+                или <a href="https://commons.wikimedia.org/" target="_blank" rel="noopener">Wikimedia Commons</a>.
+                Клик по карточке уводит на страницу фильма.
+            </p>
         </section>
 
         <section class="glass section">
             <h2>My favourites</h2>
-            
             <div class="faves-row">
-                <div class="fave-slot">movies</div>
                 <div class="fave-slot">music</div>
                 <div class="fave-slot">books</div>
                 <div class="fave-slot">games</div>
@@ -480,7 +538,22 @@
         </div>
     </div>
 
+    <div class="auth-overlay" id="film-modal">
+        <div class="auth-modal">
+            <h2 id="film-modal-title">найти фильм</h2>
+            <label for="film-q">название</label>
+            <input id="film-q" type="text" placeholder="Black Swan, Prada…" autocomplete="off">
+            <div id="film-results"></div>
+            <div class="auth-actions">
+                <button type="button" id="film-search">искать</button>
+                <button type="button" id="film-close" class="secondary">закрыть</button>
+            </div>
+            <div class="auth-error" id="film-error"></div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="kinqsy-keys.js"></script>
     <script src="kinqsy-core.js"></script>
     <script>
 (function () {
@@ -586,6 +659,7 @@
         if (data.friend_code) {
             document.getElementById("my-friend-code").textContent = data.friend_code;
         }
+        renderFilms(data.favorites);
     }
 
     async function loadPublicProfile() {
@@ -605,6 +679,7 @@
             document.getElementById("about-status").textContent = "—";
             document.getElementById("about-text").textContent = "профиль пока пустой";
             setReputation(0);
+            renderFilms(null);
         }
         await refreshOwnerTools();
         await loadFriends();
@@ -1155,6 +1230,234 @@
         closeAboutEdit();
         await loadPublicProfile();
     };
+
+    /* ----- films vitrine (TMDB / Wikidata) ----- */
+    var filmSlot = null;
+    var filmCanEdit = false;
+
+    function emptyMovies() {
+        return { obsession: null, comfort: null, top: [null, null, null, null, null] };
+    }
+    function readMovies(fav) {
+        var m = (fav && fav.movies) ? fav.movies : {};
+        var top = Array.isArray(m.top) ? m.top.slice(0, 5) : [];
+        while (top.length < 5) top.push(null);
+        return { obsession: m.obsession || null, comfort: m.comfort || null, top: top };
+    }
+
+    function filmCardHtml(movie, role, slot, canEdit) {
+        if (!movie) {
+            return '<button type="button" class="film-card empty" data-slot="' + slot + '">' +
+                '<div class="film-role">' + role + '</div>' +
+                (canEdit ? "<div>+ добавить</div>" : "<div>—</div>") +
+                "</button>";
+        }
+        var img = movie.poster
+            ? '<img src="' + escapeHtml(movie.poster) + '" alt="">'
+            : '<div style="aspect-ratio:2/3;background:rgba(255,255,255,.12)"></div>';
+        var href = movie.url || "#";
+        return '<div class="film-card' + (canEdit ? " owner-edit" : "") + '" data-slot="' + slot + '">' +
+            (canEdit ? '<button type="button" class="film-x" data-clear="' + slot + '" aria-label="убрать">×</button>' : "") +
+            '<a href="' + escapeHtml(href) + '" target="_blank" rel="noopener noreferrer">' +
+            img +
+            '<div class="film-meta"><div class="film-role">' + role + "</div>" +
+            '<div class="film-title">' + escapeHtml(movie.title || "") + "</div>" +
+            '<div class="film-year">' + escapeHtml(movie.year || "") + "</div></div></a></div>";
+    }
+
+    async function renderFilms(fav) {
+        filmCanEdit = await canEditThisProfile();
+        var m = readMovies(fav);
+        var ob = document.getElementById("film-obsession");
+        var co = document.getElementById("film-comfort");
+        var top = document.getElementById("film-top");
+        if (ob) ob.innerHTML = filmCardHtml(m.obsession, "currently obsessed", "obsession", filmCanEdit);
+        if (co) co.innerHTML = filmCardHtml(m.comfort, "comfort movie", "comfort", filmCanEdit);
+        if (top) {
+            var html = "";
+            for (var i = 0; i < 5; i++) {
+                html += filmCardHtml(m.top[i], "0" + (i + 1), "top-" + i, filmCanEdit);
+            }
+            top.innerHTML = html;
+        }
+    }
+
+    function openFilmModal(slot) {
+        filmSlot = slot;
+        document.getElementById("film-error").textContent = "";
+        document.getElementById("film-results").innerHTML = "";
+        document.getElementById("film-q").value = "";
+        document.getElementById("film-modal-title").textContent =
+            slot === "obsession" ? "currently obsessed" :
+            slot === "comfort" ? "comfort movie" : "top 5";
+        document.getElementById("film-modal").classList.add("open");
+        setTimeout(function () { document.getElementById("film-q").focus(); }, 50);
+    }
+
+    async function searchTmdb(q, key) {
+        var url = "https://api.themoviedb.org/3/search/movie?api_key=" + encodeURIComponent(key) +
+            "&query=" + encodeURIComponent(q) + "&include_adult=false";
+        var r = await fetch(url);
+        var j = await r.json();
+        return (j.results || []).slice(0, 10).map(function (it) {
+            return {
+                source: "tmdb",
+                id: String(it.id),
+                title: it.title || it.original_title,
+                year: (it.release_date || "").slice(0, 4),
+                poster: it.poster_path ? ("https://image.tmdb.org/t/p/w342" + it.poster_path) : "",
+                url: "https://www.themoviedb.org/movie/" + it.id
+            };
+        });
+    }
+
+    async function searchWikidata(q) {
+        var api = "https://www.wikidata.org/w/api.php?action=wbsearchentities&search=" +
+            encodeURIComponent(q) + "&language=en&uselang=en&type=item&limit=10&format=json&origin=*";
+        var r = await fetch(api);
+        var j = await r.json();
+        var hits = j.search || [];
+        if (!hits.length) return [];
+        var ids = hits.map(function (h) { return "wd:" + h.id; }).join(" ");
+        var sparql = "SELECT ?item ?itemLabel ?year ?pic WHERE { VALUES ?item { " + ids + " } " +
+            "OPTIONAL { ?item wdt:P577 ?d. BIND(YEAR(?d) AS ?year) } " +
+            "OPTIONAL { ?item wdt:P18 ?pic } " +
+            "SERVICE wikibase:label { bd:serviceParam wikibase:language \"ru,en\". } }";
+        var extra = {};
+        try {
+            var s = await fetch("https://query.wikidata.org/sparql?format=json&query=" + encodeURIComponent(sparql), {
+                headers: { Accept: "application/sparql-results+json" }
+            });
+            var sj = await s.json();
+            (sj.results && sj.results.bindings ? sj.results.bindings : []).forEach(function (b) {
+                var id = (b.item && b.item.value || "").split("/").pop();
+                extra[id] = {
+                    year: b.year ? b.year.value : "",
+                    pic: b.pic ? (b.pic.value.replace("http://", "https://") + "?width=342") : ""
+                };
+            });
+        } catch (e) {}
+        return hits.map(function (h) {
+            var x = extra[h.id] || {};
+            return {
+                source: "wikidata",
+                id: h.id,
+                title: h.label || h.id,
+                year: x.year || "",
+                poster: x.pic || "",
+                url: "https://www.wikidata.org/wiki/" + h.id
+            };
+        });
+    }
+
+    async function searchMovies(q) {
+        var key = (window.KINQSY_TMDB_KEY || "").trim();
+        if (key) {
+            try { return await searchTmdb(q, key); } catch (e) { console.warn(e); }
+        }
+        return searchWikidata(q);
+    }
+
+    function paintResults(list) {
+        var box = document.getElementById("film-results");
+        if (!list.length) {
+            box.innerHTML = '<div class="section-hint">ничего не нашлось</div>';
+            return;
+        }
+        box.innerHTML = list.map(function (m, i) {
+            var img = m.poster ? '<img src="' + escapeHtml(m.poster) + '" alt="">' : "<span></span>";
+            return '<button type="button" class="search-hit" data-pick="' + i + '">' + img +
+                "<span><strong>" + escapeHtml(m.title) + "</strong><br>" +
+                escapeHtml(m.year) + "</span></button>";
+        }).join("");
+        box._list = list;
+        box.querySelectorAll("[data-pick]").forEach(function (btn) {
+            btn.onclick = function () {
+                pickMovie(list[Number(btn.getAttribute("data-pick"))]);
+            };
+        });
+    }
+
+    async function pickMovie(movie) {
+        if (!filmSlot || !movie) return;
+        var uid = await currentUserId();
+        if (!uid || !(await canEditThisProfile())) return;
+        var fav = Object.assign({}, (viewedProfile && viewedProfile.favorites) || {});
+        var movies = readMovies(fav);
+        if (filmSlot === "obsession") movies.obsession = movie;
+        else if (filmSlot === "comfort") movies.comfort = movie;
+        else if (filmSlot.indexOf("top-") === 0) {
+            movies.top[Number(filmSlot.split("-")[1])] = movie;
+        }
+        fav.movies = movies;
+        var { error } = await sb.from("profiles").upsert({
+            id: uid,
+            favorites: fav,
+            updated_at: new Date().toISOString()
+        }, { onConflict: "id" });
+        if (error) {
+            document.getElementById("film-error").textContent = error.message +
+                (String(error.message).indexOf("favorites") !== -1
+                    ? " — в SQL: alter table profiles add column if not exists favorites jsonb default '{}'::jsonb;"
+                    : "");
+            return;
+        }
+        document.getElementById("film-modal").classList.remove("open");
+        await loadPublicProfile();
+    }
+
+    async function clearMovie(slot) {
+        var uid = await currentUserId();
+        if (!uid || !(await canEditThisProfile())) return;
+        var fav = Object.assign({}, (viewedProfile && viewedProfile.favorites) || {});
+        var movies = readMovies(fav);
+        if (slot === "obsession") movies.obsession = null;
+        else if (slot === "comfort") movies.comfort = null;
+        else if (slot.indexOf("top-") === 0) movies.top[Number(slot.split("-")[1])] = null;
+        fav.movies = movies;
+        await sb.from("profiles").upsert({
+            id: uid, favorites: fav, updated_at: new Date().toISOString()
+        }, { onConflict: "id" });
+        await loadPublicProfile();
+    }
+
+    document.addEventListener("click", function (e) {
+        var x = e.target.closest("[data-clear]");
+        if (x) {
+            e.preventDefault();
+            e.stopPropagation();
+            clearMovie(x.getAttribute("data-clear"));
+            return;
+        }
+        var empty = e.target.closest(".film-card.empty");
+        if (empty && filmCanEdit) {
+            openFilmModal(empty.getAttribute("data-slot"));
+        }
+    });
+
+    document.getElementById("film-close").onclick = function () {
+        document.getElementById("film-modal").classList.remove("open");
+    };
+    document.getElementById("film-search").onclick = async function () {
+        var err = document.getElementById("film-error");
+        err.textContent = "";
+        var q = document.getElementById("film-q").value.trim();
+        if (q.length < 2) { err.textContent = "введи название"; return; }
+        err.textContent = "ищем…";
+        try {
+            var list = await searchMovies(q);
+            err.textContent = "";
+            paintResults(list);
+        } catch (e) {
+            err.textContent = "поиск не удался";
+        }
+    };
+    document.getElementById("film-q").addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            document.getElementById("film-search").click();
+        }
+    });
 
     loadPublicProfile();
 })();
