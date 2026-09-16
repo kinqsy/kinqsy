@@ -4,4 +4,4 @@
    3) вставь сюда API Key (не Read Access Token)
 
    Без ключа поиск фильмов не работает. */
-window.KINQSY_TMDB_KEY = "https://www.themoviedb.org/signup";
+window.KINQSY_TMDB_KEY = "244260be0874c85142bea9ecd4785264";
