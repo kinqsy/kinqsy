@@ -132,8 +132,25 @@
     fillYearSelect(toEl, "год до");
   }
 
+  async function recommend(tmdbId) {
+    var id = String(tmdbId || "").replace(/\D/g, "");
+    if (!id) return [];
+    try {
+      var data = await tmdb("/movie/" + id + "/recommendations", { page: "1" });
+      var list = (data.results || []).map(mapMovie);
+      if (list.length) return list.slice(0, 8);
+    } catch (e) {}
+    try {
+      var sim = await tmdb("/movie/" + id + "/similar", { page: "1" });
+      return (sim.results || []).map(mapMovie).slice(0, 8);
+    } catch (e) {
+      return [];
+    }
+  }
+
   global.KinqsyFilms = {
     search: search,
+    recommend: recommend,
     fillFilters: fillFilters,
     hasKey: function () { return !!apiKey(); }
   };
