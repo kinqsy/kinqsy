@@ -820,33 +820,44 @@
         document.getElementById("about-text").textContent =
             data.about_text || "нажми ★ чтобы войти и написать о себе";
         if (data.friend_code) {
-            document.getElementById("my-friend-code").textContent = data.friend_code;
+            var fc = document.getElementById("my-friend-code");
+            if (fc) fc.textContent = data.friend_code;
         }
-        renderFilms(data.favorites);
     }
 
     async function loadPublicProfile() {
-        fixMenu();
-        var slug = getU();
-        var res = await sb.from("profiles").select("*").ilike("display_name", slug).maybeSingle();
-        if (!res.data && slug.toLowerCase() === OWNER_SLUG && OWNER_ID) {
-            res = await sb.from("profiles").select("*").eq("id", OWNER_ID).maybeSingle();
+        try {
+            fixMenu();
+            var slug = getU();
+            var res = await sb.from("profiles").select("*").ilike("display_name", slug).maybeSingle();
+            if (res.error) console.warn("profiles select", res.error);
+            if (!res.data && slug.toLowerCase() === OWNER_SLUG && OWNER_ID) {
+                res = await sb.from("profiles").select("*").eq("id", OWNER_ID).maybeSingle();
+            }
+            if (res.data) {
+                applyProfile(res.data);
+                await renderFilms(res.data.favorites);
+            } else {
+                viewedProfileId = null;
+                viewedProfile = null;
+                var rn = document.getElementById("about-real-name");
+                var hh = document.getElementById("about-handle");
+                if (rn) rn.textContent = slug;
+                if (hh) hh.textContent = "@" + String(slug).replace(/^@+/, "");
+                var st = document.getElementById("about-status");
+                if (st) st.textContent = "—";
+                var at = document.getElementById("about-text");
+                if (at) at.textContent = "профиль пока пустой";
+                setReputation(0);
+                await renderFilms(null);
+            }
+            try { await refreshOwnerTools(); } catch (e) { console.warn(e); }
+            try { await loadFriends(); } catch (e) { console.warn(e); }
+            try { if (typeof renderInterests === "function") await renderInterests(); } catch (e) { console.warn(e); }
+        } catch (e) {
+            console.error("loadPublicProfile", e);
+            try { await renderFilms(null); } catch (e2) {}
         }
-        if (res.data) applyProfile(res.data);
-        else {
-            viewedProfileId = null;
-            var rn = document.getElementById("about-real-name");
-            var hh = document.getElementById("about-handle");
-            if (rn) rn.textContent = slug;
-            if (hh) hh.textContent = "@" + String(slug).replace(/^@+/, "");
-            document.getElementById("about-status").textContent = "—";
-            document.getElementById("about-text").textContent = "профиль пока пустой";
-            setReputation(0);
-            renderFilms(null);
-        }
-        await refreshOwnerTools();
-        await loadFriends();
-        if (typeof renderInterests === 'function') await renderInterests();
     }
 
     async function refreshOwnerTools() {
@@ -1497,7 +1508,7 @@
     }
 
     async function renderFilms(fav) {
-        filmCanEdit = await canEditThisProfile();
+        try { filmCanEdit = await canEditThisProfile(); } catch (e) { filmCanEdit = false; console.warn(e); }
         var addF = document.getElementById("film-add");
         var addM = document.getElementById("music-add");
         var addB = document.getElementById("book-add");
@@ -1862,6 +1873,18 @@
         if (e.key === "Enter") { e.preventDefault(); document.getElementById("game-search").click(); }
     });
 
-    loadPublicProfile();
+    loadPublicProfile().catch(function (e) { console.error(e); });
 })();
- 
+
+<script>
+(function () {
+  if (!window.Kinqsy) return;
+  Kinqsy.init({
+    skipDefaultStar: true,
+    onLoginSuccess: async function () {
+      location.reload();
+    }
+  });
+  Kinqsy.fixMenu();
+})();
+</script>
