@@ -1874,17 +1874,15 @@
     });
 
     loadPublicProfile().catch(function (e) { console.error(e); });
-})();
 
-<script>
-(function () {
-  if (!window.Kinqsy) return;
-  Kinqsy.init({
-    skipDefaultStar: true,
-    onLoginSuccess: async function () {
-      location.reload();
+    if (window.Kinqsy) {
+        Kinqsy.init({
+            skipDefaultStar: true,
+            onLoginSuccess: async function () {
+                location.reload();
+            }
+        });
+        Kinqsy.fixMenu();
     }
-  });
-  Kinqsy.fixMenu();
 })();
 </script>
