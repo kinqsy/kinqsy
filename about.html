@@ -256,17 +256,34 @@
             width: 100%; aspect-ratio: 2/3; object-fit: cover; display: block;
             background: rgba(0,0,0,.15);
         }
-        .vitrine-pin.music img { aspect-ratio: 1/1; }
+        .vitrine-pin.music img,
+        .vitrine-pin.game img { aspect-ratio: 1/1; }
+        .vitrine-pin.game img { aspect-ratio: 2/3; }
         .vitrine-pin .pin-body { padding: 10px 12px 12px; }
         .vitrine-pin .film-role { margin-bottom: 3px; }
         .vitrine-pin .film-title { font-size: 13px; line-height: 1.25; }
         .vitrine-pin .film-year { font-size: 11px; opacity: .65; font-family: Arial, sans-serif; margin-top: 2px; }
         .vitrine-actions { display: flex; gap: 4px; margin-top: 8px; }
-        .pin-btn {
-            border: 0; border-radius: 999px; min-width: 28px; height: 28px; padding: 0 8px;
-            background: rgba(255,255,255,.4); color: #2a1822; font-size: 13px;
+        .author-link {
+            border: 0; padding: 0; background: none; color: inherit;
+            font: inherit; text-decoration: underline; text-underline-offset: 2px;
+            opacity: .85;
         }
-        .vitrine-empty { font-size: 13px; opacity: .65; font-style: italic; padding: 8px 0; }
+        .reco { margin-top: 12px; display: none; }
+        .reco.show { display: block; }
+        .reco-track {
+            display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px;
+        }
+        .reco-card {
+            flex: 0 0 92px; border: 0; padding: 0; text-align: left;
+            background: rgba(255,255,255,.2); border-radius: 12px; overflow: hidden;
+            color: inherit;
+        }
+        .reco-card img { width: 92px; height: 128px; object-fit: cover; display: block; }
+        .reco-card.music img { height: 92px; }
+        .reco-card span {
+            display: block; padding: 6px 7px 8px; font-size: 11px; line-height: 1.25;
+        }
 
         .film-hero {
             display: none;
@@ -491,6 +508,7 @@
                 <button type="button" class="vitrine-add" id="film-add">+ фильм</button>
             </div>
             <div class="vitrine-board" id="film-board"></div>
+            <div class="reco" id="film-reco"><div class="film-role">похожее</div><div class="reco-track" id="film-reco-track"></div></div>
             <p class="film-attr">
                 Kinqsy хранит только выбор, не файлы постеров.
                 This product uses the TMDB API but is not endorsed or certified by TMDB.
@@ -504,17 +522,35 @@
                 <button type="button" class="vitrine-add" id="music-add">+ альбом</button>
             </div>
             <div class="vitrine-board" id="music-board"></div>
+            <div class="reco" id="music-reco"><div class="film-role">ещё у этого исполнителя</div><div class="reco-track" id="music-reco-track"></div></div>
             <p class="film-attr">
                 Обложки с Deezer / iTunes, без стриминга на сайте. Клик — на страницу релиза.
             </p>
         </section>
 
         <section class="glass section">
-            <h2>My favourites</h2>
-            <div class="faves-row">
-                <div class="fave-slot">books</div>
-                <div class="fave-slot">games</div>
+            <div class="vitrine-head">
+                <h2>Books</h2>
+                <button type="button" class="vitrine-add" id="book-add">+ книга</button>
             </div>
+            <div class="vitrine-board" id="book-board"></div>
+            <div class="reco" id="book-reco"><div class="film-role">ещё этого автора</div><div class="reco-track" id="book-reco-track"></div></div>
+            <p class="film-attr">
+                Обложки Open Library. Kinqsy хранит только выбор книги.
+                <a href="https://openlibrary.org/" target="_blank" rel="noopener">openlibrary.org</a>
+            </p>
+        </section>
+
+        <section class="glass section">
+            <div class="vitrine-head">
+                <h2>Games</h2>
+                <button type="button" class="vitrine-add" id="game-add">+ игра</button>
+            </div>
+            <div class="vitrine-board" id="game-board"></div>
+            <div class="reco" id="game-reco"><div class="film-role">похожее / серии</div><div class="reco-track" id="game-reco-track"></div></div>
+            <p class="film-attr">
+                Арты Steam Store, без файлов игр на сайте. Клик — в магазин.
+            </p>
         </section>
 
         <section class="glass section">
@@ -622,8 +658,15 @@
     <div class="auth-overlay" id="music-modal">
         <div class="auth-modal">
             <h2>найти альбом</h2>
-            <label for="music-q">название или исполнитель (можно по-русски)</label>
-            <input id="music-q" type="text" placeholder="Lana Del Rey, ультразвук…" autocomplete="off">
+            <label for="music-q">название альбома (можно по-русски)</label>
+            <input id="music-q" type="text" placeholder="Born to Die, ультразвук…" autocomplete="off">
+            <label for="music-artist">исполнитель</label>
+            <input id="music-artist" type="text" placeholder="Lana Del Rey, Земфира…" autocomplete="off">
+            <div class="film-filters">
+                <select id="music-genre" aria-label="жанр"></select>
+                <select id="music-year-from" aria-label="год от"></select>
+                <select id="music-year-to" aria-label="год до"></select>
+            </div>
             <div id="music-results"></div>
             <div class="auth-actions">
                 <button type="button" id="music-search">искать</button>
@@ -633,10 +676,47 @@
         </div>
     </div>
 
+    <div class="auth-overlay" id="book-modal">
+        <div class="auth-modal">
+            <h2>найти книгу</h2>
+            <label for="book-q">название</label>
+            <input id="book-q" type="text" placeholder="Пикник на обочине…" autocomplete="off">
+            <label for="book-author">автор</label>
+            <input id="book-author" type="text" placeholder="Стругацкие, Dostoevsky…" autocomplete="off">
+            <div class="film-filters">
+                <select id="book-genre" aria-label="жанр"></select>
+                <select id="book-year-from" aria-label="год от"></select>
+                <select id="book-year-to" aria-label="год до"></select>
+            </div>
+            <div id="book-results"></div>
+            <div class="auth-actions">
+                <button type="button" id="book-search">искать</button>
+                <button type="button" id="book-close" class="secondary">закрыть</button>
+            </div>
+            <div class="auth-error" id="book-error"></div>
+        </div>
+    </div>
+
+    <div class="auth-overlay" id="game-modal">
+        <div class="auth-modal">
+            <h2>найти игру</h2>
+            <label for="game-q">название (можно по-русски)</label>
+            <input id="game-q" type="text" placeholder="Silent Hill, Ведьмак…" autocomplete="off">
+            <div id="game-results"></div>
+            <div class="auth-actions">
+                <button type="button" id="game-search">искать</button>
+                <button type="button" id="game-close" class="secondary">закрыть</button>
+            </div>
+            <div class="auth-error" id="game-error"></div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="kinqsy-keys.js"></script>
     <script src="kinqsy-films.js"></script>
     <script src="kinqsy-music.js"></script>
+    <script src="kinqsy-books.js"></script>
+    <script src="kinqsy-games.js"></script>
     <script src="kinqsy-core.js"></script>
     <script>
 (function () {
@@ -1317,10 +1397,26 @@
     /* ----- vitrines: films + music as pin windows ----- */
     var filmCanEdit = false;
     var MAX_PINS = 20;
+    var FAV = {
+        movie: { key: "movies", err: "film-error", modal: "film-modal" },
+        music: { key: "music", err: "music-error", modal: "music-modal" },
+        book: { key: "books", err: "book-error", modal: "book-modal" },
+        game: { key: "games", err: "game-error", modal: "game-modal" }
+    };
+
+    function favMeta(kind) {
+        return FAV[kind] || FAV.movie;
+    }
 
     function roleLabel(role, kind) {
-        if (role === "obsession") return kind === "music" ? "currently obsessed" : "currently obsessed";
-        if (role === "comfort") return kind === "music" ? "comfort album" : "comfort movie";
+        if (role === "obsession") return "currently obsessed";
+        if (role === "comfort") {
+            if (kind === "music") return "comfort album";
+            if (kind === "book") return "comfort book";
+            if (kind === "game") return "comfort game";
+            return "comfort movie";
+        }
+        if (role === "guilty") return "guilty pleasure";
         return "";
     }
 
@@ -1338,24 +1434,27 @@
     }
 
     function sortPins(items) {
-        var rank = { obsession: 0, comfort: 1 };
+        var rank = { obsession: 0, comfort: 1, guilty: 2 };
         return items.slice().sort(function (a, b) {
-            var ra = rank[a.role] != null ? rank[a.role] : 2;
-            var rb = rank[b.role] != null ? rank[b.role] : 2;
+            var ra = rank[a.role] != null ? rank[a.role] : 3;
+            var rb = rank[b.role] != null ? rank[b.role] : 3;
             return ra - rb;
         });
     }
 
     function pinHtml(item, kind, canEdit) {
         var role = roleLabel(item.role, kind);
-        var extra = kind === "music" ? escapeHtml(item.artist || "") : escapeHtml(item.year || "");
+        var extra = kind === "music" ? escapeHtml(item.artist || "")
+            : kind === "book" ? escapeHtml(item.author || "")
+            : escapeHtml(item.year || "");
         var img = item.poster
             ? '<img src="' + escapeHtml(item.poster) + '" alt="">'
             : "";
         var actions = canEdit
             ? '<div class="vitrine-actions">' +
-                '<button type="button" class="pin-btn" data-role="obsession" data-kind="' + kind + '" data-id="' + escapeHtml(item.id) + '" title="obsessed">★</button>' +
-                '<button type="button" class="pin-btn" data-role="comfort" data-kind="' + kind + '" data-id="' + escapeHtml(item.id) + '" title="comfort">♡</button>' +
+                '<button type="button" class="pin-btn' + (item.role === "obsession" ? " active" : "") + '" data-role="obsession" data-kind="' + kind + '" data-id="' + escapeHtml(item.id) + '" title="obsessed">★</button>' +
+                '<button type="button" class="pin-btn' + (item.role === "comfort" ? " active" : "") + '" data-role="comfort" data-kind="' + kind + '" data-id="' + escapeHtml(item.id) + '" title="comfort">♡</button>' +
+                '<button type="button" class="pin-btn' + (item.role === "guilty" ? " active" : "") + '" data-role="guilty" data-kind="' + kind + '" data-id="' + escapeHtml(item.id) + '" title="guilty pleasure">//</button>' +
                 '<button type="button" class="pin-btn" data-clear="' + kind + '" data-id="' + escapeHtml(item.id) + '" aria-label="убрать">×</button>' +
               "</div>"
             : "";
@@ -1365,7 +1464,14 @@
             '<div class="pin-body">' +
             (role ? '<div class="film-role">' + role + "</div>" : "") +
             '<div class="film-title">' + escapeHtml(item.title || "") + "</div>" +
-            '<div class="film-year">' + extra + (kind === "music" && item.year ? " · " + escapeHtml(item.year) : "") + "</div>" +
+            '<div class="film-year">' +
+            (kind === "book" && item.author
+                ? '<button type="button" class="author-link" data-find="book" data-person="' + escapeHtml(item.author) + '">' + extra + "</button>"
+                : kind === "music" && item.artist
+                ? '<button type="button" class="author-link" data-find="music" data-person="' + escapeHtml(item.artist) + '">' + extra + "</button>"
+                : extra) +
+            ((kind === "music" || kind === "book") && item.year ? " · " + escapeHtml(item.year) : "") +
+            "</div>" +
             actions + "</div></article>";
     }
 
@@ -1394,23 +1500,84 @@
         filmCanEdit = await canEditThisProfile();
         var addF = document.getElementById("film-add");
         var addM = document.getElementById("music-add");
+        var addB = document.getElementById("book-add");
+        var addG = document.getElementById("game-add");
         if (addF) addF.classList.toggle("show", filmCanEdit);
         if (addM) addM.classList.toggle("show", filmCanEdit);
+        if (addB) addB.classList.toggle("show", filmCanEdit);
+        if (addG) addG.classList.toggle("show", filmCanEdit);
 
         var movies = sortPins(normalizeList(fav && fav.movies, "movies"));
         var music = sortPins(normalizeList(fav && fav.music, "music"));
-        var fb = document.getElementById("film-board");
-        var mb = document.getElementById("music-board");
-        if (fb) {
-            fb.innerHTML = movies.length
-                ? movies.map(function (m) { return pinHtml(m, "movie", filmCanEdit); }).join("")
-                : '<div class="vitrine-empty">' + (filmCanEdit ? "добавь фильмы кнопкой +" : "пока пусто") + "</div>";
+        var books = sortPins(normalizeList(fav && fav.books, "books"));
+        var games = sortPins(normalizeList(fav && fav.games, "games"));
+        function fillBoard(id, items, kind, emptyTxt) {
+            var el = document.getElementById(id);
+            if (!el) return;
+            el.innerHTML = items.length
+                ? items.map(function (m) { return pinHtml(m, kind, filmCanEdit); }).join("")
+                : '<div class="vitrine-empty">' + (filmCanEdit ? emptyTxt : "пока пусто") + "</div>";
         }
-        if (mb) {
-            mb.innerHTML = music.length
-                ? music.map(function (m) { return pinHtml(m, "music", filmCanEdit); }).join("")
-                : '<div class="vitrine-empty">' + (filmCanEdit ? "добавь альбомы кнопкой +" : "пока пусто") + "</div>";
+        fillBoard("film-board", movies, "movie", "добавь фильмы кнопкой +");
+        fillBoard("music-board", music, "music", "добавь альбомы кнопкой +");
+        fillBoard("book-board", books, "book", "добавь книги кнопкой +");
+        fillBoard("game-board", games, "game", "добавь игры кнопкой +");
+        loadReco("movie", movies);
+        loadReco("music", music);
+        loadReco("book", books);
+        loadReco("game", games);
+    }
+
+    function seedItem(items) {
+        var i;
+        for (i = 0; i < items.length; i++) {
+            if (items[i].role === "obsession") return items[i];
         }
+        return items[0] || null;
+    }
+
+    async function loadReco(kind, items) {
+        var box = document.getElementById(kind === "movie" ? "film-reco" : kind + "-reco");
+        var track = document.getElementById(kind === "movie" ? "film-reco-track" : kind + "-reco-track");
+        if (!box || !track) return;
+        box.classList.remove("show");
+        track.innerHTML = "";
+        var seed = seedItem(items || []);
+        if (!seed) return;
+        var have = {};
+        (items || []).forEach(function (x) { have[String(x.id)] = true; have[String(x.title || "").toLowerCase()] = true; });
+        var list = [];
+        try {
+            if (kind === "movie" && window.KinqsyFilms && KinqsyFilms.recommend && KinqsyFilms.hasKey()) {
+                list = await KinqsyFilms.recommend(seed.id);
+            } else if (kind === "music" && window.KinqsyMusic && KinqsyMusic.byArtist) {
+                list = await KinqsyMusic.byArtist(seed.artist, seed.title);
+            } else if (kind === "book" && window.KinqsyBooks && KinqsyBooks.byAuthor) {
+                list = await KinqsyBooks.byAuthor(seed.author, seed.title);
+            } else if (kind === "game" && window.KinqsyGames && KinqsyGames.similar) {
+                list = await KinqsyGames.similar(seed.title);
+            }
+        } catch (e) { return; }
+        list = (list || []).filter(function (x) {
+            return !have[String(x.id)] && !have[String(x.title || "").toLowerCase()];
+        }).slice(0, 8);
+        if (!list.length) return;
+        track.innerHTML = list.map(function (m, i) {
+            var img = m.poster ? '<img src="' + escapeHtml(m.poster) + '" alt="">' : "";
+            var sub = m.author || m.artist || m.year || "";
+            return '<button type="button" class="reco-card ' + kind + '" data-reco="' + i + '">' +
+                img + "<span>" + escapeHtml(m.title || "") +
+                (sub ? "<br>" + escapeHtml(String(sub)) : "") + "</span></button>";
+        }).join("");
+        track.querySelectorAll("[data-reco]").forEach(function (btn) {
+            btn.onclick = function () {
+                var item = list[Number(btn.getAttribute("data-reco"))];
+                if (!item) return;
+                if (filmCanEdit) addPin(kind, item);
+                else if (item.url) window.open(item.url, "_blank", "noopener");
+            };
+        });
+        box.classList.add("show");
     }
 
     function openFilmModal() {
@@ -1433,7 +1600,15 @@
         document.getElementById("music-error").textContent = "";
         document.getElementById("music-results").innerHTML = "";
         document.getElementById("music-q").value = "";
+        if (document.getElementById("music-artist")) document.getElementById("music-artist").value = "";
         document.getElementById("music-modal").classList.add("open");
+        if (window.KinqsyMusic && KinqsyMusic.fillFilters) {
+            KinqsyMusic.fillFilters(
+                document.getElementById("music-genre"),
+                document.getElementById("music-year-from"),
+                document.getElementById("music-year-to")
+            );
+        }
         setTimeout(function () { document.getElementById("music-q").focus(); }, 50);
     }
 
@@ -1446,7 +1621,9 @@
         box.innerHTML = list.map(function (m, i) {
             var img = m.poster ? '<img src="' + escapeHtml(m.poster) + '" alt="">' : "<span></span>";
             var ru = m.title_ru ? '<span class="hit-ru">' + escapeHtml(m.title_ru) + "</span>" : "";
-            var sub = m.artist ? escapeHtml(m.artist) : (ru + (ru ? " · " : "") + escapeHtml(m.year || ""));
+            var sub = m.artist ? escapeHtml(m.artist)
+                : m.author ? escapeHtml(m.author)
+                : (ru + (ru ? " · " : "") + escapeHtml(m.year || ""));
             return '<button type="button" class="search-hit" data-pick="' + i + '">' + img +
                 '<span><span class="hit-orig"><strong>' + escapeHtml(m.title) + "</strong></span><br>" +
                 sub + "</span></button>";
@@ -1457,44 +1634,44 @@
     }
 
     async function addPin(kind, item) {
+        var meta = favMeta(kind);
         var fav = (viewedProfile && viewedProfile.favorites) || {};
-        var key = kind === "music" ? "music" : "movies";
-        var list = normalizeList(fav[key], key);
+        var list = normalizeList(fav[meta.key], meta.key);
+        var errEl = document.getElementById(meta.err);
         if (list.length >= MAX_PINS) {
-            var el = document.getElementById(kind === "music" ? "music-error" : "film-error");
-            if (el) el.textContent = "максимум " + MAX_PINS;
+            if (errEl) errEl.textContent = "максимум " + MAX_PINS;
             return;
         }
         if (list.some(function (x) { return String(x.id) === String(item.id); })) {
-            var el2 = document.getElementById(kind === "music" ? "music-error" : "film-error");
-            if (el2) el2.textContent = "уже в витрине";
+            if (errEl) errEl.textContent = "уже в витрине";
             return;
         }
         item.role = item.role || "";
         list.push(item);
-        var { error } = await saveFavKey(key, list);
+        var { error } = await saveFavKey(meta.key, list);
         if (error) {
-            var box = document.getElementById(kind === "music" ? "music-error" : "film-error");
-            if (box) box.textContent = sqlHint(error);
+            if (errEl) errEl.textContent = sqlHint(error);
             return;
         }
-        document.getElementById("film-modal").classList.remove("open");
-        document.getElementById("music-modal").classList.remove("open");
+        Object.keys(FAV).forEach(function (k) {
+            var m = document.getElementById(FAV[k].modal);
+            if (m) m.classList.remove("open");
+        });
         await loadPublicProfile();
     }
 
     async function removePin(kind, id) {
-        var key = kind === "music" ? "music" : "movies";
+        var meta = favMeta(kind);
         var fav = (viewedProfile && viewedProfile.favorites) || {};
-        var list = normalizeList(fav[key], key).filter(function (x) { return String(x.id) !== String(id); });
-        await saveFavKey(key, list);
+        var list = normalizeList(fav[meta.key], meta.key).filter(function (x) { return String(x.id) !== String(id); });
+        await saveFavKey(meta.key, list);
         await loadPublicProfile();
     }
 
     async function setPinRole(kind, id, role) {
-        var key = kind === "music" ? "music" : "movies";
+        var meta = favMeta(kind);
         var fav = (viewedProfile && viewedProfile.favorites) || {};
-        var list = normalizeList(fav[key], key).map(function (x) {
+        var list = normalizeList(fav[meta.key], meta.key).map(function (x) {
             var copy = Object.assign({}, x);
             if (String(copy.id) === String(id)) {
                 copy.role = copy.role === role ? "" : role;
@@ -1503,7 +1680,7 @@
             }
             return copy;
         });
-        await saveFavKey(key, list);
+        await saveFavKey(meta.key, list);
         await loadPublicProfile();
     }
 
@@ -1511,22 +1688,65 @@
     if (filmAddBtn) filmAddBtn.onclick = function () { if (filmCanEdit) openFilmModal(); };
     var musicAddBtn = document.getElementById("music-add");
     if (musicAddBtn) musicAddBtn.onclick = function () { if (filmCanEdit) openMusicModal(); };
+    var bookAddBtn = document.getElementById("book-add");
+    if (bookAddBtn) bookAddBtn.onclick = function () { if (filmCanEdit) openBookModal(); };
+    var gameAddBtn = document.getElementById("game-add");
+    if (gameAddBtn) gameAddBtn.onclick = function () { if (filmCanEdit) openGameModal(); };
+
+    function openBookModal() {
+        document.getElementById("book-error").textContent = "";
+        document.getElementById("book-results").innerHTML = "";
+        document.getElementById("book-q").value = "";
+        if (document.getElementById("book-author")) document.getElementById("book-author").value = "";
+        document.getElementById("book-modal").classList.add("open");
+        if (window.KinqsyBooks && KinqsyBooks.fillFilters) {
+            KinqsyBooks.fillFilters(
+                document.getElementById("book-genre"),
+                document.getElementById("book-year-from"),
+                document.getElementById("book-year-to")
+            );
+        }
+        setTimeout(function () { document.getElementById("book-q").focus(); }, 50);
+    }
+
+    function openGameModal() {
+        document.getElementById("game-error").textContent = "";
+        document.getElementById("game-results").innerHTML = "";
+        document.getElementById("game-q").value = "";
+        document.getElementById("game-modal").classList.add("open");
+        setTimeout(function () { document.getElementById("game-q").focus(); }, 50);
+    }
 
     document.addEventListener("click", function (e) {
         var x = e.target.closest("[data-clear]");
         if (x) {
             e.preventDefault();
             e.stopPropagation();
-            var kind = x.getAttribute("data-clear") === "music" ? "music" : "movie";
-            removePin(kind, x.getAttribute("data-id"));
+            removePin(x.getAttribute("data-clear"), x.getAttribute("data-id"));
             return;
         }
         var roleBtn = e.target.closest("[data-role]");
         if (roleBtn) {
             e.preventDefault();
             e.stopPropagation();
-            var k = roleBtn.getAttribute("data-kind") === "music" ? "music" : "movie";
-            setPinRole(k, roleBtn.getAttribute("data-id"), roleBtn.getAttribute("data-role"));
+            setPinRole(roleBtn.getAttribute("data-kind"), roleBtn.getAttribute("data-id"), roleBtn.getAttribute("data-role"));
+            return;
+        }
+        var find = e.target.closest("[data-find]");
+        if (find) {
+            e.preventDefault();
+            e.stopPropagation();
+            var person = find.getAttribute("data-person") || "";
+            if (find.getAttribute("data-find") === "book") {
+                openBookModal();
+                document.getElementById("book-author").value = person;
+                document.getElementById("book-search").click();
+            } else {
+                openMusicModal();
+                var ma = document.getElementById("music-artist");
+                if (ma) ma.value = person;
+                document.getElementById("music-search").click();
+            }
         }
     });
 
@@ -1535,6 +1755,12 @@
     };
     document.getElementById("music-close").onclick = function () {
         document.getElementById("music-modal").classList.remove("open");
+    };
+    document.getElementById("book-close").onclick = function () {
+        document.getElementById("book-modal").classList.remove("open");
+    };
+    document.getElementById("game-close").onclick = function () {
+        document.getElementById("game-modal").classList.remove("open");
     };
 
     document.getElementById("film-search").onclick = async function () {
@@ -1569,7 +1795,13 @@
         if (!window.KinqsyMusic) { err.textContent = "нет kinqsy-music.js"; return; }
         err.textContent = "ищем…";
         try {
-            var list = await KinqsyMusic.search(document.getElementById("music-q").value.trim());
+            var list = await KinqsyMusic.search({
+                q: document.getElementById("music-q").value.trim(),
+                artist: (document.getElementById("music-artist") || {}).value || "",
+                genre: (document.getElementById("music-genre") || {}).value || "",
+                yearFrom: (document.getElementById("music-year-from") || {}).value || "",
+                yearTo: (document.getElementById("music-year-to") || {}).value || ""
+            });
             err.textContent = "";
             paintHits("music-results", list, function (m) { addPin("music", m); });
         } catch (e) {
@@ -1579,24 +1811,57 @@
     document.getElementById("music-q").addEventListener("keydown", function (e) {
         if (e.key === "Enter") { e.preventDefault(); document.getElementById("music-search").click(); }
     });
+    if (document.getElementById("music-artist")) {
+        document.getElementById("music-artist").addEventListener("keydown", function (e) {
+            if (e.key === "Enter") { e.preventDefault(); document.getElementById("music-search").click(); }
+        });
+    }
+
+    document.getElementById("book-search").onclick = async function () {
+        var err = document.getElementById("book-error");
+        err.textContent = "";
+        if (!window.KinqsyBooks) { err.textContent = "нет kinqsy-books.js"; return; }
+        err.textContent = "ищем…";
+        try {
+            var list = await KinqsyBooks.search({
+                q: document.getElementById("book-q").value.trim(),
+                author: (document.getElementById("book-author") || {}).value || "",
+                genre: (document.getElementById("book-genre") || {}).value || "",
+                yearFrom: (document.getElementById("book-year-from") || {}).value || "",
+                yearTo: (document.getElementById("book-year-to") || {}).value || ""
+            });
+            err.textContent = "";
+            paintHits("book-results", list, function (m) { addPin("book", m); });
+        } catch (e) {
+            err.textContent = e.message || "поиск не удался";
+        }
+    };
+    document.getElementById("book-q").addEventListener("keydown", function (e) {
+        if (e.key === "Enter") { e.preventDefault(); document.getElementById("book-search").click(); }
+    });
+    if (document.getElementById("book-author")) {
+        document.getElementById("book-author").addEventListener("keydown", function (e) {
+            if (e.key === "Enter") { e.preventDefault(); document.getElementById("book-search").click(); }
+        });
+    }
+
+    document.getElementById("game-search").onclick = async function () {
+        var err = document.getElementById("game-error");
+        err.textContent = "";
+        if (!window.KinqsyGames) { err.textContent = "нет kinqsy-games.js"; return; }
+        err.textContent = "ищем…";
+        try {
+            var list = await KinqsyGames.search({ q: document.getElementById("game-q").value.trim() });
+            err.textContent = "";
+            paintHits("game-results", list, function (m) { addPin("game", m); });
+        } catch (e) {
+            err.textContent = e.message || "поиск не удался";
+        }
+    };
+    document.getElementById("game-q").addEventListener("keydown", function (e) {
+        if (e.key === "Enter") { e.preventDefault(); document.getElementById("game-search").click(); }
+    });
 
     loadPublicProfile();
 })();
-    </script>
-
-<script>
-(function () {
-  if (!window.Kinqsy) return;
-  Kinqsy.init({
-    skipDefaultStar: true,
-    onLoginSuccess: async function () {
-      location.reload();
-    }
-  });
-  // keep page star; ensure menu
-  Kinqsy.fixMenu();
-})();
-</script>
-
-</body>
-</html>
+ 
