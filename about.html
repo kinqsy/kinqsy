@@ -1351,89 +1351,174 @@
     document.getElementById("about-close").onclick = closeAboutEdit;
 
     var authMode = "login";
+
+    function siteOrigin() {
+        try {
+            var o = location.origin || "";
+            var path = location.pathname || "/";
+            var base = path.replace(/\/[^/]*$/, "/");
+            if (base.indexOf("/kinqsy") === -1 && o.indexOf("github.io") !== -1) base = "/kinqsy/";
+            return o + (base || "/");
+        } catch (e) {}
+        return "https://kinqsy.github.io/kinqsy/";
+    }
+    function redirectTo() {
+        return siteOrigin().replace(/\/?$/, "/") + "about.html";
+    }
+
     function setAuthMode(mode) {
-        authMode = mode;
-        var isSignup = mode === "signup";
-        document.getElementById("auth-title").textContent = isSignup ? "регистрация" : "вход";
-        document.getElementById("signup-only").style.display = isSignup ? "block" : "none";
-        document.getElementById("auth-submit").textContent = isSignup ? "создать аккаунт" : "войти";
-        document.getElementById("mode-login").classList.toggle("active", !isSignup);
+        authMode = mode || "login";
+        var isSignup = authMode === "signup";
+        var isForgot = authMode === "forgot";
+        var isNewPass = authMode === "newpass";
+        var title = document.getElementById("auth-title");
+        if (title) title.textContent = isNewPass ? "новый пароль" : isForgot ? "сброс пароля" : isSignup ? "регистрация" : "вход";
+        var tabs = document.getElementById("auth-tabs");
+        if (tabs) tabs.style.display = (isForgot || isNewPass) ? "none" : "flex";
+        var only = document.getElementById("signup-only");
+        if (only) only.style.display = isSignup ? "block" : "none";
+        var passWrap = document.getElementById("auth-pass-wrap");
+        if (passWrap) passWrap.style.display = isForgot ? "none" : "block";
+        var pass2 = document.getElementById("auth-pass2-wrap");
+        if (pass2) pass2.style.display = isNewPass ? "block" : "none";
+        var emailWrap = document.getElementById("auth-email-wrap");
+        if (emailWrap) emailWrap.style.display = isNewPass ? "none" : "block";
+        var passLabel = document.getElementById("auth-pass-label");
+        if (passLabel) passLabel.textContent = isNewPass ? "новый пароль" : "пароль";
+        var submit = document.getElementById("auth-submit");
+        if (submit) submit.textContent = isNewPass ? "сохранить пароль" : isForgot ? "выслать ссылку" : isSignup ? "создать" : "войти";
+        var forgot = document.getElementById("auth-forgot");
+        if (forgot) {
+            forgot.style.display = (isForgot || isNewPass) ? "none" : "block";
+            forgot.textContent = isSignup ? "уже есть аккаунт? войди" : "забыла пароль?";
+        }
+        var hint = document.getElementById("auth-hint");
+        if (hint) {
+            if (isForgot) hint.textContent = "Пришлём письмо со ссылкой. Открой его и задай новый пароль.";
+            else if (isNewPass) hint.textContent = "Придумай новый пароль (минимум 6 символов).";
+            else if (isSignup) hint.textContent = "Почта + пароль. Юз можно оставить пустым.";
+            else hint.textContent = "";
+        }
+        document.getElementById("mode-login").classList.toggle("active", authMode === "login");
         document.getElementById("mode-signup").classList.toggle("active", isSignup);
         document.getElementById("auth-error").textContent = "";
-        document.getElementById("auth-password").autocomplete = isSignup ? "new-password" : "current-password";
     }
+
     document.getElementById("mode-login").onclick = function (e) {
-        e.preventDefault(); e.stopPropagation();
+        e.preventDefault();
         setAuthMode("login");
     };
     document.getElementById("mode-signup").onclick = function (e) {
-        e.preventDefault(); e.stopPropagation();
+        e.preventDefault();
         setAuthMode("signup");
     };
+    var forgotBtn = document.getElementById("auth-forgot");
+    if (forgotBtn) {
+        forgotBtn.onclick = function (e) {
+            e.preventDefault();
+            if (authMode === "signup") setAuthMode("login");
+            else setAuthMode("forgot");
+        };
+    }
 
     document.getElementById("auth-submit").onclick = async function (e) {
         e.preventDefault();
-        e.stopPropagation();
         var err = document.getElementById("auth-error");
         err.textContent = "";
-        var email = document.getElementById("auth-email").value.trim();
-        var password = document.getElementById("auth-password").value;
-        if (!email || !password) {
-            err.textContent = "введи почту и пароль";
-            return;
-        }
-        if (password.length < 6) {
-            err.textContent = "пароль минимум 6 символов";
+        var email = (document.getElementById("auth-email").value || "").trim();
+        var password = document.getElementById("auth-password").value || "";
+
+        if (authMode === "forgot") {
+            if (!email) { err.textContent = "введи почту"; return; }
+            err.textContent = "отправляем…";
+            var fr = await sb.auth.resetPasswordForEmail(email, { redirectTo: redirectTo() });
+            if (fr.error) { err.textContent = fr.error.message; return; }
+            err.textContent = "письмо отправлено. открой ссылку (проверь спам).";
             return;
         }
 
+        if (authMode === "newpass") {
+            if (!password || password.length < 6) { err.textContent = "пароль минимум 6 символов"; return; }
+            var p2 = document.getElementById("auth-password2").value || "";
+            if (password !== p2) { err.textContent = "пароли не совпадают"; return; }
+            err.textContent = "сохраняем…";
+            var upw = await sb.auth.updateUser({ password: password });
+            if (upw.error) { err.textContent = upw.error.message; return; }
+            err.textContent = "пароль обновлён";
+            setTimeout(function () { closeAuth(); location.reload(); }, 700);
+            return;
+        }
+
+        if (!email || !password) { err.textContent = "введи почту и пароль"; return; }
+        if (password.length < 6) { err.textContent = "пароль минимум 6 символов"; return; }
+
         if (authMode === "login") {
-            err.textContent = "входим…";
+            err.textContent = "вход…";
             var res = await sb.auth.signInWithPassword({ email: email, password: password });
-            if (res.error) { err.textContent = res.error.message; return; }
-            closeAuth();
-            var uid = await currentUserId();
-            var { data: prof } = await sb.from("profiles").select("display_name, about_text").eq("id", uid).maybeSingle();
-            if (prof && prof.display_name && getU().toLowerCase() !== String(prof.display_name).toLowerCase()) {
-                location.href = "about.html?u=" + encodeURIComponent(prof.display_name);
+            if (res.error) {
+                var m = res.error.message || "";
+                if (/invalid login/i.test(m)) err.textContent = "неверная почта или пароль";
+                else if (/email not confirmed/i.test(m)) err.textContent = "подтверди почту или попроси админа в Supabase → Users";
+                else err.textContent = m;
                 return;
             }
+            closeAuth();
             await loadPublicProfile();
-            if (await canEditThisProfile()) {
+            var uid = await currentUserId();
+            if (uid && viewedProfileId && String(uid) === String(viewedProfileId)) {
+                var { data: prof } = await sb.from("profiles").select("about_text").eq("id", uid).maybeSingle();
                 document.getElementById("edit-about").value = prof && prof.about_text ? prof.about_text : "";
                 openAboutEdit();
             }
             return;
         }
 
-        // signup
+        // signup simplified
         var nick = document.getElementById("auth-nick").value.trim().slice(0, 32);
         if (!nick) {
-            err.textContent = "придумай ник";
-            return;
+            nick = (email.split("@")[0] || "user").replace(/[^a-zA-Z0-9._-]/g, "").slice(0, 24);
+            if (nick.length < 2) nick = "user" + String(Date.now()).slice(-6);
         }
-        if (!/^[a-zA-Z0-9_\u0400-\u04FF.-]{2,32}$/.test(nick)) {
-            err.textContent = "ник: 2–32 символа, буквы/цифры/_/.";
+        if (!/^[a-zA-Z0-9._-]{2,32}$/.test(nick)) {
+            err.textContent = "юз: латиница, цифры, . _ - (2–32)";
             return;
         }
         err.textContent = "создаём…";
-        var { data, error } = await sb.auth.signUp({ email: email, password: password });
-        if (error) { err.textContent = error.message; return; }
+        var { data, error } = await sb.auth.signUp({
+            email: email,
+            password: password,
+            options: {
+                emailRedirectTo: redirectTo(),
+                data: { display_name: nick }
+            }
+        });
+        if (error) {
+            var em = error.message || "";
+            if (/already/i.test(em)) err.textContent = "почта уже есть — войди или «забыла пароль»";
+            else if (/database/i.test(em)) err.textContent = "ошибка на сервере (profiles) — создай юзера в Supabase → Users";
+            else err.textContent = em;
+            return;
+        }
         if (data && data.user) {
             var code = "KQ-" + Math.random().toString(36).slice(2, 8).toUpperCase();
+            while (code.length < 9) code += "X";
             var up = await sb.from("profiles").upsert({
                 id: data.user.id,
                 display_name: nick,
-                friend_code: code,
+                friend_code: code.slice(0, 16),
                 updated_at: new Date().toISOString()
             }, { onConflict: "id" });
             if (up.error) {
                 err.textContent = "аккаунт есть, профиль: " + up.error.message;
+            } else if (data.session) {
+                err.textContent = "готово @" + nick + " · код " + code;
+                setTimeout(function () { closeAuth(); location.reload(); }, 700);
+                return;
             } else {
-                err.textContent = "готово. ник @" + nick + " · код " + code + " · подтверди почту, если просят, потом «вход»";
+                err.textContent = "аккаунт создан. подтверди почту если просят, потом «вход»";
             }
         } else {
-            err.textContent = "проверь почту для подтверждения, потом войди";
+            err.textContent = "проверь почту, потом войди";
         }
         setAuthMode("login");
     };
@@ -1931,6 +2016,15 @@
         if (e.key === "Enter") { e.preventDefault(); document.getElementById("game-search").click(); }
     });
 
+    try {
+        var hash = (location.hash || "").replace(/^#/, "");
+        var hq = new URLSearchParams(hash);
+        if (hq.get("type") === "recovery") {
+            openAuth();
+            setAuthMode("newpass");
+            document.getElementById("auth-error").textContent = "ссылка из письма — задай новый пароль";
+        }
+    } catch (e) {}
     loadPublicProfile().catch(function (e) { console.error(e); });
 
     if (window.Kinqsy) {
