@@ -114,7 +114,9 @@
       ".auth-error{margin-top:10px;font-size:13px;color:#7a2030;min-height:1.2em}",
       ".auth-mode-tabs{display:flex;gap:8px;margin:0 0 14px}",
       ".auth-mode{flex:1;padding:12px 10px;border:0;border-radius:999px;background:rgba(255,255,255,.3);color:#2a1822;font-family:Arial,sans-serif;font-weight:bold;font-size:14px}",
-      ".auth-mode.active{background:#f0c9d6}"
+      ".auth-mode.active{background:#f0c9d6}",
+      ".auth-link{display:block;margin-top:12px;text-align:center;font-size:13px;font-family:Arial,sans-serif;color:#5a3040;text-decoration:underline;background:none;border:0;cursor:pointer;width:100%}",
+      ".auth-hint{margin:8px 0 0;font-size:12px;opacity:.75;font-family:Arial,sans-serif;line-height:1.35}"
     ].join("");
     document.head.appendChild(st);
   }
@@ -130,22 +132,32 @@
     overlay.innerHTML = [
       '<div class="auth-modal" id="auth-modal">',
       '<h2 id="auth-title">вход</h2>',
-      '<div class="auth-mode-tabs">',
+      '<div class="auth-mode-tabs" id="auth-tabs">',
       '<button type="button" class="auth-mode active" id="mode-login">вход</button>',
       '<button type="button" class="auth-mode" id="mode-signup">регистрация</button>',
       "</div>",
+      '<p class="auth-hint" id="auth-hint"></p>',
       '<div id="signup-only" style="display:none">',
-      '<label for="auth-nick">ник</label>',
-      '<input id="auth-nick" type="text" maxlength="32" placeholder="например mary" autocomplete="nickname">',
+      '<label for="auth-nick">юз (латиница)</label>',
+      '<input id="auth-nick" type="text" maxlength="32" placeholder="можно пусто — сделаем сами" autocomplete="username">',
       "</div>",
+      '<div id="auth-email-wrap">',
       '<label for="auth-email">почта</label>',
       '<input id="auth-email" type="email" inputmode="email" autocomplete="email" placeholder="you@mail.com">',
-      '<label for="auth-password">пароль</label>',
+      "</div>",
+      '<div id="auth-pass-wrap">',
+      '<label for="auth-password" id="auth-pass-label">пароль</label>',
       '<input id="auth-password" type="password" autocomplete="current-password" placeholder="минимум 6 символов">',
+      "</div>",
+      '<div id="auth-pass2-wrap" style="display:none">',
+      '<label for="auth-password2">повторите пароль</label>',
+      '<input id="auth-password2" type="password" autocomplete="new-password" placeholder="ещё раз">',
+      "</div>",
       '<div class="auth-actions">',
       '<button type="button" id="auth-submit">войти</button>',
       '<button type="button" id="auth-close" class="secondary">закрыть</button>',
       "</div>",
+      '<button type="button" class="auth-link" id="auth-forgot">забыла пароль?</button>',
       '<div class="auth-error" id="auth-error"></div>',
       "</div>"
     ].join("");
@@ -157,19 +169,65 @@
   var onLoginSuccess = null;
   var wired = false;
 
+  function siteOrigin() {
+    try {
+      var o = location.origin || "";
+      if (o.indexOf("github.io") !== -1 || o.indexOf("kinqsy.lol") !== -1 || o.indexOf("localhost") !== -1) {
+        // project pages path: /kinqsy/ or /
+        var path = location.pathname || "/";
+        var base = path.replace(/\/[^/]*$/, "/");
+        if (base.indexOf("/kinqsy") === -1 && o.indexOf("github.io") !== -1) base = "/kinqsy/";
+        return o + (base || "/");
+      }
+    } catch (e) {}
+    return "https://kinqsy.github.io/kinqsy/";
+  }
+
+  function redirectTo() {
+    return siteOrigin().replace(/\/?$/, "/") + "about.html";
+  }
+
   function setAuthMode(mode) {
-    authMode = mode;
-    var isSignup = mode === "signup";
+    authMode = mode || "login";
+    var isSignup = authMode === "signup";
+    var isForgot = authMode === "forgot";
+    var isNewPass = authMode === "newpass";
     var title = document.getElementById("auth-title");
     var only = document.getElementById("signup-only");
     var submit = document.getElementById("auth-submit");
     var err = document.getElementById("auth-error");
-    if (title) title.textContent = isSignup ? "регистрация" : "вход";
+    var tabs = document.getElementById("auth-tabs");
+    var hint = document.getElementById("auth-hint");
+    var passWrap = document.getElementById("auth-pass-wrap");
+    var pass2 = document.getElementById("auth-pass2-wrap");
+    var emailWrap = document.getElementById("auth-email-wrap");
+    var forgot = document.getElementById("auth-forgot");
+    var passLabel = document.getElementById("auth-pass-label");
+    if (title) {
+      title.textContent = isNewPass ? "новый пароль" : isForgot ? "сброс пароля" : isSignup ? "регистрация" : "вход";
+    }
+    if (tabs) tabs.style.display = (isForgot || isNewPass) ? "none" : "flex";
     if (only) only.style.display = isSignup ? "block" : "none";
-    if (submit) submit.textContent = isSignup ? "создать аккаунт" : "войти";
+    if (passWrap) passWrap.style.display = isForgot ? "none" : "block";
+    if (pass2) pass2.style.display = isNewPass ? "block" : "none";
+    if (emailWrap) emailWrap.style.display = isNewPass ? "none" : "block";
+    if (passLabel) passLabel.textContent = isNewPass ? "новый пароль" : "пароль";
+    if (submit) {
+      submit.textContent = isNewPass ? "сохранить пароль" : isForgot ? "выслать ссылку" : isSignup ? "создать" : "войти";
+    }
+    if (forgot) {
+      forgot.style.display = (isForgot || isNewPass) ? "none" : "block";
+      forgot.textContent = isSignup ? "уже есть аккаунт? войди" : "забыла пароль?";
+    }
+    if (hint) {
+      if (isForgot) hint.textContent = "Пришлём письмо со ссылкой. Открой его на телефоне и задай новый пароль.";
+      else if (isNewPass) hint.textContent = "Придумай новый пароль (минимум 6 символов).";
+      else if (isSignup) hint.textContent = "Почта + пароль. Юз можно не заполнять — сделаем из почты.";
+      else hint.textContent = "";
+    }
     var ml = document.getElementById("mode-login");
     var ms = document.getElementById("mode-signup");
-    if (ml) ml.classList.toggle("active", !isSignup);
+    if (ml) ml.classList.toggle("active", authMode === "login");
     if (ms) ms.classList.toggle("active", isSignup);
     if (err) err.textContent = "";
   }
@@ -188,70 +246,161 @@
 
   function wireAuthOnce() {
     if (wired) return;
-    ensureAuthModal();
     wired = true;
+    ensureAuthModal();
     var ml = document.getElementById("mode-login");
     var ms = document.getElementById("mode-signup");
     if (ml) ml.onclick = function (e) { e.preventDefault(); setAuthMode("login"); };
     if (ms) ms.onclick = function (e) { e.preventDefault(); setAuthMode("signup"); };
-    var closeBtn = document.getElementById("auth-close");
-    if (closeBtn) closeBtn.onclick = function (e) { e.preventDefault(); closeAuth(); };
-    var modal = document.getElementById("auth-modal");
-    if (modal) modal.addEventListener("click", function (e) { e.stopPropagation(); });
+    var close = document.getElementById("auth-close");
+    if (close) close.onclick = function (e) { e.preventDefault(); closeAuth(); };
+    var forgot = document.getElementById("auth-forgot");
+    if (forgot) {
+      forgot.onclick = function (e) {
+        e.preventDefault();
+        if (authMode === "signup") setAuthMode("login");
+        else setAuthMode("forgot");
+      };
+    }
     var overlay = document.getElementById("auth-overlay");
     if (overlay) {
       overlay.addEventListener("click", function (e) {
         if (e.target === overlay) closeAuth();
       });
     }
+    var modal = document.getElementById("auth-modal");
+    if (modal) modal.addEventListener("click", function (e) { e.stopPropagation(); });
+
     var submit = document.getElementById("auth-submit");
     if (!submit) return;
     submit.onclick = async function (e) {
       e.preventDefault();
-      e.stopPropagation();
-      sb = getClient();
       var err = document.getElementById("auth-error");
+      if (!err) return;
       err.textContent = "";
-      var email = document.getElementById("auth-email").value.trim();
-      var password = document.getElementById("auth-password").value;
+      sb = getClient();
+      if (!sb) { err.textContent = "нет подключения к серверу"; return; }
+
+      var emailEl = document.getElementById("auth-email");
+      var passEl = document.getElementById("auth-password");
+      var pass2El = document.getElementById("auth-password2");
+      var email = emailEl ? emailEl.value.trim() : "";
+      var password = passEl ? passEl.value : "";
+
+      if (authMode === "forgot") {
+        if (!email) { err.textContent = "введи почту"; return; }
+        err.textContent = "отправляем…";
+        var fr = await sb.auth.resetPasswordForEmail(email, { redirectTo: redirectTo() });
+        if (fr.error) { err.textContent = fr.error.message; return; }
+        err.textContent = "письмо отправлено. открой ссылку из письма (проверь «спам»).";
+        return;
+      }
+
+      if (authMode === "newpass") {
+        if (!password || password.length < 6) { err.textContent = "пароль минимум 6 символов"; return; }
+        var p2 = pass2El ? pass2El.value : "";
+        if (password !== p2) { err.textContent = "пароли не совпадают"; return; }
+        err.textContent = "сохраняем…";
+        var up = await sb.auth.updateUser({ password: password });
+        if (up.error) { err.textContent = up.error.message; return; }
+        err.textContent = "пароль обновлён — можно пользоваться сайтом";
+        setTimeout(function () {
+          closeAuth();
+          if (typeof onLoginSuccess === "function") onLoginSuccess();
+          else location.reload();
+        }, 800);
+        return;
+      }
+
       if (!email || !password) { err.textContent = "введи почту и пароль"; return; }
       if (password.length < 6) { err.textContent = "пароль минимум 6 символов"; return; }
 
       if (authMode === "login") {
-        err.textContent = "входим…";
+        err.textContent = "вход…";
         var res = await sb.auth.signInWithPassword({ email: email, password: password });
-        if (res.error) { err.textContent = res.error.message; return; }
+        if (res.error) {
+          var m = res.error.message || "";
+          if (/invalid login/i.test(m)) err.textContent = "неверная почта или пароль";
+          else if (/email not confirmed/i.test(m)) err.textContent = "подтверди почту по письму или попроси админа подтвердить в Supabase";
+          else err.textContent = m;
+          return;
+        }
         closeAuth();
-        await refreshChip();
-        hideGate();
         if (typeof onLoginSuccess === "function") await onLoginSuccess();
+        else location.reload();
         return;
       }
 
-      var nick = (document.getElementById("auth-nick").value || "").trim().slice(0, 32);
-      if (!nick) { err.textContent = "придумай ник"; return; }
-      if (!/^[a-zA-Z0-9_\u0400-\u04FF.-]{2,32}$/.test(nick)) {
-        err.textContent = "ник: 2–32 символа, буквы/цифры/_/.";
+      // signup — simplified
+      var nickEl = document.getElementById("auth-nick");
+      var nick = nickEl ? nickEl.value.trim().slice(0, 32) : "";
+      if (!nick) {
+        nick = (email.split("@")[0] || "user").replace(/[^a-zA-Z0-9._-]/g, "").slice(0, 24);
+        if (nick.length < 2) nick = "user" + String(Date.now()).slice(-6);
+      }
+      if (!/^[a-zA-Z0-9._-]{2,32}$/.test(nick)) {
+        err.textContent = "юз: только латиница, цифры, . _ - (2–32)";
         return;
       }
       err.textContent = "создаём…";
-      var signed = await sb.auth.signUp({ email: email, password: password });
-      if (signed.error) { err.textContent = signed.error.message; return; }
-      if (signed.data && signed.data.user) {
+      var signed = await sb.auth.signUp({
+        email: email,
+        password: password,
+        options: {
+          emailRedirectTo: redirectTo(),
+          data: { display_name: nick }
+        }
+      });
+      if (signed.error) {
+        var em = signed.error.message || "";
+        if (/already/i.test(em)) err.textContent = "эта почта уже есть — нажми «вход» или «забыла пароль»";
+        else if (/database/i.test(em)) err.textContent = "ошибка профиля на сервере — напиши админу (триггер profiles)";
+        else err.textContent = em;
+        return;
+      }
+      var user = signed.data && signed.data.user;
+      if (user) {
         var code = "KQ-" + Math.random().toString(36).slice(2, 8).toUpperCase();
+        while (code.length < 9) code += "X";
         var up = await sb.from("profiles").upsert({
-          id: signed.data.user.id,
+          id: user.id,
           display_name: nick,
-          friend_code: code,
+          friend_code: code.slice(0, 16),
           updated_at: new Date().toISOString()
         }, { onConflict: "id" });
-        if (up.error) err.textContent = "аккаунт есть, профиль: " + up.error.message;
-        else err.textContent = "готово @" + nick + " · код " + code + " · потом вход";
+        if (up.error) {
+          err.textContent = "аккаунт создан, профиль: " + up.error.message + " — можно войти; юз поправим позже";
+        } else if (signed.data.session) {
+          err.textContent = "готово! @" + nick + " · код " + code;
+          setTimeout(async function () {
+            closeAuth();
+            if (typeof onLoginSuccess === "function") await onLoginSuccess();
+            else location.reload();
+          }, 600);
+          return;
+        } else {
+          err.textContent = "аккаунт создан. если просят письмо — подтверди почту, потом «вход»";
+        }
       } else {
         err.textContent = "проверь почту, потом войди";
       }
       setAuthMode("login");
     };
+  }
+
+  async function handleRecoveryLink() {
+    try {
+      var hash = (location.hash || "").replace(/^#/, "");
+      var q = new URLSearchParams(hash);
+      var type = q.get("type");
+      if (type === "recovery" || type === "signup") {
+        openAuth(type === "recovery" ? "newpass" : "login");
+        if (type === "recovery") {
+          var err = document.getElementById("auth-error");
+          if (err) err.textContent = "ссылка из письма принята — задай новый пароль";
+        }
+      }
+    } catch (e) {}
   }
 
   var DEFAULT_PRIVACY = {
