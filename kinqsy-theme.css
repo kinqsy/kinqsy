@@ -549,3 +549,20 @@ h1, .kq-title, .site-title, .notes-title, .quotes-title, .dreams-title, .about-t
   .compose-layout { flex-direction: column; }
   .kq-sticker-dock { width: auto !important; }
 }
+
+.compose-preview-box { position: relative; min-height: 120px; overflow: visible; }
+.kq-sticker-tools {
+  position: absolute;
+  z-index: 8;
+  display: flex;
+  gap: 4px;
+  transform: translateY(-100%);
+}
+.kq-sticker-tools button {
+  width: 28px; height: 28px; padding: 0;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.4);
+  background: rgba(255,255,255,.28);
+  color: #1a0f14;
+}
+.kq-sticker-node { transform-origin: center center; }
