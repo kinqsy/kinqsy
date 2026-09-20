@@ -212,6 +212,7 @@ a, button, .star, .top-menu .star, input, textarea, .react-btn, .post-menu butto
         .post-content {
         font-size: 17px;
         line-height: 1.65;
+        white-space: pre-wrap;
         user-select: none;
         -webkit-user-select: none;
     }
@@ -890,6 +891,11 @@ a, button, .star, .top-menu .star, input, textarea, .react-btn, .post-menu butto
         <input id="compose-title" type="text">
         <label for="compose-content">текст</label>
         <textarea id="compose-content" rows="5"></textarea>
+
+    <button type="button" onclick="kqOpenStickerTray()">смайлы и рамки</button>
+    <div id="kq-sticker-canvas" class="kq-sticker-canvas"></div>
+
+
         <label for="compose-title-font">шрифт заголовка</label>
     <select id="compose-title-font">
         <option value="Georgia, serif">Georgia</option>
@@ -1392,5 +1398,6 @@ document.addEventListener("dragstart", function (e) {
   </div>
 </div>
 
+<script src="kinqsy-stickers.js"></script>
 </body>
 </html>
