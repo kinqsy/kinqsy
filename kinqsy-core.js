@@ -40,6 +40,38 @@
       var el = document.getElementById(id);
       if (el) el.href = menuUrl(map[id]);
     });
+    ensureMeNav();
+  }
+
+  function ensureMeNav() {
+    var star = document.getElementById("admin-star");
+    var me = document.getElementById("nav-me");
+    if (!me && star && star.parentNode) {
+      me = document.createElement("a");
+      me.id = "nav-me";
+      me.className = "nav-me";
+      me.style.cssText = "margin-left:auto;font-size:13px;opacity:.9;text-decoration:none;color:inherit;padding:0 8px;";
+      star.parentNode.insertBefore(me, star);
+    }
+    refreshMeNav();
+  }
+
+  async function refreshMeNav() {
+    var me = document.getElementById("nav-me");
+    if (!me) return;
+    var uid = await currentUserId();
+    if (!uid) {
+      me.style.display = "none";
+      me.removeAttribute("href");
+      me.textContent = "";
+      return;
+    }
+    var prof = await currentProfile();
+    var name = (prof && prof.display_name) ? prof.display_name : "me";
+    me.style.display = "inline";
+    me.textContent = "я @" + name;
+    me.href = "index.html?u=" + encodeURIComponent(name);
+    me.title = "моя страница";
   }
 
   async function currentUserId() {
@@ -551,8 +583,7 @@
       '<div class="kq-gate-actions">',
       '<button type="button" id="kq-gate-signup">зарегистрироваться</button>',
       '<button type="button" id="kq-gate-login" class="secondary">уже есть аккаунт? войти</button>',
-      '<a class="kq-gate-btn secondary" id="kq-gate-about" href="about.html">профиль</a>',
-      "</div></div>"
+            "</div></div>"
     ].join("");
     document.body.appendChild(gate);
     var su = document.getElementById("kq-gate-signup");
@@ -576,8 +607,8 @@
     var su = document.getElementById("kq-gate-signup");
     var li = document.getElementById("kq-gate-login");
     var ab = document.getElementById("kq-gate-about");
+    if (ab) ab.style.display = "none";
     var slug = getU();
-    if (ab) ab.href = "about.html?u=" + encodeURIComponent(slug);
 
     gate.className = "kq-gate open " + mode;
 
@@ -748,7 +779,8 @@
     if (!uid) { ov.classList.remove("open"); openAuth("login"); return; }
     var prof = await currentProfile();
     var name = (prof && prof.display_name) ? prof.display_name : "user";
-    document.getElementById("acc-title").textContent = "@" + name;
+    var tit = document.getElementById("acc-title");
+    tit.innerHTML = '<a href="index.html?u=' + encodeURIComponent(name) + '" style="color:inherit;text-decoration:underline;">@' + name + '</a>';
     document.getElementById("acc-hint").textContent = "этот код дают подруге в «добавить друга»";
     var code = await ensureFriendCode(uid);
     document.getElementById("acc-code").textContent = code || "—";
@@ -821,8 +853,9 @@
     fixMenu();
     ensureChip();
     refreshChip();
+    refreshMeNav();
     if (sb && sb.auth && sb.auth.onAuthStateChange) {
-      sb.auth.onAuthStateChange(function () { refreshChip(); });
+      sb.auth.onAuthStateChange(function () { refreshChip(); refreshMeNav(); });
     }
     wireAuthOnce();
     accountExtra = options.onStarLoggedIn || null;
@@ -856,6 +889,7 @@
     getU: getU,
     menuUrl: menuUrl,
     fixMenu: fixMenu,
+    refreshMeNav: refreshMeNav,
     currentUserId: currentUserId,
     currentProfile: currentProfile,
     openAuth: openAuth,
