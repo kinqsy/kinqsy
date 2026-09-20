@@ -116,7 +116,7 @@
       ".auth-mode{flex:1;padding:12px 10px;border:0;border-radius:999px;background:rgba(255,255,255,.3);color:#2a1822;font-family:Arial,sans-serif;font-weight:bold;font-size:14px}",
       ".auth-mode.active{background:#f0c9d6}",
       ".auth-link{display:block;margin-top:12px;text-align:center;font-size:13px;font-family:Arial,sans-serif;color:#5a3040;text-decoration:underline;background:none;border:0;cursor:pointer;width:100%}",
-      ".auth-hint{margin:8px 0 0;font-size:12px;opacity:.75;font-family:Arial,sans-serif;line-height:1.35}"
+      ".auth-hint{margin:8px 0 0;font-size:12px;opacity:.75;font-family:Arial,sans-serif;line-height:1.35}",".acc-code{font-size:22px;letter-spacing:2px;margin:8px 0 12px}",".acc-dev{padding:8px 0;border-top:1px solid rgba(255,255,255,.25);font-size:13px;font-family:Arial,sans-serif}",".acc-dev button{margin-top:6px;min-height:36px;font-size:12px}"
     ].join("");
     document.head.appendChild(st);
   }
@@ -395,8 +395,7 @@
       }
       var user = signed.data && signed.data.user;
       if (user) {
-        var code = "KQ-" + Math.random().toString(36).slice(2, 8).toUpperCase();
-        while (code.length < 9) code += "X";
+        var code = makeFriendCode();
         var up = await sb.from("profiles").upsert({
           id: user.id,
           display_name: nick,
@@ -613,6 +612,208 @@
     return gate;
   }
 
+
+  function makeFriendCode() {
+    var chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    var s = "KQ-";
+    for (var i = 0; i < 6; i++) s += chars.charAt(Math.floor(Math.random() * chars.length));
+    return s;
+  }
+
+  function isGoodFriendCode(c) {
+    return !!(c && /^KQ-[A-Z0-9]{6}$/.test(String(c).toUpperCase()));
+  }
+
+  async function ensureFriendCode(uid) {
+    if (!uid) return "";
+    sb = getClient();
+    var { data } = await sb.from("profiles").select("friend_code").eq("id", uid).maybeSingle();
+    var cur = data && data.friend_code;
+    if (isGoodFriendCode(cur)) return String(cur).toUpperCase();
+    var code = makeFriendCode();
+    var up = await sb.from("profiles").update({
+      friend_code: code,
+      updated_at: new Date().toISOString()
+    }).eq("id", uid).select("friend_code").maybeSingle();
+    return (up.data && up.data.friend_code) ? up.data.friend_code : code;
+  }
+
+  function deviceId() {
+    var id = localStorage.getItem("kinqsy_did");
+    if (!id) {
+      id = "d-" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+      localStorage.setItem("kinqsy_did", id);
+    }
+    return id;
+  }
+
+  function deviceLabel() {
+    var ua = navigator.userAgent || "";
+    var name = "устройство";
+    if (/iPhone|iPad/i.test(ua)) name = "iPhone / iPad";
+    else if (/Android/i.test(ua)) name = "Android";
+    else if (/Mac/i.test(ua)) name = "Mac";
+    else if (/Windows/i.test(ua)) name = "Windows";
+    else if (/Linux/i.test(ua)) name = "Linux";
+    return name;
+  }
+
+  async function heartbeatDevice(uid) {
+    if (!uid) return [];
+    sb = getClient();
+    var did = deviceId();
+    var now = new Date().toISOString();
+    var mine = { id: did, name: deviceLabel(), last_seen: now, revoked: false };
+    try {
+      var { data } = await sb.from("profiles").select("devices").eq("id", uid).maybeSingle();
+      var list = Array.isArray(data && data.devices) ? data.devices.slice() : [];
+      var found = false;
+      list = list.filter(function (d) { return d && d.id; });
+      for (var i = 0; i < list.length; i++) {
+        if (list[i].id === did) {
+          if (list[i].revoked) {
+            await getClient().auth.signOut({ scope: "local" });
+            return [];
+          }
+          list[i] = mine;
+          found = true;
+        }
+      }
+      if (!found) list.push(mine);
+      if (list.length > 12) list = list.slice(-12);
+      await sb.from("profiles").update({ devices: list, updated_at: now }).eq("id", uid);
+      return list;
+    } catch (e) {
+      return [mine];
+    }
+  }
+
+  async function revokeDevice(uid, did) {
+    sb = getClient();
+    var { data } = await sb.from("profiles").select("devices").eq("id", uid).maybeSingle();
+    var list = Array.isArray(data && data.devices) ? data.devices.slice() : [];
+    list = list.map(function (d) {
+      if (d && d.id === did) d.revoked = true;
+      return d;
+    });
+    await sb.from("profiles").update({ devices: list, updated_at: new Date().toISOString() }).eq("id", uid);
+    if (did === deviceId()) await getClient().auth.signOut({ scope: "local" });
+  }
+
+  var accountExtra = null;
+
+  function ensureAccountModal() {
+    ensureAuthStyles();
+    var ov = document.getElementById("account-overlay");
+    if (ov) return ov;
+    ov = document.createElement("div");
+    ov.id = "account-overlay";
+    ov.className = "auth-overlay";
+    ov.innerHTML = [
+      '<div class="auth-modal" id="account-modal">',
+      '<h2 id="acc-title">аккаунт</h2>',
+      '<div class="auth-hint" id="acc-hint"></div>',
+      '<div>код дружбы</div>',
+      '<div class="acc-code" id="acc-code">—</div>',
+      '<div class="auth-actions">',
+      '<button type="button" id="acc-copy">копировать код</button>',
+      '<button type="button" id="acc-newcode" class="secondary">новый код</button>',
+      "</div>",
+      '<div id="acc-page-wrap" class="auth-actions" style="display:none">',
+      '<button type="button" id="acc-page">действие на странице</button>',
+      "</div>",
+      '<p class="auth-hint">устройства, где ты входила. «завершить» помечает устройство — при следующем заходе оно выйдет. «выйти везде» гасит все сессии сразу.</p>',
+      '<div id="acc-devices"></div>',
+      '<div class="auth-actions">',
+      '<button type="button" id="acc-out">выйти здесь</button>',
+      '<button type="button" id="acc-out-all" class="secondary">выйти везде</button>',
+      "</div>",
+      '<button type="button" class="auth-link" id="acc-close">закрыть</button>',
+      '<div class="auth-error" id="acc-err"></div>',
+      "</div>"
+    ].join("");
+    document.body.appendChild(ov);
+    ov.addEventListener("click", function (e) { if (e.target === ov) ov.classList.remove("open"); });
+    document.getElementById("acc-close").onclick = function () { ov.classList.remove("open"); };
+    return ov;
+  }
+
+  async function openAccount(extraFn) {
+    ensureAccountModal();
+    var ov = document.getElementById("account-overlay");
+    ov.classList.add("open");
+    var err = document.getElementById("acc-err");
+    err.textContent = "";
+    var uid = await currentUserId();
+    if (!uid) { ov.classList.remove("open"); openAuth("login"); return; }
+    var prof = await currentProfile();
+    var name = (prof && prof.display_name) ? prof.display_name : "user";
+    document.getElementById("acc-title").textContent = "@" + name;
+    document.getElementById("acc-hint").textContent = "этот код дают подруге в «добавить друга»";
+    var code = await ensureFriendCode(uid);
+    document.getElementById("acc-code").textContent = code || "—";
+
+    var pageWrap = document.getElementById("acc-page-wrap");
+    var pageBtn = document.getElementById("acc-page");
+    if (typeof extraFn === "function" || typeof accountExtra === "function") {
+      pageWrap.style.display = "flex";
+      pageBtn.textContent = extraFn && extraFn.label ? extraFn.label : (accountExtra && accountExtra.label) || "открыть страницу";
+      pageBtn.onclick = async function () {
+        ov.classList.remove("open");
+        var fn = (extraFn && extraFn.run) ? extraFn.run : accountExtra;
+        if (typeof fn === "function") await fn(uid, prof);
+        else if (fn && typeof fn.run === "function") await fn.run(uid, prof);
+      };
+    } else {
+      pageWrap.style.display = "none";
+    }
+
+    document.getElementById("acc-copy").onclick = async function () {
+      try { await navigator.clipboard.writeText(document.getElementById("acc-code").textContent); err.textContent = "скопировано"; }
+      catch (e) { err.textContent = document.getElementById("acc-code").textContent; }
+    };
+    document.getElementById("acc-newcode").onclick = async function () {
+      var n = makeFriendCode();
+      var up = await getClient().from("profiles").update({ friend_code: n, updated_at: new Date().toISOString() }).eq("id", uid);
+      if (up.error) err.textContent = up.error.message;
+      else document.getElementById("acc-code").textContent = n;
+    };
+    document.getElementById("acc-out").onclick = async function () {
+      await getClient().auth.signOut({ scope: "local" });
+      ov.classList.remove("open");
+      location.reload();
+    };
+    document.getElementById("acc-out-all").onclick = async function () {
+      await getClient().auth.signOut({ scope: "global" });
+      ov.classList.remove("open");
+      location.reload();
+    };
+
+    var list = await heartbeatDevice(uid);
+    var box = document.getElementById("acc-devices");
+    box.innerHTML = "";
+    var did = deviceId();
+    (list || []).forEach(function (d) {
+      if (!d || d.revoked) return;
+      var row = document.createElement("div");
+      row.className = "acc-dev";
+      var when = d.last_seen ? new Date(d.last_seen).toLocaleString("ru-RU") : "";
+      row.innerHTML = "<div>" + (d.id === did ? "это устройство · " : "") + (d.name || "устройство") + "</div><div class='auth-hint'>" + when + "</div>";
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "secondary";
+      b.textContent = d.id === did ? "выйти здесь" : "завершить";
+      b.onclick = async function () {
+        await revokeDevice(uid, d.id);
+        if (d.id === did) location.reload();
+        else openAccount(extraFn);
+      };
+      row.appendChild(b);
+      box.appendChild(row);
+    });
+    if (!box.children.length) box.innerHTML = "<div class='auth-hint'>пока видно только это устройство</div>";
+  }
+
   function init(options) {
     options = options || {};
     onLoginSuccess = options.onLoginSuccess || null;
@@ -624,6 +825,13 @@
       sb.auth.onAuthStateChange(function () { refreshChip(); });
     }
     wireAuthOnce();
+    accountExtra = options.onStarLoggedIn || null;
+    currentUserId().then(function (uid) {
+      if (uid) {
+        ensureFriendCode(uid);
+        heartbeatDevice(uid);
+      }
+    });
 
     if (!options.skipDefaultStar) {
       var star = document.getElementById("admin-star");
@@ -635,10 +843,7 @@
             openAuth("login");
             return;
           }
-          if (typeof options.onStarLoggedIn === "function") {
-            var prof = await currentProfile();
-            await options.onStarLoggedIn(uid, prof);
-          }
+          await openAccount(options.onStarLoggedIn);
         };
       }
     }
@@ -656,6 +861,9 @@
     openAuth: openAuth,
     closeAuth: closeAuth,
     refreshChip: refreshChip,
+    openAccount: openAccount,
+    makeFriendCode: makeFriendCode,
+    ensureFriendCode: ensureFriendCode,
     init: init,
     areFriends: areFriends,
     checkAccess: checkAccess,
