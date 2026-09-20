@@ -8,14 +8,42 @@
   --kq-glass: rgba(255, 255, 255, 0.18);
   --kq-glass-border: transparent;
   --kq-radius-end: 30px;
-  --kq-title: clamp(70px, 11vw, 150px);
-  --kq-title-track: -6px;
+  --kq-title: clamp(56px, 9vw, 110px);
+  --kq-title-track: -4px;
   --kq-tagline: 17px;
   --kq-user: 13px;
 }
 
 /* selection + base links in footer */
 ::selection { background: rgba(240, 201, 214, 0.9); color: #3a2030; }
+
+html {
+  scrollbar-width: thin;
+  scrollbar-color: #e8a0b8 #1a0f14;
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track {
+  background: #1a0f14;
+}
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #f6dce8, #e8a0b8);
+  border-radius: 999px;
+  border: 2px solid #1a0f14;
+}
+html::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover {
+  background: #f0c9d6;
+}
+html::-webkit-scrollbar-corner,
+body::-webkit-scrollbar-corner {
+  background: #1a0f14;
+}
 
 /* ----- fixed static background (как notes) ----- */
 .kq-bg {
@@ -333,17 +361,21 @@ footer .socials svg,
 
 
 
-/* titles */
+/* titles — один цвет и один размер везде */
 .about-title, .site-title, .notes-title, .quotes-title, .dreams-title,
-.kq-title, .kq-tagline, .kq-user, .page-subtitle, .tagline, .diary-label {
+.kq-title {
   color: #111 !important;
   text-shadow: none !important;
-}
-.about-title, .site-title, .notes-title, .quotes-title, .dreams-title {
+  font-family: "Bodoni 72", Didot, "Bodoni MT", Georgia, serif !important;
   font-size: var(--kq-title) !important;
   letter-spacing: var(--kq-title-track) !important;
-  line-height: 0.85 !important;
+  line-height: 0.88 !important;
   font-weight: 400 !important;
+}
+.kq-tagline, .kq-user, .page-subtitle, .tagline, .diary-label,
+.notes-subtitle {
+  color: #111 !important;
+  text-shadow: none !important;
 }
 
 
