@@ -116,7 +116,7 @@
       ".auth-mode{flex:1;padding:12px 10px;border:0;border-radius:999px;background:rgba(255,255,255,.3);color:#2a1822;font-family:Arial,sans-serif;font-weight:bold;font-size:14px}",
       ".auth-mode.active{background:#f0c9d6}",
       ".auth-link{display:block;margin-top:12px;text-align:center;font-size:13px;font-family:Arial,sans-serif;color:#5a3040;text-decoration:underline;background:none;border:0;cursor:pointer;width:100%}",
-      ".auth-hint{margin:8px 0 0;font-size:12px;opacity:.75;font-family:Arial,sans-serif;line-height:1.35}",".acc-code{font-size:22px;letter-spacing:2px;margin:8px 0 12px}",".acc-dev{padding:8px 0;border-top:1px solid rgba(255,255,255,.25);font-size:13px;font-family:Arial,sans-serif}",".acc-dev button{margin-top:6px;min-height:36px;font-size:12px}"
+      ".auth-hint{margin:8px 0 0;font-size:12px;opacity:.75;font-family:Arial,sans-serif;line-height:1.35}",".acc-code{font-size:22px;letter-spacing:2px;margin:8px 0 12px}",".acc-dev{padding:8px 0;border-top:1px solid rgba(255,255,255,.25);font-size:13px;font-family:Arial,sans-serif}",".acc-dev button{margin-top:8px;min-height:44px;padding:10px 14px;border:0;border-radius:999px;background:#f0c9d6;color:#3a2030;font-weight:bold;font-family:Arial,sans-serif;font-size:14px}",".acc-dev button.secondary{background:rgba(255,255,255,.4)}"
     ].join("");
     document.head.appendChild(st);
   }
@@ -445,8 +445,8 @@
   }
 
   var DEFAULT_PRIVACY = {
-    home: "public",
-    about: "public",
+    home: "friends",
+    about: "friends",
     notes: "friends",
     dreams: "friends",
     quotes: "friends"
@@ -582,14 +582,14 @@
     gate.className = "kq-gate open " + mode;
 
     if (mode === "guest") {
-      if (title) title.textContent = "добро пожаловать в kinqsy";
-      if (text) text.textContent = "зарегистрируйтесь, чтобы вести дневник и читать закрытые записи. уже есть аккаунт — войдите.";
+      if (title) title.textContent = "нужен вход";
+      if (text) text.textContent = "Чужой дневник закрыт. Гости не читают записи. Зарегистрируйся или войди.";
       if (su) su.style.display = "block";
       if (li) li.style.display = "block";
       document.body.appendChild(gate);
     } else {
-      if (title) title.textContent = "только для друзей";
-      if (text) text.textContent = "смотреть notes и dreams могут только друзья. about открыт, а в quotation — общая лента.";
+      if (title) title.textContent = "дневник закрыт";
+      if (text) text.textContent = "Читать чужие notes / dreams / about можно только друзьям. Добавь человека по коду KQ- у себя в профиле.";
       if (su) su.style.display = opts.guest ? "block" : "none";
       if (li) {
         li.style.display = "block";
