@@ -206,6 +206,7 @@ else if (bgKey === "clear") article.style.background = "rgba(255, 255, 255, 0.08
             '</form>' +
         '</div>';
 
+    if (window.kqMountDecor) window.kqMountDecor(article, post.decor);
     const form = article.querySelector(".comment-form");
     const list = article.querySelector(".comments-list");
     const footer = article.querySelector(".post-footer");
