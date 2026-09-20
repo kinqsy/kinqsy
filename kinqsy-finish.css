@@ -176,3 +176,13 @@
 [data-finish="gloss"].glass { background: linear-gradient(165deg, rgba(255,255,255,0.4), rgba(255,255,255,0.12)); }
 [data-finish="facet"].glass { clip-path: polygon(3% 0, 100% 0, 97% 100%, 0 100%); }
 [data-finish="mosaic"].glass { background-size: 16px 16px; }
+
+
+/* finish applies to FIXED bg, not the long page */
+[data-finish="plain"] .kq-bg::before { filter: none; inset: 0; }
+[data-finish="plain"] .kq-bg::after { opacity: 0.1; }
+[data-finish="matte"] .kq-bg::before { filter: blur(16px) saturate(0.92); }
+[data-finish="matte"] .kq-bg::after { opacity: 0.28; }
+[data-finish="gloss"] .kq-bg::before { filter: blur(10px) saturate(1.15); }
+[data-finish="facet"] .kq-bg::before { filter: blur(8px) contrast(1.08); }
+[data-finish="mosaic"] .kq-bg::before { filter: blur(6px); }
