@@ -346,17 +346,4 @@ footer .socials svg,
   font-weight: 400 !important;
 }
 
-/* page card like home.hero — NO overflow hidden (режет посты и окна) */
-.notes-page,
-.about-page,
-.quotes-page,
-.kq-shell,
-.dreams-shell {
-  background-color: #1a0f14;
-  background-position: center center;
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-  border-radius: 0 0 30px 30px;
-  min-height: calc(100vh - 42px);
-}
+
