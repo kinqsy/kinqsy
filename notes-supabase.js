@@ -342,8 +342,9 @@ async function loadNotes() {
         return;
     }
 
-    // старые посты без user_id — только в дневнике kinqsy
-    if ((!data || !data.length) && getU().toLowerCase() === OWNER_SLUG) {
+    // старые посты без user_id — только хозяйке своего дневника
+    var me = (window.Kinqsy && Kinqsy.currentUserId) ? await Kinqsy.currentUserId() : null;
+    if ((!data || !data.length) && me && String(me) === String(uid) && getU().toLowerCase() === OWNER_SLUG) {
         const all = await supabaseClient
             .from("posts")
             .select("*")
