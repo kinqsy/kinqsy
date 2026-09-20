@@ -257,3 +257,98 @@ window.kqMountDecor = function (article, decor) {
     article.appendChild(el);
   });
 };
+
+
+window.kqBoard = window.kqBoard || {
+  title: { x: 6, y: 6, w: 88, size: 28 },
+  body: { x: 6, y: 22, w: 55, size: 16 },
+  media: { x: 64, y: 22, w: 30 },
+  stickers: []
+};
+
+function kqBoardEl() {
+  return document.querySelector(".compose-preview-box");
+}
+
+window.kqSyncBoard = function () {
+  var box = kqBoardEl();
+  if (!box) return;
+  box.classList.add("kq-board");
+  var title = (document.getElementById("compose-title") || {}).value || "заголовок…";
+  var body = (document.getElementById("compose-content") || {}).value || "текст…";
+  var img = document.getElementById("compose-preview");
+  var src = img && img.style.display !== "none" ? img.src : ((document.getElementById("compose-media-url") || {}).value || "");
+  var B = window.kqBoard;
+  box.innerHTML =
+    '<div class="kq-piece" data-piece="title" style="left:'+B.title.x+'%;top:'+B.title.y+'%;width:'+B.title.w+'%;font-size:'+B.title.size+'px">'+
+      title.replace(/</g,"")+'</div>'+
+    '<div class="kq-piece" data-piece="body" style="left:'+B.body.x+'%;top:'+B.body.y+'%;width:'+B.body.w+'%;font-size:'+B.body.size+'px;white-space:pre-wrap">'+
+      body.replace(/</g,"")+'</div>'+
+    (src ? '<img class="kq-piece" data-piece="media" src="'+src+'" style="left:'+B.media.x+'%;top:'+B.media.y+'%;width:'+B.media.w+'%">' : '');
+  (window.kqStickersOnPost || []).forEach(function (node) {
+    var el = document.createElement("pre");
+    el.className = "kq-sticker-node kq-piece";
+    el.textContent = node.text;
+    el.style.left = node.x + "%";
+    el.style.top = node.y + "%";
+    el.style.background = "transparent";
+    el.style.transform = "rotate("+(node.rot||0)+"deg) scale("+(node.flipX||1)+","+(node.flipY||1)+")";
+    box.appendChild(el);
+    kqDrag(el, node, box);
+    el.onclick = function (ev) { ev.stopPropagation(); window.kqSelectSticker(node.uid); };
+  });
+  box.querySelectorAll(".kq-piece[data-piece]").forEach(function (el) {
+    var key = el.getAttribute("data-piece");
+    kqDrag(el, B[key], box);
+  });
+};
+
+var _paint = window.kqPaintStickers;
+window.kqPaintStickers = function () {
+  if (kqBoardEl()) window.kqSyncBoard();
+  else if (_paint) _paint();
+};
+
+window.kqDecorPayload = function () {
+  return {
+    board: window.kqBoard,
+    stickers: window.kqStickersOnPost || []
+  };
+};
+
+window.kqMountDecor = function (article, decor) {
+  if (!article || !decor) return;
+  var stickers = Array.isArray(decor) ? decor : (decor.stickers || []);
+  var board = !Array.isArray(decor) && decor.board;
+  if (board) {
+    article.classList.add("kq-board");
+    var title = article.querySelector(".post-title");
+    var content = article.querySelector(".post-content");
+    var media = article.querySelector(".post-media");
+    function place(el, spec, extra) {
+      if (!el || !spec) return;
+      el.classList.add("kq-piece");
+      el.style.left = spec.x + "%";
+      el.style.top = spec.y + "%";
+      el.style.width = spec.w + "%";
+      if (spec.size) el.style.fontSize = spec.size + "px";
+      if (extra) el.style.whiteSpace = extra;
+    }
+    place(title, board.title);
+    place(content, board.body, "pre-wrap");
+    if (media) place(media, board.media);
+  }
+  article.classList.add("kq-sticker-canvas");
+  if (getComputedStyle(article).position === "static") article.style.position = "relative";
+  stickers.forEach(function (node) {
+    var el = document.createElement("pre");
+    el.className = "kq-sticker-node";
+    el.textContent = node.text || "";
+    el.style.left = (node.x || 0) + "%";
+    el.style.top = (node.y || 0) + "%";
+    el.style.background = "transparent";
+    el.style.transform = "rotate("+(node.rot||0)+"deg) scale("+(node.flipX||1)+","+(node.flipY||1)+")";
+    el.style.pointerEvents = "none";
+    article.appendChild(el);
+  });
+};
