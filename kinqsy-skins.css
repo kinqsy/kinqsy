@@ -119,8 +119,6 @@ footer,
 }
 
 body[data-skin="home"] .site-title {
-  font-size: clamp(52px, 10vw, 100px) !important;
-  padding: 56px 24px 0 !important;
-  line-height: 0.9 !important;
+  padding: 48px 24px 0 !important;
 }
 body[data-skin="home"] { --kq-grain-opacity: 0.16; }
