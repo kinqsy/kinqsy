@@ -326,24 +326,29 @@
                 return;
             }
 
+            var me = await Kinqsy.currentUserId();
+            if (!me) {
+                if (latest) latest.innerHTML = "";
+                if (counter) counter.textContent = "нужен вход";
+                Kinqsy.showGate({ mode: "guest", guest: true, page: "home" });
+                return;
+            }
+            if (Kinqsy.checkAccess) {
+                var acc = await Kinqsy.checkAccess("home", uid);
+                if (!acc.ok) {
+                    if (latest) latest.innerHTML = "";
+                    if (counter) counter.textContent = "закрыто";
+                    Kinqsy.showGate({ mode: acc.guest ? "guest" : "friends", guest: acc.guest, page: "home" });
+                    return;
+                }
+            }
+
             var { data, error, count } = await sb
                 .from("posts")
                 .select("id, title, content, category, created_at, user_id, media_url", { count: "exact" })
                 .eq("user_id", uid)
                 .order("created_at", { ascending: false });
 
-            if (error || !data || !data.length) {
-                if (viewedSlug.toLowerCase() === OWNER_SLUG) {
-                    var all = await sb.from("posts")
-                        .select("id, title, content, category, created_at, user_id, media_url", { count: "exact" })
-                        .order("created_at", { ascending: false });
-                    data = (all.data || []).filter(function (p) {
-                        return !p.user_id || String(p.user_id) === String(uid);
-                    });
-                    count = data.length;
-                    error = all.error;
-                }
-            }
 
             if (error && !data) {
                 if (counter) counter.textContent = "ошибка загрузки";
