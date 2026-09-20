@@ -1,12 +1,12 @@
-/* KINQSY wallpaper engine
-   Меняешь только url() ниже. Не пиши background на .notes-page в html.
-*/
+/* KINQSY wallpaper engine — меняй только url() */
 :root {
   --kq-wallpaper: none;
   --kq-wallpaper-color: #1a0f14;
   --kq-avatar: url("avatar-1.jpg");
   --kq-frame: none;
   --kq-card-bg: none;
+  --kq-blur: 14px;
+  --kq-grain-opacity: 0.42;
 }
 body[data-skin="home"]   { --kq-wallpaper: url("background.jpg"); }
 body[data-skin="notes"]  { --kq-wallpaper: url("notes-bg.jpg"); }
@@ -16,7 +16,6 @@ body[data-skin="about"]  { --kq-wallpaper: url("about-bg.jpg"); }
 
 html, body { margin: 0; background: #000; }
 
-/* сцена на всю ширину — контент НЕ несёт обои */
 .kq-stage,
 .hero,
 .notes-page,
@@ -38,7 +37,7 @@ html, body { margin: 0; background: #000; }
   border-radius: 0;
 }
 
-/* ЭТО и есть «бумага Home»: полный экран + дуга только у низа блока */
+/* бумага + блюр */
 .kq-stage::before,
 .hero::before,
 .notes-page::before,
@@ -48,7 +47,7 @@ html, body { margin: 0; background: #000; }
 .dreams-shell::before {
   content: "";
   position: absolute;
-  inset: 0;
+  inset: -8%;
   z-index: 0;
   pointer-events: none;
   background-color: var(--kq-wallpaper-color);
@@ -56,7 +55,38 @@ html, body { margin: 0; background: #000; }
   background-position: center center;
   background-size: cover;
   background-repeat: no-repeat;
-  background-attachment: fixed;
+  background-attachment: scroll;
+  filter: blur(var(--kq-blur));
+  border-radius: 0 0 36px 36px;
+}
+
+/* зерно */
+.kq-stage::after,
+.hero::after,
+.notes-page::after,
+.about-page::after,
+.quotes-page::after,
+.kq-shell::after,
+.dreams-shell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: var(--kq-grain-opacity);
+  border-radius: 0 0 30px 30px;
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+}
+
+.kq-stage,
+.hero,
+.notes-page,
+.about-page,
+.quotes-page,
+.kq-shell,
+.dreams-shell {
   border-radius: 0 0 30px 30px;
 }
 
@@ -66,7 +96,7 @@ html, body { margin: 0; background: #000; }
 .quotes-page > *,
 .kq-shell > .kq-inner,
 .dreams-shell > .kq-inner,
-.hero > :not(.hero-grain) {
+.hero > * {
   position: relative;
   z-index: 2;
 }
@@ -85,7 +115,6 @@ html, body { margin: 0; background: #000; }
   background-position: center;
 }
 
-/* прячем СТАРЫЕ слои, они рисовали второй фон */
 .kq-bg, .kq-grain,
 .notes-bg, .notes-grain,
 .about-bg, .about-grain,
@@ -98,3 +127,25 @@ html, body { margin: 0; background: #000; }
 }
 
 .kq-bottom, footer { background: #000; }
+
+/* Home на телефоне: не прячем экран абсолютами */
+@media (max-width: 700px) {
+  .hero {
+    min-height: auto !important;
+    padding-bottom: 28px;
+  }
+  .home-latest {
+    position: relative !important;
+    left: auto !important;
+    bottom: auto !important;
+    max-width: 100% !important;
+    margin: 16px 16px 8px;
+  }
+  .hero-actions {
+    position: relative !important;
+    left: auto !important;
+    bottom: auto !important;
+    margin: 8px 16px 24px;
+  }
+  .home-quotes { display: none !important; }
+}
