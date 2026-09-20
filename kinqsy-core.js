@@ -124,7 +124,7 @@
   function ensureAuthModal() {
     ensureAuthStyles();
     var overlay = document.getElementById("auth-overlay");
-    if (overlay && document.getElementById("auth-submit")) return overlay;
+    if (overlay && document.getElementById("auth-submit") && document.getElementById("auth-code-wrap")) return overlay;
     if (overlay) overlay.remove();
     overlay = document.createElement("div");
     overlay.id = "auth-overlay";
@@ -153,6 +153,10 @@
       '<label for="auth-password2">повторите пароль</label>',
       '<input id="auth-password2" type="password" autocomplete="new-password" placeholder="ещё раз">',
       "</div>",
+      '<div id="auth-code-wrap" style="display:none">',
+      '<label for="auth-code">код из письма</label>',
+      '<input id="auth-code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="123456">',
+      "</div>",
       '<div class="auth-actions">',
       '<button type="button" id="auth-submit">войти</button>',
       '<button type="button" id="auth-close" class="secondary">закрыть</button>',
@@ -166,6 +170,8 @@
   }
 
   var authMode = "login";
+  var pendingEmail = "";
+  var pendingOtpType = "signup";
   var onLoginSuccess = null;
   var wired = false;
 
@@ -192,6 +198,7 @@
     var isSignup = authMode === "signup";
     var isForgot = authMode === "forgot";
     var isNewPass = authMode === "newpass";
+    var isCode = authMode === "code";
     var title = document.getElementById("auth-title");
     var only = document.getElementById("signup-only");
     var submit = document.getElementById("auth-submit");
@@ -204,25 +211,28 @@
     var forgot = document.getElementById("auth-forgot");
     var passLabel = document.getElementById("auth-pass-label");
     if (title) {
-      title.textContent = isNewPass ? "новый пароль" : isForgot ? "сброс пароля" : isSignup ? "регистрация" : "вход";
+      title.textContent = isCode ? "код из письма" : isNewPass ? "новый пароль" : isForgot ? "сброс пароля" : isSignup ? "регистрация" : "вход";
     }
-    if (tabs) tabs.style.display = (isForgot || isNewPass) ? "none" : "flex";
+    if (tabs) tabs.style.display = (isForgot || isNewPass || isCode) ? "none" : "flex";
     if (only) only.style.display = isSignup ? "block" : "none";
-    if (passWrap) passWrap.style.display = isForgot ? "none" : "block";
+    if (passWrap) passWrap.style.display = (isForgot || isCode) ? "none" : "block";
     if (pass2) pass2.style.display = isNewPass ? "block" : "none";
-    if (emailWrap) emailWrap.style.display = isNewPass ? "none" : "block";
+    if (emailWrap) emailWrap.style.display = (isNewPass || isCode) ? "none" : "block";
+    var codeWrap = document.getElementById("auth-code-wrap");
+    if (codeWrap) codeWrap.style.display = isCode ? "block" : "none";
     if (passLabel) passLabel.textContent = isNewPass ? "новый пароль" : "пароль";
     if (submit) {
-      submit.textContent = isNewPass ? "сохранить пароль" : isForgot ? "выслать ссылку" : isSignup ? "создать" : "войти";
+      submit.textContent = isCode ? "подтвердить код" : isNewPass ? "сохранить пароль" : isForgot ? "выслать письмо" : isSignup ? "создать" : "войти";
     }
     if (forgot) {
-      forgot.style.display = (isForgot || isNewPass) ? "none" : "block";
+      forgot.style.display = (isForgot || isNewPass || isCode) ? "none" : "block";
       forgot.textContent = isSignup ? "уже есть аккаунт? войди" : "забыла пароль?";
     }
     if (hint) {
-      if (isForgot) hint.textContent = "Пришлём письмо со ссылкой. Открой его на телефоне и задай новый пароль.";
+      if (isForgot) hint.textContent = "Пришлём письмо. Потом введи код с письма здесь — ссылку можно не открывать.";
+      else if (isCode) hint.textContent = "Код из письма KINQSY. Обычно 6 цифр.";
       else if (isNewPass) hint.textContent = "Придумай новый пароль (минимум 6 символов).";
-      else if (isSignup) hint.textContent = "Почта + пароль. Юз можно не заполнять — сделаем из почты.";
+      else if (isSignup) hint.textContent = "Почта + пароль. Юз можно не заполнять. Потом придёт код.";
       else hint.textContent = "";
     }
     var ml = document.getElementById("mode-login");
@@ -292,7 +302,32 @@
         err.textContent = "отправляем…";
         var fr = await sb.auth.resetPasswordForEmail(email, { redirectTo: redirectTo() });
         if (fr.error) { err.textContent = fr.error.message; return; }
-        err.textContent = "письмо отправлено. открой ссылку из письма (проверь «спам»).";
+        pendingEmail = email;
+        pendingOtpType = "recovery";
+        setAuthMode("code");
+        err.textContent = "письмо отправлено. введи код (проверь спам).";
+        return;
+      }
+
+      if (authMode === "code") {
+        var codeEl = document.getElementById("auth-code");
+        var token = codeEl ? codeEl.value.trim() : "";
+        if (!token) { err.textContent = "введи код из письма"; return; }
+        err.textContent = "проверяем…";
+        var vr = await sb.auth.verifyOtp({
+          email: pendingEmail,
+          token: token,
+          type: pendingOtpType
+        });
+        if (vr.error) { err.textContent = vr.error.message || "неверный или старый код"; return; }
+        if (pendingOtpType === "recovery") {
+          setAuthMode("newpass");
+          err.textContent = "код принят — задай новый пароль";
+          return;
+        }
+        closeAuth();
+        if (typeof onLoginSuccess === "function") await onLoginSuccess();
+        else location.reload();
         return;
       }
 
@@ -379,12 +414,19 @@
           }, 600);
           return;
         } else {
-          err.textContent = "аккаунт создан. если просят письмо — подтверди почту, потом «вход»";
+          pendingEmail = email;
+          pendingOtpType = "signup";
+          setAuthMode("code");
+          err.textContent = "письмо отправлено. введи код из письма.";
+          return;
         }
       } else {
-        err.textContent = "проверь почту, потом войди";
+        pendingEmail = email;
+        pendingOtpType = "signup";
+        setAuthMode("code");
+        err.textContent = "проверь почту и введи код";
+        return;
       }
-      setAuthMode("login");
     };
   }
 
