@@ -347,3 +347,46 @@ footer .socials svg,
 .about-bg, .about-grain, .notes-bg, .notes-grain {
   display: none !important;
 }
+
+
+/* ===== home-style page card: radius at END of content, not viewport ===== */
+.kq-bg, .kq-grain { display: none !important; }
+
+.kq-shell,
+.notes-page,
+.about-page,
+.quotes-page,
+.dreams-shell,
+main.notes-page,
+main.about-page {
+  position: relative !important;
+  isolation: isolate;
+  margin-top: var(--kq-menu-h) !important;
+  min-height: calc(100vh - var(--kq-menu-h)) !important;
+  background-color: #1a0f14;
+  background-position: center center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  border-radius: 0 0 30px 30px !important;
+  overflow: hidden !important;
+  background-image: inherit;
+}
+
+.kq-title, .kq-tagline, .kq-user,
+.about-title, .page-subtitle, .notes-title, .notes-subtitle,
+.site-title, .tagline, .diary-label {
+  color: #111 !important;
+  text-shadow: none !important;
+}
+
+body { background: #000; }
+.about-page { max-width: none !important; width: 100% !important; }
+.about-page > .kq-page-header,
+.about-page > .glass,
+.about-page > section,
+.about-page > .profile-card {
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
+}
