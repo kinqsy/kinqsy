@@ -390,3 +390,68 @@ h1, .kq-title, .site-title, .notes-title, .quotes-title, .dreams-title, .about-t
   color: #111 !important;
   text-shadow: none !important;
 }
+
+/* абзацы в постах */
+.post-content, .pin-text, .dream-body {
+  white-space: pre-wrap !important;
+}
+
+/* стикеры / рамки */
+.kq-decor { display: flex; flex-direction: column; gap: 6px; }
+.kq-decor-row { display: flex; gap: 10px; align-items: flex-start; }
+.kq-decor-c { flex: 1; min-width: 0; }
+.kq-decor pre {
+  margin: 0;
+  font-family: "Courier New", ui-monospace, monospace;
+  font-size: 11px;
+  line-height: 1.15;
+  color: #111;
+  white-space: pre;
+  overflow: auto;
+}
+.kq-sticker-pop {
+  display: none;
+  position: fixed; inset: 0; z-index: 80;
+  align-items: center; justify-content: center;
+  background: rgba(10,6,8,.35);
+}
+.kq-sticker-card {
+  width: min(520px, 92vw);
+  max-height: 80vh;
+  overflow: auto;
+  padding: 16px;
+  border-radius: 18px;
+  background: rgba(255,255,255,.22);
+  backdrop-filter: blur(18px);
+}
+.kq-sticker-pick {
+  display: block; width: 100%;
+  margin: 8px 0; padding: 8px;
+  text-align: left;
+  border: 1px solid rgba(255,255,255,.35);
+  border-radius: 12px;
+  background: rgba(255,255,255,.2);
+}
+.kq-sticker-pick pre { margin: 6px 0 0; font-size: 11px; }
+
+.kq-sticker-canvas {
+  position: relative;
+  min-height: 140px;
+  margin-top: 10px;
+}
+.kq-sticker-node {
+  position: absolute;
+  margin: 0;
+  padding: 4px 6px;
+  cursor: grab;
+  user-select: none;
+  font-family: "Courier New", ui-monospace, monospace;
+  font-size: 12px;
+  line-height: 1.15;
+  color: #111;
+  white-space: pre;
+  background: rgba(255,255,255,.2);
+  border-radius: 8px;
+  z-index: 5;
+}
+.kq-sticker-node:active { cursor: grabbing; }
