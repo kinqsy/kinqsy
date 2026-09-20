@@ -1256,7 +1256,27 @@ if (mediaFileInput && mediaUrlInput && preview) {
         closeCompose();
         location.reload();
     };
-    function postBgStyle(key) {
+    if (window.kqSyncBoard) {
+  ["compose-title","compose-content","compose-media-url"].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.addEventListener("input", window.kqSyncBoard);
+  });
+}
+    var sizeWrap = document.getElementById("compose-live-title");
+    if (sizeWrap && !document.getElementById("compose-title-size")) {
+      var lab = document.createElement("label");
+      lab.textContent = "размер заголовка";
+      var rng = document.createElement("input");
+      rng.id = "compose-title-size";
+      rng.type = "range"; rng.min = "16"; rng.max = "64"; rng.value = "28";
+      rng.addEventListener("input", function(){
+        if (window.kqBoard) window.kqBoard.title.size = Number(rng.value);
+        if (window.kqSyncBoard) window.kqSyncBoard();
+      });
+      var box = document.getElementById("compose-title");
+      if (box && box.parentNode) { box.parentNode.insertBefore(lab, box.nextSibling); box.parentNode.insertBefore(rng, lab.nextSibling); }
+    }
+function postBgStyle(key) {
     if (key === "pink") return "rgba(240, 201, 214, 0.45)";
     if (key === "lilac") return "rgba(200, 180, 220, 0.4)";
     if (key === "dark") return "rgba(30, 20, 28, 0.55)";
