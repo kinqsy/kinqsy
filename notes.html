@@ -1243,9 +1243,16 @@ if (mediaFileInput && mediaUrlInput && preview) {
         payload.media_url = media_url;
         payload.media_type = /\.gif(\?|$)/i.test(media_url) ? "gif" : "image";
     }
+    if (window.kqDecorPayload) payload.decor = window.kqDecorPayload();
     var { error } = await sb.from("posts").insert(payload);
+    if (error && /decor/i.test(error.message)) {
+        delete payload.decor;
+        var again = await sb.from("posts").insert(payload);
+        error = again.error;
+    }
 
         if (error) { err.textContent = error.message; return; }
+        window.kqStickersOnPost = [];
         closeCompose();
         location.reload();
     };
