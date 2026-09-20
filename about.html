@@ -371,8 +371,23 @@
         .film-title { font-size: 14px; line-height: 1.25; }
         .film-year { font-size: 12px; opacity: .65; font-family: Arial, sans-serif; }
         .film-top {
-            display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;
+            display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px;
         }
+        @media (max-width: 900px) {
+            .film-top { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        }
+        @media (max-width: 640px) {
+            .film-top { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .film-card img { max-height: 220px; }
+            .reco-card img { width: 72px; height: 100px; }
+        }
+        .reco { position: relative; }
+        .reco-wrap { display: flex; align-items: center; gap: 6px; }
+        .reco-arrow {
+            flex: 0 0 auto; width: 36px; height: 36px; border: 0; border-radius: 999px;
+            background: rgba(240,201,214,.85); color: #3a2030; font-size: 18px; cursor: pointer;
+        }
+        .reco-track { flex: 1; }
         .film-top .film-card.empty { min-height: 0; aspect-ratio: 2/3; }
         .film-x {
             position: absolute; top: 6px; right: 6px; width: 24px; height: 24px;
@@ -893,14 +908,18 @@
                 res = await sb.from("profiles").select("*").eq("id", OWNER_ID).maybeSingle();
             }
             if (res.data) {
-                applyProfile(res.data);
-                var acc = { ok: true };
+                var acc = { ok: true, guest: true };
                 if (window.Kinqsy && Kinqsy.checkAccess) {
                     acc = await Kinqsy.checkAccess("about", res.data.id);
                 }
                 if (!acc.ok) {
+                    viewedProfileId = res.data.id;
+                    var hh = document.getElementById("about-handle");
+                    if (hh) hh.textContent = "@" + slug;
+                    var rn = document.getElementById("about-real-name");
+                    if (rn) rn.textContent = "закрыто";
                     var atxt = document.getElementById("about-text");
-                    if (atxt) atxt.textContent = "профиль закрыт";
+                    if (atxt) atxt.textContent = "";
                     var st = document.getElementById("about-status");
                     if (st) st.textContent = "—";
                     try { await renderFilms(null); } catch (e) {}
@@ -909,6 +928,7 @@
                     }
                     return;
                 }
+                applyProfile(res.data);
                 await renderFilms(res.data.favorites);
             } else {
                 viewedProfileId = null;
@@ -1773,6 +1793,24 @@
             };
         });
         box.classList.add("show");
+        if (!box.querySelector(".reco-arrow")) {
+            var wrap = document.createElement("div");
+            wrap.className = "reco-wrap";
+            var prev = document.createElement("button");
+            prev.type = "button"; prev.className = "reco-arrow"; prev.textContent = "‹";
+            var next = document.createElement("button");
+            next.type = "button"; next.className = "reco-arrow"; next.textContent = "›";
+            track.parentNode.insertBefore(wrap, track);
+            wrap.appendChild(prev);
+            wrap.appendChild(track);
+            wrap.appendChild(next);
+            prev.onclick = function () { track.scrollBy({ left: -220, behavior: "smooth" }); };
+            next.onclick = function () { track.scrollBy({ left: 220, behavior: "smooth" }); };
+        }
+        track.style.overflowX = "auto";
+        track.style.scrollBehavior = "smooth";
+        track.style.display = "flex";
+        track.style.gap = "8px";
     }
 
     function openFilmModal() {
