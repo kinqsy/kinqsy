@@ -457,16 +457,7 @@
         },
         onStarLoggedIn: async function (uid, prof) {
             var name = (prof && prof.display_name) ? prof.display_name : "user";
-            var code = (prof && prof.friend_code) ? prof.friend_code : "—";
-            document.getElementById("star-modal-title").textContent = "@" + name;
-            document.getElementById("star-modal-body").textContent = "код дружбы: " + code;
-            document.getElementById("star-modal").classList.add("open");
-            document.getElementById("star-modal-about").onclick = function () {
-                location.href = "about.html?u=" + encodeURIComponent(name);
-            };
-            document.getElementById("star-modal-close").onclick = function () {
-                document.getElementById("star-modal").classList.remove("open");
-            };
+            location.href = "about.html?u=" + encodeURIComponent(name);
         }
     });
 
