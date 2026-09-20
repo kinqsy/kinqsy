@@ -89,6 +89,8 @@ window.kqOpenStickerTray = async function () {
       var uid = sess.data.session && sess.data.session.user.id;
       var kind = host.dataset.newkind || "kaomoji";
       var ins = await sb.from("stickers").insert({ text: raw, user_id: uid, kind: kind }).select("id");
+      if (ins.error) ins = await sb.from("stickers").insert({ text: raw, kind: kind }).select("id");
+      if (ins.error) ins = await sb.from("stickers").insert({ text: raw }).select("id");
       if (ins.error) { err.textContent = ins.error.message; return; }
       document.getElementById("kq-sticker-new").value = "";
       window.kqOpenStickerTray();
