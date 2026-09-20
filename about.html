@@ -933,16 +933,21 @@
             } else {
                 viewedProfileId = null;
                 viewedProfile = null;
+                var me = (window.Kinqsy && Kinqsy.currentUserId) ? await Kinqsy.currentUserId() : null;
                 var rn = document.getElementById("about-real-name");
                 var hh = document.getElementById("about-handle");
-                if (rn) rn.textContent = slug;
+                if (rn) rn.textContent = "закрыто";
                 if (hh) hh.textContent = "@" + String(slug).replace(/^@+/, "");
                 var st = document.getElementById("about-status");
                 if (st) st.textContent = "—";
-                var at = document.getElementById("about-text");
-                if (at) at.textContent = "профиль пока пустой";
+                var atxt = document.getElementById("about-text");
+                if (atxt) atxt.textContent = "";
                 setReputation(0);
-                await renderFilms(null);
+                try { await renderFilms(null); } catch (e) {}
+                if (!me && window.Kinqsy && Kinqsy.showGate) {
+                    Kinqsy.showGate({ mode: "guest", guest: true, page: "about" });
+                    return;
+                }
             }
             try { await refreshOwnerTools(); } catch (e) { console.warn(e); }
             try { await loadFriends(); } catch (e) { console.warn(e); }
