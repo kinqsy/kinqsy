@@ -47,8 +47,8 @@
 [data-finish="matte"] .dreams-shell::before,
 [data-finish="matte"] .hero::before,
 [data-finish="matte"] .kq-stage::before {
-  filter: blur(16px) saturate(0.86);
-  inset: -10%;
+  filter: blur(16px) saturate(0.92);
+  inset: 0;
 }
 [data-finish="matte"] .notes-page::after,
 [data-finish="matte"] .about-page::after,
@@ -81,7 +81,7 @@
 [data-finish="gloss"] .hero::before,
 [data-finish="gloss"] .kq-stage::before {
   filter: blur(10px) saturate(1.15) contrast(1.05);
-  inset: -8%;
+  inset: 0;
 }
 [data-finish="gloss"] .notes-page::after,
 [data-finish="gloss"] .about-page::after,
