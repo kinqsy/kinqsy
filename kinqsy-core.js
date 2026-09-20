@@ -50,7 +50,7 @@
       var st = document.createElement("style");
       st.id = "kinqsy-navme-style";
       st.textContent = [
-        ".top-menu{position:relative}",
+        ".top-menu{position:fixed!important;top:0;left:0;right:0;width:100%;z-index:1000}",
         ".top-menu .star{position:absolute;right:12px;top:50%;transform:translateY(-50%);margin-left:0}",
         "#nav-me{position:absolute;right:36px;top:50%;transform:translateY(-50%);margin:0;font-size:13px;font-weight:bold;opacity:.88;text-decoration:none;color:inherit;padding:0 8px;white-space:nowrap}",
         "@media (max-width:700px){#nav-me{right:34px;font-size:12px;max-width:28vw;overflow:hidden;text-overflow:ellipsis}}"
