@@ -384,3 +384,9 @@ h1.kq-title, h1.site-title, h1.notes-title, h1.quotes-title, h1.dreams-title, h1
   color: #111 !important;
   text-shadow: none !important;
 }
+
+h1, .kq-title, .site-title, .notes-title, .quotes-title, .dreams-title, .about-title,
+.kq-tagline, .tagline, .page-subtitle, .notes-subtitle, .quotes-subtitle {
+  color: #111 !important;
+  text-shadow: none !important;
+}
