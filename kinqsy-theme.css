@@ -455,3 +455,59 @@ h1, .kq-title, .site-title, .notes-title, .quotes-title, .dreams-title, .about-t
   z-index: 5;
 }
 .kq-sticker-node:active { cursor: grabbing; }
+
+.kq-sticker-dock {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: min(320px, 34vw);
+  max-height: calc(100% - 36px);
+  z-index: 6;
+}
+.kq-sticker-card {
+  background: rgba(255,255,255,.18);
+  border: 1px solid rgba(255,255,255,.35);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border-radius: 20px;
+  padding: 12px;
+  max-height: 100%;
+  overflow: auto;
+  color: #111;
+}
+.kq-sticker-head { display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
+.kq-x, .kq-chip, .kq-go, .kq-sticker-pick {
+  border: 1px solid rgba(255,255,255,.35);
+  background: rgba(255,255,255,.22);
+  color: #1a0f14;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-family: Georgia, serif;
+}
+.kq-x { width: 32px; height: 32px; padding: 0; }
+.kq-tabs, .kq-add-row { display: flex; gap: 6px; flex-wrap: wrap; margin: 10px 0; }
+.kq-chip.on, .kq-go { background: rgba(240,201,214,.85); }
+.kq-sticker-list { display: flex; flex-direction: column; gap: 8px; }
+.kq-sticker-pick { border-radius: 14px; text-align: left; width: 100%; padding: 8px; }
+.kq-sticker-pick i { font-style: normal; font-size: 11px; opacity: .6; }
+.kq-sticker-pick pre, .kq-add textarea {
+  margin: 6px 0 0;
+  width: 100%;
+  font-family: "Courier New", ui-monospace, monospace;
+  font-size: 12px;
+  white-space: pre-wrap;
+  background: transparent;
+  border: 0;
+  color: #111;
+}
+.kq-add textarea {
+  border: 1px solid rgba(255,255,255,.3);
+  border-radius: 12px;
+  padding: 8px;
+  min-height: 90px;
+}
+.kq-empty { opacity: .6; font-size: 13px; }
+#kq-sticker-err { color: #7a2030; font-size: 12px; }
+@media (max-width: 800px) {
+  .kq-sticker-dock { position: static; width: auto; margin-top: 12px; }
+}
