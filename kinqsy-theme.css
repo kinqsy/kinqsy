@@ -511,3 +511,41 @@ h1, .kq-title, .site-title, .notes-title, .quotes-title, .dreams-title, .about-t
 @media (max-width: 800px) {
   .kq-sticker-dock { position: static; width: auto; margin-top: 12px; }
 }
+
+#compose-overlay {
+  align-items: stretch;
+  justify-content: center;
+  padding: 24px 12px;
+}
+#compose-overlay::-webkit-scrollbar { width: 0; height: 0; }
+.compose-layout {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+  max-width: 980px;
+  width: 100%;
+  max-height: calc(100vh - 48px);
+}
+.compose-layout .auth-modal {
+  flex: 1;
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+  scrollbar-width: none;
+}
+.compose-layout .auth-modal::-webkit-scrollbar { width: 6px; }
+.compose-layout .auth-modal::-webkit-scrollbar-thumb {
+  background: rgba(240,201,214,.55);
+  border-radius: 999px;
+}
+.kq-sticker-dock {
+  position: relative !important;
+  top: auto !important;
+  right: auto !important;
+  width: 300px !important;
+  max-height: calc(100vh - 48px);
+  flex-shrink: 0;
+}
+@media (max-width: 800px) {
+  .compose-layout { flex-direction: column; }
+  .kq-sticker-dock { width: auto !important; }
+}
