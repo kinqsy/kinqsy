@@ -1,8 +1,6 @@
-/* =========================================================
-   KINQSY SKINS — единственное место, куда кладёшь новые картинки
-   Страницы сами берут --kq-wallpaper. Не вешай url() на .notes-page.
-   ========================================================= */
-
+/* KINQSY wallpaper engine
+   Меняешь только url() ниже. Не пиши background на .notes-page в html.
+*/
 :root {
   --kq-wallpaper: none;
   --kq-wallpaper-color: #1a0f14;
@@ -10,34 +8,15 @@
   --kq-frame: none;
   --kq-card-bg: none;
 }
-
 body[data-skin="home"]   { --kq-wallpaper: url("background.jpg"); }
 body[data-skin="notes"]  { --kq-wallpaper: url("notes-bg.jpg"); }
 body[data-skin="dreams"] { --kq-wallpaper: url("dreams-bg.jpg"); }
 body[data-skin="quotes"] { --kq-wallpaper: url("quotes-bg.jpg"); }
 body[data-skin="about"]  { --kq-wallpaper: url("about-bg.jpg"); }
 
-/* новые фоны пользователя — добавь строку:
-   body.u-MASHA[data-skin="notes"] { --kq-wallpaper: url("skins/masha-notes.jpg"); }
-*/
+html, body { margin: 0; background: #000; }
 
-[data-avatar="1"] { --kq-avatar: url("avatar-1.jpg"); }
-[data-avatar="2"] { --kq-avatar: url("avatar-2.jpg"); }
-[data-avatar="3"] { --kq-avatar: url("avatar-3.jpg"); }
-[data-avatar="4"] { --kq-avatar: url("avatar-4.jpg"); }
-
-/* рамки позже:
-   [data-frame="pearl"] { --kq-frame: url("frames/pearl.png"); }
-   мини-фон карточки:
-   [data-minibg="vinyl"] { --kq-card-bg: url("minibg/vinyl.jpg"); }
-*/
-
-html, body {
-  margin: 0;
-  background: #000;
-}
-
-/* СЦЕНА = вся ширина, как Home.hero. Контент внутри не несёт обои. */
+/* сцена на всю ширину — контент НЕ несёт обои */
 .kq-stage,
 .hero,
 .notes-page,
@@ -45,7 +24,6 @@ html, body {
 .quotes-page,
 .kq-shell,
 .dreams-shell {
-  --_wp: var(--kq-wallpaper);
   display: block;
   width: 100% !important;
   max-width: none !important;
@@ -55,8 +33,26 @@ html, body {
   z-index: 2;
   margin: 42px 0 0 0 !important;
   min-height: calc(100vh - 42px);
+  background: transparent !important;
+  overflow: visible !important;
+  border-radius: 0;
+}
+
+/* ЭТО и есть «бумага Home»: полный экран + дуга только у низа блока */
+.kq-stage::before,
+.hero::before,
+.notes-page::before,
+.about-page::before,
+.quotes-page::before,
+.kq-shell::before,
+.dreams-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
   background-color: var(--kq-wallpaper-color);
-  background-image: var(--_wp);
+  background-image: var(--kq-wallpaper);
   background-position: center center;
   background-size: cover;
   background-repeat: no-repeat;
@@ -64,40 +60,41 @@ html, body {
   border-radius: 0 0 30px 30px;
 }
 
+.kq-inner,
+.notes-page > *,
+.about-page > .kq-inner,
+.quotes-page > *,
+.kq-shell > .kq-inner,
+.dreams-shell > .kq-inner,
+.hero > :not(.hero-grain) {
+  position: relative;
+  z-index: 2;
+}
+
 .kq-inner {
   max-width: 900px;
   margin: 0 auto;
   padding: 58px 20px 80px;
   background: transparent !important;
-  position: relative;
-  z-index: 3;
 }
 .about-page > .kq-inner { max-width: 720px; }
 
-.kq-avatar,
-.about-avatar {
+.kq-avatar, .about-avatar {
   background-image: var(--kq-avatar);
   background-size: cover;
   background-position: center;
-  border-image-source: var(--kq-frame);
 }
 
-.kq-card,
-.glass {
-  background-image: var(--kq-card-bg);
-  background-size: cover;
-  background-position: center;
-}
-
-/* старые слои-дубликаты больше не рисуем */
+/* прячем СТАРЫЕ слои, они рисовали второй фон */
 .kq-bg, .kq-grain,
 .notes-bg, .notes-grain,
 .about-bg, .about-grain,
-.quotes-bg, .quotes-grain,
-.hero-grain { display: none !important; }
+.quotes-bg, .quotes-grain { display: none !important; }
 
 .kq-title, .about-title, .site-title, .notes-title, .quotes-title,
 .kq-tagline, .page-subtitle, .tagline, .kq-user, .diary-label {
   color: #111 !important;
   text-shadow: none !important;
 }
+
+.kq-bottom, footer { background: #000; }
