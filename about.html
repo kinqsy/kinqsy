@@ -528,8 +528,11 @@
     <div class="about-grain" aria-hidden="true"></div>
 
     <main class="about-page">
-        <h1 class="about-title">ABOUT</h1>
-        <div class="page-subtitle">things I probably shouldn't publish</div>
+        <div class="kq-page-header">
+        <h1 class="kq-title about-title">ABOUT</h1>
+        <div class="kq-tagline page-subtitle">things I probably shouldn't publish</div>
+        <div class="kq-user" id="about-user-label">about · @kinqsy</div>
+        </div>
 
         <section class="glass profile-card">
             <div class="profile-top">
@@ -882,6 +885,8 @@
         var hh = document.getElementById("about-handle");
         if (rn) rn.textContent = real;
         if (hh) hh.textContent = "@" + handle;
+        var lab = document.getElementById("about-user-label");
+        if (lab) lab.textContent = "about · @" + handle;
         if (hh) hh.dataset.handle = handle;
         document.getElementById("about-status").textContent = data.status_text || "—";
         var pr = data.presence || "online";
