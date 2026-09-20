@@ -80,7 +80,7 @@
     var name = (prof && prof.display_name) ? prof.display_name : "me";
     me.style.display = "inline";
     me.textContent = "я @" + name;
-    me.href = "index.html?u=" + encodeURIComponent(name);
+    me.href = "about.html?u=" + encodeURIComponent(name);
     me.title = "моя страница";
   }
 
@@ -539,15 +539,10 @@
     if (viewedId && uid && String(viewedId) === String(uid)) {
       return { ok: true, reason: "owner", guest: false };
     }
-    var priv = await privacyFor(viewedId);
-    var rule = priv[page] || "friends";
-    if (rule === "public") return { ok: true, reason: "public", guest: !uid, rule: rule };
-    if (!uid) return { ok: false, reason: "guest", guest: true, rule: rule };
-    if (rule === "friends") {
-      var ok = await areFriends(uid, viewedId);
-      return { ok: ok, reason: ok ? "friend" : "friends", guest: false, rule: rule };
-    }
-    return { ok: false, reason: rule, guest: !uid, rule: rule };
+    if (!uid) return { ok: false, reason: "guest", guest: true, rule: "friends" };
+    if (page === "quotes") return { ok: true, reason: "logged", guest: false };
+    var ok = await areFriends(uid, viewedId);
+    return { ok: ok, reason: ok ? "friend" : "friends", guest: false, rule: "friends" };
   }
 
   function ensureGateStyles() {
@@ -790,7 +785,7 @@
     var prof = await currentProfile();
     var name = (prof && prof.display_name) ? prof.display_name : "user";
     var tit = document.getElementById("acc-title");
-    tit.innerHTML = '<a href="index.html?u=' + encodeURIComponent(name) + '" style="color:inherit;text-decoration:underline;">@' + name + '</a>';
+    tit.innerHTML = '<a href="about.html?u=' + encodeURIComponent(name) + '" style="color:inherit;text-decoration:underline;">@' + name + '</a>';
     document.getElementById("acc-hint").textContent = "этот код дают подруге в «добавить друга»";
     var code = await ensureFriendCode(uid);
     document.getElementById("acc-code").textContent = code || "—";
