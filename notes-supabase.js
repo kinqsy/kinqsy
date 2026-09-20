@@ -462,25 +462,40 @@ if (editBtn) {
     document.getElementById("del-c-modal").classList.remove("open");
     pendingDeleteComment = null;
   };
-  if (delCYes) delCYes.onclick = function (e) {
+  if (delCYes) delCYes.onclick = async function (e) {
     if (e) { e.preventDefault(); e.stopPropagation(); }
     var cModal = document.getElementById("del-c-modal");
+    var rm = document.getElementById("del-reason-modal");
     if (cModal) cModal.classList.remove("open");
-    var err = document.getElementById("reason-error");
-    if (err) err.textContent = "";
-    document.querySelectorAll('input[name="reason"]').forEach(function (r) { r.checked = false; });
-    var rd = document.getElementById("rules-detail");
-    var ob = document.getElementById("reason-other-box");
-    if (rd) rd.style.display = "none";
-    if (ob) ob.style.display = "none";
-    var ot = document.getElementById("reason-other-text");
-    if (ot) ot.value = "";
-    // чуть позже, чтобы клик не закрыл второе окно
-    setTimeout(function () {
-      var rm = document.getElementById("del-reason-modal");
-      if (rm) rm.classList.add("open");
-      else alert("нет окна причин — обнови notes.html");
-    }, 50);
+    if (rm) {
+      var err = document.getElementById("reason-error");
+      if (err) err.textContent = "";
+      document.querySelectorAll('input[name="reason"]').forEach(function (r) { r.checked = false; });
+      var rd = document.getElementById("rules-detail");
+      var ob = document.getElementById("reason-other-box");
+      if (rd) rd.style.display = "none";
+      if (ob) ob.style.display = "none";
+      var ot = document.getElementById("reason-other-text");
+      if (ot) ot.value = "";
+      setTimeout(function () { rm.classList.add("open"); }, 50);
+      return;
+    }
+    if (!pendingDeleteComment) return;
+    try {
+      var cid = pendingDeleteComment.id;
+      var del = await supabaseClient.from("comments").delete().eq("id", cid).select("id");
+      if (del.error) throw del.error;
+      if (!del.data || !del.data.length) {
+        var del2 = await supabaseClient.from("comments").delete().eq("id", Number(cid)).select("id");
+        if (del2.error) throw del2.error;
+        if (!del2.data || !del2.data.length) throw new Error("не удалилось — RLS comments");
+      }
+      pendingDeleteComment = null;
+      loadNotes();
+    } catch (err) {
+      pendingDeleteComment = null;
+      console.error(err);
+    }
   };
 
   document.querySelectorAll('input[name="reason"]').forEach(function (r) {
