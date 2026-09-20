@@ -62,6 +62,32 @@ window.kqOpenStickerTray = async function () {
     '<div class="kq-sticker-list">' + cards + "</div>" +
     add +
     "</div>";
+
+  var addBtn = document.getElementById("kq-sticker-add");
+  if (addBtn) {
+    addBtn.onclick = async function (ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      var err = document.getElementById("kq-sticker-err");
+      var box = document.getElementById("kq-sticker-new");
+      var raw = box ? String(box.value || "").replace(/\s+$/, "") : "";
+      if (err) err.textContent = "сохраняю…";
+      if (!raw) { if (err) err.textContent = "пустое поле"; return; }
+      var sb = kqSb();
+      if (!sb) { if (err) err.textContent = "нет подключения supabase"; return; }
+      var sess = await sb.auth.getSession();
+      var uid = sess.data && sess.data.session && sess.data.session.user && sess.data.session.user.id;
+      var kind = host.dataset.newkind || "kaomoji";
+      var ins = await sb.from("stickers").insert({ text: raw, user_id: uid, kind: kind }).select("id");
+      if (ins.error) ins = await sb.from("stickers").insert({ text: raw, kind: kind }).select("id");
+      if (ins.error) ins = await sb.from("stickers").insert({ text: raw }).select("id");
+      if (ins.error) { if (err) err.textContent = ins.error.message; return; }
+      if (err) err.textContent = "добавлено";
+      box.value = "";
+      window.kqOpenStickerTray();
+    };
+  }
+
   host.onclick = async function (e) {
     var kindBtn = e.target.closest("[data-kind]");
     if (kindBtn) {
