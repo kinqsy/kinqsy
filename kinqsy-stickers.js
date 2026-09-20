@@ -12,7 +12,7 @@ async function kqIsOwner() {
   var p = await sb.from("profiles").select("display_name, username, handle").eq("id", user.id).maybeSingle();
   var row = p.data || {};
   var slug = String(row.username || row.handle || row.display_name || "").toLowerCase().replace(/^@/, "");
-  return slug === "kinqsy";
+  return slug === "kinqsy" || slug.indexOf("kinqsy") !== -1;
 }
 
 window.kqLoadCatalog = async function (kind) {
@@ -31,8 +31,6 @@ window.kqOpenStickerTray = async function () {
     host.id = "kq-sticker-pop";
     document.body.appendChild(host);
   }
-  var overlay = document.getElementById("compose-overlay");
-  if (overlay && overlay.style.display !== "none") overlay.appendChild(host);
   host.className = "kq-sticker-dock";
   host.innerHTML = '<div class="kq-sticker-card"><p>загрузка…</p></div>';
   host.style.display = "block";
@@ -166,3 +164,9 @@ window.kqPaintStickers = function () {
   });
 };
 window.kqDecorPayload = function () { return window.kqStickersOnPost || []; };
+
+document.addEventListener("click", function (e) {
+  if (e.target && (e.target.id === "admin-star" || e.target.id === "compose-open")) {
+    setTimeout(function () { if (window.kqOpenStickerTray) window.kqOpenStickerTray(); }, 200);
+  }
+});
