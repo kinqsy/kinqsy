@@ -46,11 +46,21 @@
   function ensureMeNav() {
     var star = document.getElementById("admin-star");
     var me = document.getElementById("nav-me");
+    if (!document.getElementById("kinqsy-navme-style")) {
+      var st = document.createElement("style");
+      st.id = "kinqsy-navme-style";
+      st.textContent = [
+        ".top-menu{position:relative}",
+        ".top-menu .star{position:absolute;right:12px;top:50%;transform:translateY(-50%);margin-left:0}",
+        "#nav-me{position:absolute;right:36px;top:50%;transform:translateY(-50%);margin:0;font-size:13px;font-weight:bold;opacity:.88;text-decoration:none;color:inherit;padding:0 8px;white-space:nowrap}",
+        "@media (max-width:700px){#nav-me{right:34px;font-size:12px;max-width:28vw;overflow:hidden;text-overflow:ellipsis}}"
+      ].join("");
+      document.head.appendChild(st);
+    }
     if (!me && star && star.parentNode) {
       me = document.createElement("a");
       me.id = "nav-me";
       me.className = "nav-me";
-      me.style.cssText = "margin-left:auto;font-size:13px;opacity:.9;text-decoration:none;color:inherit;padding:0 8px;";
       star.parentNode.insertBefore(me, star);
     }
     refreshMeNav();
@@ -118,7 +128,7 @@
     var name = (prof && prof.display_name) ? prof.display_name : "user";
     var code = (prof && prof.friend_code) ? (" · " + prof.friend_code) : "";
     if (text) text.textContent = "вы: @" + name + code;
-    chip.classList.add("show");
+    chip.classList.remove("show");
     var btn = document.getElementById("auth-logout");
     if (btn && !btn._wired) {
       btn._wired = true;
