@@ -124,72 +124,133 @@ window.kqOpenStickerTray = async function () {
     }
     var pick = e.target.closest("[data-text]");
     if (!pick) return;
-    window.kqAddSticker(pick.getAttribute("data-id"), decodeURIComponent(pick.getAttribute("data-text")));
-  };
-};
-
+    
 window.kqAddSticker = function (id, text) {
-  window.kqStickersOnPost.push({ uid: "s" + Date.now(), id: id, text: text, x: 8, y: 8 });
+  window.kqStickersOnPost.push({
+    uid: "s" + Date.now(),
+    id: id,
+    text: text,
+    x: 12,
+    y: 40,
+    rot: 0,
+    flipX: 1,
+    flipY: 1
+  });
   window.kqPaintStickers();
 };
 
+function kqCanvas() {
+  return document.querySelector(".compose-preview-box") ||
+    document.getElementById("kq-sticker-canvas") ||
+    document.getElementById("compose-preview");
+}
+
 window.kqPaintStickers = function () {
-  var canvas = document.getElementById("kq-sticker-canvas") || document.getElementById("compose-preview");
+  var canvas = kqCanvas();
   if (!canvas) return;
   canvas.classList.add("kq-sticker-canvas");
-  canvas.querySelectorAll(".kq-sticker-node").forEach(function (n) { n.remove(); });
+  if (getComputedStyle(canvas).position === "static") canvas.style.position = "relative";
+  canvas.querySelectorAll(".kq-sticker-node,.kq-sticker-tools").forEach(function (n) { n.remove(); });
   (window.kqStickersOnPost || []).forEach(function (node) {
     var el = document.createElement("pre");
     el.className = "kq-sticker-node";
     el.textContent = node.text;
     el.style.left = node.x + "%";
     el.style.top = node.y + "%";
+    el.style.transform = "rotate(" + (node.rot || 0) + "deg) scale(" + (node.flipX || 1) + "," + (node.flipY || 1) + ")";
     canvas.appendChild(el);
-    var dragging = false;
-    function pos(ev) {
-      var p = ev.touches ? ev.touches[0] : ev;
-      var box = canvas.getBoundingClientRect();
-      return {
-        x: ((p.clientX - box.left) / box.width) * 100,
-        y: ((p.clientY - box.top) / box.height) * 100
-      };
-    }
-    function move(ev) {
-      if (!dragging) return;
-      ev.preventDefault();
-      var p = pos(ev);
-      node.x = Math.max(0, Math.min(88, p.x));
-      node.y = Math.max(0, Math.min(88, p.y));
-      el.style.left = node.x + "%";
-      el.style.top = node.y + "%";
-    }
-    function up() {
-      dragging = false;
-      document.removeEventListener("mousemove", move);
-      document.removeEventListener("mouseup", up);
-      document.removeEventListener("touchmove", move);
-      document.removeEventListener("touchend", up);
-    }
-    el.addEventListener("mousedown", function (ev) {
-      dragging = true; ev.preventDefault();
-      document.addEventListener("mousemove", move, { passive: false });
-      document.addEventListener("mouseup", up);
-    });
-    el.addEventListener("touchstart", function (ev) {
-      dragging = true; ev.preventDefault();
-      document.addEventListener("touchmove", move, { passive: false });
-      document.addEventListener("touchend", up);
-    }, { passive: false });
-    el.addEventListener("dblclick", function () {
-      window.kqStickersOnPost = window.kqStickersOnPost.filter(function (x) { return x.uid !== node.uid; });
-      window.kqPaintStickers();
+    kqDrag(el, node, canvas);
+    el.addEventListener("click", function (ev) {
+      ev.stopPropagation();
+      window.kqSelectSticker(node.uid);
     });
   });
 };
+
+window.kqSelectSticker = function (uid) {
+  var canvas = kqCanvas();
+  if (!canvas) return;
+  canvas.querySelectorAll(".kq-sticker-tools").forEach(function (n) { n.remove(); });
+  var node = (window.kqStickersOnPost || []).filter(function (x) { return x.uid === uid; })[0];
+  if (!node) return;
+  var bar = document.createElement("div");
+  bar.className = "kq-sticker-tools";
+  bar.innerHTML =
+    '<button type="button" data-act="rl">↺</button>' +
+    '<button type="button" data-act="rr">↻</button>' +
+    '<button type="button" data-act="fx">↔</button>' +
+    '<button type="button" data-act="fy">↕</button>' +
+    '<button type="button" data-act="del">✕</button>';
+  canvas.appendChild(bar);
+  bar.style.left = node.x + "%";
+  bar.style.top = "calc(" + node.y + "% - 28px)";
+  bar.onclick = function (e) {
+    var act = e.target.getAttribute("data-act");
+    if (!act) return;
+    if (act === "rl") node.rot = (node.rot || 0) - 15;
+    if (act === "rr") node.rot = (node.rot || 0) + 15;
+    if (act === "fx") node.flipX = (node.flipX || 1) * -1;
+    if (act === "fy") node.flipY = (node.flipY || 1) * -1;
+    if (act === "del") {
+      window.kqStickersOnPost = window.kqStickersOnPost.filter(function (x) { return x.uid !== uid; });
+    }
+    window.kqPaintStickers();
+    if (act !== "del") window.kqSelectSticker(uid);
+  };
+};
+
+function kqDrag(el, node, canvas) {
+  var dragging = false;
+  function pos(ev) {
+    var p = ev.touches ? ev.touches[0] : ev;
+    var box = canvas.getBoundingClientRect();
+    return {
+      x: ((p.clientX - box.left) / box.width) * 100,
+      y: ((p.clientY - box.top) / box.height) * 100
+    };
+  }
+  function move(ev) {
+    if (!dragging) return;
+    ev.preventDefault();
+    var p = pos(ev);
+    node.x = Math.max(0, Math.min(85, p.x));
+    node.y = Math.max(0, Math.min(85, p.y));
+    el.style.left = node.x + "%";
+    el.style.top = node.y + "%";
+  }
+  function up() {
+    dragging = false;
+    document.removeEventListener("mousemove", move);
+    document.removeEventListener("mouseup", up);
+    document.removeEventListener("touchmove", move);
+    document.removeEventListener("touchend", up);
+  }
+  el.addEventListener("mousedown", function (ev) {
+    dragging = true; ev.preventDefault();
+    document.addEventListener("mousemove", move, { passive: false });
+    document.addEventListener("mouseup", up);
+  });
+  el.addEventListener("touchstart", function (ev) {
+    dragging = true; ev.preventDefault();
+    document.addEventListener("touchmove", move, { passive: false });
+    document.addEventListener("touchend", up);
+  }, { passive: false });
+}
+
 window.kqDecorPayload = function () { return window.kqStickersOnPost || []; };
 
-document.addEventListener("click", function (e) {
-  if (e.target && (e.target.id === "admin-star" || e.target.id === "compose-open")) {
-    setTimeout(function () { if (window.kqOpenStickerTray) window.kqOpenStickerTray(); }, 200);
-  }
-});
+window.kqMountDecor = function (article, decor) {
+  if (!article || !decor || !decor.length) return;
+  article.classList.add("kq-sticker-canvas");
+  if (getComputedStyle(article).position === "static") article.style.position = "relative";
+  decor.forEach(function (node) {
+    var el = document.createElement("pre");
+    el.className = "kq-sticker-node";
+    el.textContent = node.text || "";
+    el.style.left = (node.x || 0) + "%";
+    el.style.top = (node.y || 0) + "%";
+    el.style.transform = "rotate(" + (node.rot || 0) + "deg) scale(" + (node.flipX || 1) + "," + (node.flipY || 1) + ")";
+    el.style.pointerEvents = "none";
+    article.appendChild(el);
+  });
+};
