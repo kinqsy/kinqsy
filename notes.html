@@ -885,15 +885,14 @@ a, button, .star, .top-menu .star, input, textarea, .react-btn, .post-menu butto
 </div>
 
 <div class="auth-overlay" id="compose-overlay">
+    <div class="compose-layout">
     <div class="auth-modal">
         <h2>новый notes</h2>
         <label for="compose-title">заголовок</label>
         <input id="compose-title" type="text">
         <label for="compose-content">текст</label>
         <textarea id="compose-content" rows="5"></textarea>
-
-    <button type="button" onclick="kqOpenStickerTray()">смайлы и рамки</button>
-    <div id="kq-sticker-canvas" class="kq-sticker-canvas"></div>
+        <div id="kq-sticker-canvas" class="kq-sticker-canvas"></div>
 
 
         <label for="compose-title-font">шрифт заголовка</label>
@@ -951,6 +950,8 @@ a, button, .star, .top-menu .star, input, textarea, .react-btn, .post-menu butto
             <button type="button" id="compose-close" class="secondary">закрыть</button>
         </div>
         <div class="auth-error" id="compose-error"></div>
+    </div>
+    <div id="kq-sticker-pop" class="kq-sticker-dock"></div>
     </div>
 </div>
     <div class="auth-overlay" id="edit-overlay">
@@ -1142,6 +1143,7 @@ document.getElementById("edit-save").onclick = async function () {
     }
     function openCompose() {
         composeOverlay.classList.add("open");
+        if (window.kqOpenStickerTray) window.kqOpenStickerTray();
     }
     window.openNotesCompose = openCompose;
 function closeCompose() {
