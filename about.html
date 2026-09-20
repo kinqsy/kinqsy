@@ -6,6 +6,7 @@
     <title>ABOUT — KINQSY.LOL</title>
     <link rel="icon" href="icon-192.png" type="image/png">
     <link rel="stylesheet" href="kinqsy-theme.css">
+    <link rel="stylesheet" href="kinqsy-skins.css">
     <link rel="icon" href="favicon.png" type="image/png">
     <style>
         * { box-sizing: border-box; }
@@ -59,7 +60,7 @@
             position: relative; z-index: 2;
             min-height: calc(100vh - 42px); margin-top: 42px;
             padding: 48px 16px 80px; border-radius: 0 0 30px 30px;
-            max-width: 720px; margin-left: auto; margin-right: auto;
+            max-width: none; margin-left: auto; margin-right: auto;
         }
         .about-title {
             margin: 0 0 6px; font-family: "Bodoni 72", Didot, "Bodoni MT", Georgia, serif;
@@ -511,7 +512,7 @@
 .kq-title, .about-title { font-size: var(--kq-title) !important; letter-spacing: var(--kq-title-track) !important; }
 .support-line a { text-decoration: none !important; font-weight: normal !important; color: var(--kq-pink) !important; }
 </style></head>
-<body id="top">
+<body id="top" data-skin="about">
 
     <nav class="top-menu">
         <a href="index.html" id="nav-home">home</a>
@@ -528,6 +529,7 @@
     <div class="about-grain" aria-hidden="true"></div>
 
     <main class="about-page">
+        <div class="kq-inner">
         <div class="kq-page-header">
         <h1 class="kq-title about-title">ABOUT</h1>
         <div class="kq-tagline page-subtitle">things I probably shouldn't publish</div>
@@ -640,6 +642,7 @@
             <div class="pending-list" id="pending-list"></div>
             
         </section>
+        </div>
     </main>
 
     <div class="kq-bottom"><div class="support-line">
