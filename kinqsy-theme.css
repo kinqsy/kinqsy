@@ -332,61 +332,31 @@ footer .socials svg,
 }
 
 
-/* unify titles on about/home leftover classes */
+
+/* titles */
+.about-title, .site-title, .notes-title, .quotes-title, .dreams-title,
+.kq-title, .kq-tagline, .kq-user, .page-subtitle, .tagline, .diary-label {
+  color: #111 !important;
+  text-shadow: none !important;
+}
 .about-title, .site-title, .notes-title, .quotes-title, .dreams-title {
   font-size: var(--kq-title) !important;
   letter-spacing: var(--kq-title-track) !important;
   line-height: 0.85 !important;
   font-weight: 400 !important;
 }
-.page-subtitle, .tagline, .notes-subtitle {
-  font-size: var(--kq-tagline) !important;
-  font-style: italic !important;
-  font-weight: bold !important;
-}
-.about-bg, .about-grain, .notes-bg, .notes-grain {
-  display: none !important;
-}
 
-
-/* ===== home-style page card: radius at END of content, not viewport ===== */
-.kq-bg, .kq-grain { display: none !important; }
-
-.kq-shell,
+/* page card like home.hero — NO overflow hidden (режет посты и окна) */
 .notes-page,
 .about-page,
 .quotes-page,
-.dreams-shell,
-main.notes-page,
-main.about-page {
-  position: relative !important;
-  isolation: isolate;
-  margin-top: var(--kq-menu-h) !important;
-  min-height: calc(100vh - var(--kq-menu-h)) !important;
+.kq-shell,
+.dreams-shell {
   background-color: #1a0f14;
   background-position: center center;
   background-size: cover;
   background-repeat: no-repeat;
   background-attachment: fixed;
-  border-radius: 0 0 30px 30px !important;
-  overflow: hidden !important;
-  background-image: inherit;
-}
-
-.kq-title, .kq-tagline, .kq-user,
-.about-title, .page-subtitle, .notes-title, .notes-subtitle,
-.site-title, .tagline, .diary-label {
-  color: #111 !important;
-  text-shadow: none !important;
-}
-
-body { background: #000; }
-.about-page { max-width: none !important; width: 100% !important; }
-.about-page > .kq-page-header,
-.about-page > .glass,
-.about-page > section,
-.about-page > .profile-card {
-  max-width: 720px;
-  margin-left: auto;
-  margin-right: auto;
+  border-radius: 0 0 30px 30px;
+  min-height: calc(100vh - 42px);
 }
