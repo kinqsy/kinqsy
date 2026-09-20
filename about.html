@@ -1337,8 +1337,24 @@
     document.getElementById("admin-star").onclick = async function () {
         var uid = await currentUserId();
         if (!uid) { openAuth(); return; }
+        if (window.Kinqsy && Kinqsy.openAccount) {
+            await Kinqsy.openAccount({
+                label: "редактировать about",
+                run: async function () {
+                    if (!(await canEditThisProfile())) {
+                        alert("Это страница @" + getU() + ". Своя: about.html?u=ТВОЙ_НИК");
+                        return;
+                    }
+                    document.getElementById("edit-about").value =
+                        (viewedProfile && viewedProfile.about_text) ? viewedProfile.about_text : "";
+                    document.getElementById("about-error").textContent = "";
+                    openAboutEdit();
+                }
+            });
+            return;
+        }
         if (!(await canEditThisProfile())) {
-            alert("Это страница @" + getU() + ".\nСвоя: about.html?u=ТВОЙ_НИК");
+            alert("Это страница @" + getU() + ". Своя: about.html?u=ТВОЙ_НИК");
             return;
         }
         document.getElementById("edit-about").value =
