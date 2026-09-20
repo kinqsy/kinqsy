@@ -7,6 +7,7 @@
     <link rel="icon" href="icon-192.png" type="image/png">
     <link rel="stylesheet" href="kinqsy-theme.css">
     <link rel="stylesheet" href="kinqsy-skins.css">
+    <link rel="stylesheet" href="kinqsy-finish.css">
     <style>
         * { box-sizing: border-box; }
         ::selection { background: rgba(240, 201, 214, 0.9); color: #3a2030; }
@@ -38,9 +39,9 @@
             isolation: isolate;
             margin-top: 42px;
             min-height: calc(100vh - 42px);
-            background: #1a0f14 url("background.jpg") center center / cover no-repeat fixed;
+            background: transparent;
             border-radius: 0 0 30px 30px;
-            overflow: hidden;
+            overflow: visible;
         }
         .hero::before {
             content: "";
@@ -180,12 +181,13 @@
         @media (max-width: 700px) {
             .home-quotes { display: none; }
             .top-menu { justify-content: flex-start; overflow-x: auto; padding: 0 8px; gap: 12px; }
-            .hero-actions { bottom: 38%; }
+            .site-title { padding-top: 6vh; font-size: clamp(42px, 16vw, 72px); }
+            .home-latest, .hero-actions { position: relative; left: auto; bottom: auto; max-width: none; }
             footer { grid-template-columns: 1fr; gap: 12px; text-align: center; }
         }
     </style>
 </head>
-<body id="top" data-skin="home">
+<body id="top" data-finish="matte" data-skin="home">
 
     <nav class="top-menu">
         <a href="index.html" id="nav-home">home</a>
