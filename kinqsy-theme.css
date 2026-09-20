@@ -566,3 +566,24 @@ h1, .kq-title, .site-title, .notes-title, .quotes-title, .dreams-title, .about-t
   color: #1a0f14;
 }
 .kq-sticker-node { transform-origin: center center; }
+
+.kq-board, .post.kq-board {
+  position: relative !important;
+  min-height: 280px;
+}
+.kq-board .kq-piece,
+.kq-board .post-title,
+.kq-board .post-content,
+.kq-board .post-media {
+  position: absolute;
+  margin: 0;
+}
+.kq-sticker-node {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+#compose-title-size {
+  width: 100%;
+  accent-color: #e8a0b8;
+}
