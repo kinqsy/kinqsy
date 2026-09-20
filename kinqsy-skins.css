@@ -1,0 +1,103 @@
+/* =========================================================
+   KINQSY SKINS — единственное место, куда кладёшь новые картинки
+   Страницы сами берут --kq-wallpaper. Не вешай url() на .notes-page.
+   ========================================================= */
+
+:root {
+  --kq-wallpaper: none;
+  --kq-wallpaper-color: #1a0f14;
+  --kq-avatar: url("avatar-1.jpg");
+  --kq-frame: none;
+  --kq-card-bg: none;
+}
+
+body[data-skin="home"]   { --kq-wallpaper: url("background.jpg"); }
+body[data-skin="notes"]  { --kq-wallpaper: url("notes-bg.jpg"); }
+body[data-skin="dreams"] { --kq-wallpaper: url("dreams-bg.jpg"); }
+body[data-skin="quotes"] { --kq-wallpaper: url("quotes-bg.jpg"); }
+body[data-skin="about"]  { --kq-wallpaper: url("about-bg.jpg"); }
+
+/* новые фоны пользователя — добавь строку:
+   body.u-MASHA[data-skin="notes"] { --kq-wallpaper: url("skins/masha-notes.jpg"); }
+*/
+
+[data-avatar="1"] { --kq-avatar: url("avatar-1.jpg"); }
+[data-avatar="2"] { --kq-avatar: url("avatar-2.jpg"); }
+[data-avatar="3"] { --kq-avatar: url("avatar-3.jpg"); }
+[data-avatar="4"] { --kq-avatar: url("avatar-4.jpg"); }
+
+/* рамки позже:
+   [data-frame="pearl"] { --kq-frame: url("frames/pearl.png"); }
+   мини-фон карточки:
+   [data-minibg="vinyl"] { --kq-card-bg: url("minibg/vinyl.jpg"); }
+*/
+
+html, body {
+  margin: 0;
+  background: #000;
+}
+
+/* СЦЕНА = вся ширина, как Home.hero. Контент внутри не несёт обои. */
+.kq-stage,
+.hero,
+.notes-page,
+.about-page,
+.quotes-page,
+.kq-shell,
+.dreams-shell {
+  --_wp: var(--kq-wallpaper);
+  display: block;
+  width: 100% !important;
+  max-width: none !important;
+  box-sizing: border-box;
+  position: relative;
+  isolation: isolate;
+  z-index: 2;
+  margin: 42px 0 0 0 !important;
+  min-height: calc(100vh - 42px);
+  background-color: var(--kq-wallpaper-color);
+  background-image: var(--_wp);
+  background-position: center center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  border-radius: 0 0 30px 30px;
+}
+
+.kq-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 58px 20px 80px;
+  background: transparent !important;
+  position: relative;
+  z-index: 3;
+}
+.about-page > .kq-inner { max-width: 720px; }
+
+.kq-avatar,
+.about-avatar {
+  background-image: var(--kq-avatar);
+  background-size: cover;
+  background-position: center;
+  border-image-source: var(--kq-frame);
+}
+
+.kq-card,
+.glass {
+  background-image: var(--kq-card-bg);
+  background-size: cover;
+  background-position: center;
+}
+
+/* старые слои-дубликаты больше не рисуем */
+.kq-bg, .kq-grain,
+.notes-bg, .notes-grain,
+.about-bg, .about-grain,
+.quotes-bg, .quotes-grain,
+.hero-grain { display: none !important; }
+
+.kq-title, .about-title, .site-title, .notes-title, .quotes-title,
+.kq-tagline, .page-subtitle, .tagline, .kq-user, .diary-label {
+  color: #111 !important;
+  text-shadow: none !important;
+}
