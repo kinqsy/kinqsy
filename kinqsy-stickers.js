@@ -7,12 +7,7 @@ async function kqIsOwner() {
   var sb = kqSb();
   if (!sb) return false;
   var sess = await sb.auth.getSession();
-  var user = sess.data && sess.data.session && sess.data.session.user;
-  if (!user) return false;
-  var p = await sb.from("profiles").select("display_name, username, handle").eq("id", user.id).maybeSingle();
-  var row = p.data || {};
-  var slug = String(row.username || row.handle || row.display_name || "").toLowerCase().replace(/^@/, "");
-  return slug === "kinqsy" || slug.indexOf("kinqsy") !== -1;
+  return !!(sess.data && sess.data.session && sess.data.session.user);
 }
 
 window.kqLoadCatalog = async function (kind) {
