@@ -1173,7 +1173,17 @@
         var code = document.getElementById("friend-code-input").value.trim().toUpperCase();
         if (!code) { alert("Введи код"); return; }
 
-        var { data: target } = await sb.from("profiles").select("id, display_name, friend_code").ilike("friend_code", code).maybeSingle();
+        var target = null;
+        var look = await sb.rpc("lookup_friend_code", { p_code: code });
+        if (look.error) {
+            var fb = await sb.from("profiles").select("id, display_name, friend_code").ilike("friend_code", code).maybeSingle();
+            target = fb.data;
+            if (look.error && !target) { alert(look.error.message); return; }
+        } else if (Array.isArray(look.data)) {
+            target = look.data[0] || null;
+        } else {
+            target = look.data;
+        }
         if (!target) { alert("Код не найден"); return; }
         if (target.id === uid) { alert("Это твой код"); return; }
 
