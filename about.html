@@ -894,6 +894,21 @@
             }
             if (res.data) {
                 applyProfile(res.data);
+                var acc = { ok: true };
+                if (window.Kinqsy && Kinqsy.checkAccess) {
+                    acc = await Kinqsy.checkAccess("about", res.data.id);
+                }
+                if (!acc.ok) {
+                    var atxt = document.getElementById("about-text");
+                    if (atxt) atxt.textContent = "профиль закрыт";
+                    var st = document.getElementById("about-status");
+                    if (st) st.textContent = "—";
+                    try { await renderFilms(null); } catch (e) {}
+                    if (window.Kinqsy && Kinqsy.showGate) {
+                        Kinqsy.showGate({ mode: acc.guest ? "guest" : "friends", guest: acc.guest, page: "about" });
+                    }
+                    return;
+                }
                 await renderFilms(res.data.favorites);
             } else {
                 viewedProfileId = null;
