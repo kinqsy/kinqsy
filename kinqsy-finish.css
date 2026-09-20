@@ -1,0 +1,178 @@
+/* ============================================================
+   KINQSY FINISH — накладка НАД обоями
+   Картинка фона = --kq-wallpaper в kinqsy-skins.css
+   Тип стекла  = data-finish на <body> или на карточке
+
+   значения data-finish:
+     plain   — просто картинка, почти без обработки
+     matte   — матовое стекло (дефолт)
+     gloss   — глянец, блик сверху
+     facet   — гранёное стекло
+     mosaic  — мозаичное стекло
+   ============================================================ */
+
+:root {
+  --kq-finish-blur: 14px;
+  --kq-finish-dim: rgba(26, 15, 20, 0.08);
+  --kq-finish-shine: rgba(255, 255, 255, 0.18);
+}
+
+/* --- PLAIN --- */
+[data-finish="plain"] .notes-page::before,
+[data-finish="plain"] .about-page::before,
+[data-finish="plain"] .quotes-page::before,
+[data-finish="plain"] .kq-shell::before,
+[data-finish="plain"] .dreams-shell::before,
+[data-finish="plain"] .hero::before,
+[data-finish="plain"] .kq-stage::before {
+  filter: none;
+  transform: none;
+  inset: 0;
+}
+[data-finish="plain"] .notes-page::after,
+[data-finish="plain"] .about-page::after,
+[data-finish="plain"] .quotes-page::after,
+[data-finish="plain"] .kq-shell::after,
+[data-finish="plain"] .dreams-shell::after,
+[data-finish="plain"] .hero::after,
+[data-finish="plain"] .kq-stage::after {
+  opacity: 0.12;
+}
+
+/* --- MATTE --- */
+[data-finish="matte"] .notes-page::before,
+[data-finish="matte"] .about-page::before,
+[data-finish="matte"] .quotes-page::before,
+[data-finish="matte"] .kq-shell::before,
+[data-finish="matte"] .dreams-shell::before,
+[data-finish="matte"] .hero::before,
+[data-finish="matte"] .kq-stage::before {
+  filter: blur(16px) saturate(0.86);
+  inset: -10%;
+}
+[data-finish="matte"] .notes-page::after,
+[data-finish="matte"] .about-page::after,
+[data-finish="matte"] .quotes-page::after,
+[data-finish="matte"] .kq-shell::after,
+[data-finish="matte"] .dreams-shell::after,
+[data-finish="matte"] .hero::after,
+[data-finish="matte"] .kq-stage::after {
+  opacity: 0.38;
+  mix-blend-mode: soft-light;
+}
+
+/* стекло карточек матовое */
+[data-finish="matte"] .glass,
+[data-finish="matte"] .post,
+[data-finish="matte"] .home-card {
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  backdrop-filter: blur(16px) saturate(120%);
+  -webkit-backdrop-filter: blur(16px) saturate(120%);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.10);
+}
+
+/* --- GLOSS --- */
+[data-finish="gloss"] .notes-page::before,
+[data-finish="gloss"] .about-page::before,
+[data-finish="gloss"] .quotes-page::before,
+[data-finish="gloss"] .kq-shell::before,
+[data-finish="gloss"] .dreams-shell::before,
+[data-finish="gloss"] .hero::before,
+[data-finish="gloss"] .kq-stage::before {
+  filter: blur(10px) saturate(1.15) contrast(1.05);
+  inset: -8%;
+}
+[data-finish="gloss"] .notes-page::after,
+[data-finish="gloss"] .about-page::after,
+[data-finish="gloss"] .quotes-page::after,
+[data-finish="gloss"] .kq-shell::after,
+[data-finish="gloss"] .dreams-shell::after,
+[data-finish="gloss"] .hero::after,
+[data-finish="gloss"] .kq-stage::after {
+  opacity: 0.55;
+  background-image:
+    linear-gradient(165deg, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0.0) 42%),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.35'/%3E%3C/svg%3E");
+  mix-blend-mode: screen;
+}
+[data-finish="gloss"] .glass,
+[data-finish="gloss"] .post,
+[data-finish="gloss"] .home-card {
+  background: linear-gradient(165deg, rgba(255,255,255,0.38), rgba(255,255,255,0.12));
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), 0 12px 28px rgba(0,0,0,0.12);
+}
+
+/* --- FACET --- */
+[data-finish="facet"] .notes-page::before,
+[data-finish="facet"] .about-page::before,
+[data-finish="facet"] .quotes-page::before,
+[data-finish="facet"] .kq-shell::before,
+[data-finish="facet"] .dreams-shell::before,
+[data-finish="facet"] .hero::before,
+[data-finish="facet"] .kq-stage::before {
+  filter: blur(8px) contrast(1.08) saturate(1.1);
+}
+[data-finish="facet"] .notes-page::after,
+[data-finish="facet"] .about-page::after,
+[data-finish="facet"] .quotes-page::after,
+[data-finish="facet"] .kq-shell::after,
+[data-finish="facet"] .dreams-shell::after,
+[data-finish="facet"] .hero::after,
+[data-finish="facet"] .kq-stage::after {
+  opacity: 0.42;
+  background-image:
+    linear-gradient(122deg, rgba(255,255,255,0.22) 0 12%, transparent 12% 28%, rgba(255,255,255,0.12) 28% 36%, transparent 36% 58%, rgba(255,255,255,0.16) 58% 64%, transparent 64%),
+    linear-gradient(38deg, transparent 40%, rgba(255,255,255,0.10) 40% 46%, transparent 46%);
+  mix-blend-mode: overlay;
+}
+[data-finish="facet"] .glass,
+[data-finish="facet"] .post,
+[data-finish="facet"] .home-card {
+  background: rgba(255, 255, 255, 0.14);
+  clip-path: polygon(2% 0, 100% 0, 98% 100%, 0 100%);
+  border: 1px solid rgba(255,255,255,0.4);
+  backdrop-filter: blur(10px);
+}
+
+/* --- MOSAIC --- */
+[data-finish="mosaic"] .notes-page::before,
+[data-finish="mosaic"] .about-page::before,
+[data-finish="mosaic"] .quotes-page::before,
+[data-finish="mosaic"] .kq-shell::before,
+[data-finish="mosaic"] .dreams-shell::before,
+[data-finish="mosaic"] .hero::before,
+[data-finish="mosaic"] .kq-stage::before {
+  filter: blur(6px) saturate(1.05);
+}
+[data-finish="mosaic"] .notes-page::after,
+[data-finish="mosaic"] .about-page::after,
+[data-finish="mosaic"] .quotes-page::after,
+[data-finish="mosaic"] .kq-shell::after,
+[data-finish="mosaic"] .dreams-shell::after,
+[data-finish="mosaic"] .hero::after,
+[data-finish="mosaic"] .kq-stage::after {
+  opacity: 0.34;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.18) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.18) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mix-blend-mode: overlay;
+}
+[data-finish="mosaic"] .glass,
+[data-finish="mosaic"] .post,
+[data-finish="mosaic"] .home-card {
+  background: rgba(255,255,255,0.18);
+  backdrop-filter: blur(8px);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.28);
+}
+
+/* карточка может иметь СВОЙ finish, не как у страницы */
+[data-finish="plain"].glass { backdrop-filter: none; background: rgba(255,255,255,0.22); }
+[data-finish="matte"].glass { backdrop-filter: blur(16px); }
+[data-finish="gloss"].glass { background: linear-gradient(165deg, rgba(255,255,255,0.4), rgba(255,255,255,0.12)); }
+[data-finish="facet"].glass { clip-path: polygon(3% 0, 100% 0, 97% 100%, 0 100%); }
+[data-finish="mosaic"].glass { background-size: 16px 16px; }
