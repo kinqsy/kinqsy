@@ -723,10 +723,13 @@
         feed.innerHTML = '<div class="empty">loading...</div>';
         await resolveViewedUser();
 
-        quotesBoardAllowed = true;
-        if (window.Kinqsy && Kinqsy.checkAccess) {
-            var acc = await Kinqsy.checkAccess("quotes", viewedUserId);
-            quotesBoardAllowed = !!acc.ok;
+        var meId = (window.Kinqsy && Kinqsy.currentUserId) ? await Kinqsy.currentUserId() : null;
+        var isOwner = !!(meId && viewedUserId && String(meId) === String(viewedUserId));
+        quotesBoardAllowed = isOwner;
+        if (!meId) {
+            feed.innerHTML = "";
+            if (window.Kinqsy) Kinqsy.showGate({ mode: "guest", guest: true, page: "quotes" });
+            return;
         }
 
         if (mode === "mine" && !quotesBoardAllowed) {
@@ -738,7 +741,7 @@
         var q = sb.from("posts").select("*").eq("category", "quotes");
 
         if (mode === "public") {
-            if (viewedUserId && !quotesBoardAllowed) {
+            if (viewedUserId && !isOwner) {
                 q = q.eq("is_public", true).eq("user_id", viewedUserId).order("created_at", { ascending: false }).limit(120);
             } else {
                 q = q.eq("is_public", true).order("created_at", { ascending: false }).limit(120);
