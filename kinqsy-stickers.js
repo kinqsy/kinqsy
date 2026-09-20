@@ -124,7 +124,10 @@ window.kqOpenStickerTray = async function () {
     }
     var pick = e.target.closest("[data-text]");
     if (!pick) return;
-    
+    window.kqAddSticker(pick.getAttribute("data-id"), decodeURIComponent(pick.getAttribute("data-text")));
+  };
+};
+
 window.kqAddSticker = function (id, text) {
   window.kqStickersOnPost.push({
     uid: "s" + Date.now(),
