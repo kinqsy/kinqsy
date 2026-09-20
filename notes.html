@@ -79,9 +79,11 @@ a, button, .star, .top-menu .star, input, textarea, .react-btn, .post-menu butto
         isolation: isolate;
         min-height: calc(100vh - 42px);
         margin-top: 42px;
-        padding: 58px 20px 80px;
-        background: transparent;
+        padding: 0;
+        background: transparent !important;
         overflow: visible;
+        max-width: none !important;
+        width: 100%;
     }
     .notes-bg {
     position: fixed;
@@ -799,7 +801,7 @@ a, button, .star, .top-menu .star, input, textarea, .react-btn, .post-menu butto
 .auth-overlay.open { display: flex !important; }
 #del-reason-modal.auth-overlay.open { z-index: 2100; }
 </style>
-<style id="kq-bg-page">.notes-page,.kq-shell{background-image:url("notes-bg.jpg")}</style>
+
 
 <style id="kq-notes-override">
 .notes-title, .kq-title { font-size: var(--kq-title) !important; letter-spacing: var(--kq-title-track) !important; }
