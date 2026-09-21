@@ -587,3 +587,13 @@ h1, .kq-title, .site-title, .notes-title, .quotes-title, .dreams-title, .about-t
   width: 100%;
   accent-color: #e8a0b8;
 }
+
+.kq-board .kq-piece {
+  position: absolute;
+  cursor: grab;
+  padding: 4px;
+  outline: 1px dashed rgba(255,255,255,.35);
+  z-index: 3;
+}
+.kq-board .kq-piece:active { cursor: grabbing; }
+.kq-board [data-piece="media"] { max-width: 46%; height: auto; border-radius: 10px; }
