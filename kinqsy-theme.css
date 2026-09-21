@@ -600,9 +600,6 @@ h1, .kq-title, .site-title, .notes-title, .quotes-title, .dreams-title, .about-t
   outline: none !important;
   cursor: default;
 }
-.post {
-  overflow: hidden;
-}
 .post .kq-sticker-node {
   max-width: 70%;
   overflow: hidden;
@@ -620,3 +617,26 @@ h1, .kq-title, .site-title, .notes-title, .quotes-title, .dreams-title, .about-t
   z-index: 4;
 }
 #compose-body-size, #compose-title-size { accent-color: #e8a0b8; width: 100%; }
+
+.post .kq-canvas {
+  position: relative;
+  min-height: 280px;
+  height: 320px;
+  overflow: hidden;
+  margin: 8px 0 12px;
+}
+#compose-overlay .compose-preview-box {
+  overflow: hidden !important;
+}
+#compose-overlay .kq-reserved {
+  font-size: 11px;
+  opacity: .45;
+  left: 12px;
+  top: 6px;
+}
+.post .post-date { position: relative; z-index: 2; }
+.post .kq-sticker-node { max-width: none; }
+
+#del-post-modal, #del-c-modal, #del-reason-modal, #post-menu {
+  z-index: 5000 !important;
+}
