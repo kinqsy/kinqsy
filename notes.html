@@ -691,6 +691,9 @@ a, button, .star, .top-menu .star, input, textarea, .react-btn, .post-menu butto
         background: rgba(255, 255, 255, 0.2);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
+        position: relative;
+        min-height: 340px;
+        height: 360px;
     }
     .compose-preview-box .prev-title {
         margin: 0 0 10px;
@@ -1144,6 +1147,7 @@ document.getElementById("edit-save").onclick = async function () {
     function openCompose() {
         composeOverlay.classList.add("open");
         if (window.kqOpenStickerTray) window.kqOpenStickerTray();
+        if (window.kqInitBoard) window.kqInitBoard();
     }
     window.openNotesCompose = openCompose;
 function closeCompose() {
@@ -1285,24 +1289,11 @@ function postBgStyle(key) {
     return "rgba(255, 255, 255, 0.18)";
 }
     function updateComposePreview() {
-    var titleEl = document.getElementById("compose-live-title");
-    var bodyEl = document.getElementById("compose-live-body");
+    if (window.kqInitBoard) window.kqInitBoard();
+    if (window.kqUpdateBoardText) window.kqUpdateBoardText();
     var box = document.querySelector("#compose-overlay .compose-preview-box");
-    if (!titleEl || !bodyEl) return;
-    var title = document.getElementById("compose-title").value;
-    var content = document.getElementById("compose-content").value;
-    var titleFont = document.getElementById("compose-title-font").value;
-    var bodyFont = document.getElementById("compose-body-font").value;
-    var titleColor = document.getElementById("compose-title-color").value;
-    var bodyColor = document.getElementById("compose-body-color").value;
-    var bg = document.getElementById("compose-post-bg").value;
-    titleEl.textContent = title ? title : "заголовок…";
-    bodyEl.textContent = content ? content : "текст…";
-    titleEl.style.fontFamily = titleFont;
-    titleEl.style.color = titleColor;
-    bodyEl.style.fontFamily = bodyFont;
-    bodyEl.style.color = bodyColor;
-    if (box) box.style.background = postBgStyle(bg);
+    var bg = document.getElementById("compose-post-bg");
+    if (box && bg) box.style.background = postBgStyle(bg.value);
 }
 ["compose-title", "compose-content", "compose-title-font", "compose-body-font", "compose-title-color", "compose-body-color", "compose-post-bg"].forEach(function (id) {
     var el = document.getElementById(id);
