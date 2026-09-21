@@ -183,6 +183,8 @@ window.kqSelectSticker = function (uid) {
     '<button type="button" data-act="rr">↻</button>' +
     '<button type="button" data-act="fx">↔</button>' +
     '<button type="button" data-act="fy">↕</button>' +
+    '<button type="button" data-act="sm">−</button>' +
+    '<button type="button" data-act="sp">+</button>' +
     '<button type="button" data-act="del">✕</button>';
   canvas.appendChild(bar);
   bar.style.left = node.x + "%";
@@ -194,6 +196,8 @@ window.kqSelectSticker = function (uid) {
     if (act === "rr") node.rot = (node.rot || 0) + 15;
     if (act === "fx") node.flipX = (node.flipX || 1) * -1;
     if (act === "fy") node.flipY = (node.flipY || 1) * -1;
+    if (act === "sm") node.scale = Math.max(0.4, (node.scale || 1) - 0.15);
+    if (act === "sp") node.scale = Math.min(2.4, (node.scale || 1) + 0.15);
     if (act === "del") {
       window.kqStickersOnPost = window.kqStickersOnPost.filter(function (x) { return x.uid !== uid; });
     }
@@ -293,7 +297,8 @@ window.kqSyncBoard = function () {
     el.style.left = node.x + "%";
     el.style.top = node.y + "%";
     el.style.background = "transparent";
-    el.style.transform = "rotate("+(node.rot||0)+"deg) scale("+(node.flipX||1)+","+(node.flipY||1)+")";
+    var sc = node.scale || 1;
+    el.style.transform = "rotate("+(node.rot||0)+"deg) scale("+(sc*(node.flipX||1))+","+(sc*(node.flipY||1))+")";
     box.appendChild(el);
     kqDrag(el, node, box);
     el.onclick = function (ev) { ev.stopPropagation(); window.kqSelectSticker(node.uid); };
@@ -348,7 +353,8 @@ window.kqMountDecor = function (article, decor) {
     el.style.left = (node.x || 0) + "%";
     el.style.top = (node.y || 0) + "%";
     el.style.background = "transparent";
-    el.style.transform = "rotate("+(node.rot||0)+"deg) scale("+(node.flipX||1)+","+(node.flipY||1)+")";
+    var sc = node.scale || 1;
+    el.style.transform = "rotate("+(node.rot||0)+"deg) scale("+(sc*(node.flipX||1))+","+(sc*(node.flipY||1))+")";
     el.style.pointerEvents = "none";
     article.appendChild(el);
   });
@@ -430,7 +436,8 @@ window.kqPaintStickersOnBoard = function () {
     el.style.left = node.x + "%";
     el.style.top = node.y + "%";
     el.style.background = "transparent";
-    el.style.transform = "rotate("+(node.rot||0)+"deg) scale("+(node.flipX||1)+","+(node.flipY||1)+")";
+    var sc = node.scale || 1;
+    el.style.transform = "rotate("+(node.rot||0)+"deg) scale("+(sc*(node.flipX||1))+","+(sc*(node.flipY||1))+")";
     box.appendChild(el);
     kqDrag(el, node, box);
     el.onclick = function (ev) { ev.stopPropagation(); window.kqSelectSticker(node.uid); };
@@ -447,7 +454,7 @@ window.kqAddSticker = function (id, text) {
 window.kqClamp = function (x, y) {
   var minY = 18;
   return {
-    x: Math.max(2, Math.min(78, x)),
-    y: Math.max(minY, Math.min(78, y))
+    x: Math.max(1, Math.min(70, x)),
+    y: Math.max(8, Math.min(70, y))
   };
 };
