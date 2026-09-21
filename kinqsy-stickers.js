@@ -216,8 +216,9 @@ function kqDrag(el, node, canvas) {
     if (!dragging) return;
     ev.preventDefault();
     var p = pos(ev);
-    node.x = Math.max(0, Math.min(85, p.x));
-    node.y = Math.max(0, Math.min(85, p.y));
+    var c = window.kqClamp ? window.kqClamp(p.x, p.y) : p;
+    node.x = c.x;
+    node.y = c.y;
     el.style.left = node.x + "%";
     el.style.top = node.y + "%";
   }
@@ -360,6 +361,7 @@ window.kqInitBoard = function () {
   box.classList.add("kq-board");
   if (!box.querySelector('[data-piece="title"]')) {
     box.innerHTML =
+      '<div class="kq-reserved">20/09/2026 · ♥ 0 · 0</div>' +
       '<div class="kq-piece" data-piece="title">заголовок…</div>' +
       '<div class="kq-piece" data-piece="body">текст…</div>' +
       '<img class="kq-piece" data-piece="media" alt="">';
@@ -439,4 +441,13 @@ var _oldAdd = window.kqAddSticker;
 window.kqAddSticker = function (id, text) {
   if (_oldAdd) _oldAdd(id, text);
   window.kqPaintStickersOnBoard();
+};
+
+
+window.kqClamp = function (x, y) {
+  var minY = 18;
+  return {
+    x: Math.max(2, Math.min(78, x)),
+    y: Math.max(minY, Math.min(78, y))
+  };
 };
