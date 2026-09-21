@@ -839,7 +839,7 @@
       var b = document.createElement("button");
       b.type = "button";
       b.className = "secondary";
-      b.textContent = d.id === did ? "выйти здесь" : "завершить";
+      b.textContent = "завершить";
       b.onclick = async function () {
         await revokeDevice(uid, d.id);
         if (d.id === did) location.reload();
