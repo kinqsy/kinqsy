@@ -352,3 +352,91 @@ window.kqMountDecor = function (article, decor) {
     article.appendChild(el);
   });
 };
+
+
+window.kqInitBoard = function () {
+  var box = document.querySelector("#compose-overlay .compose-preview-box");
+  if (!box) return;
+  box.classList.add("kq-board");
+  if (!box.querySelector('[data-piece="title"]')) {
+    box.innerHTML =
+      '<div class="kq-piece" data-piece="title">заголовок…</div>' +
+      '<div class="kq-piece" data-piece="body">текст…</div>' +
+      '<img class="kq-piece" data-piece="media" alt="">';
+    var B = window.kqBoard;
+    var map = { title: B.title, body: B.body, media: B.media };
+    box.querySelectorAll(".kq-piece").forEach(function (el) {
+      var key = el.getAttribute("data-piece");
+      var spec = map[key];
+      if (!spec) return;
+      el.style.left = spec.x + "%";
+      el.style.top = spec.y + "%";
+      el.style.width = spec.w + "%";
+      if (spec.size) el.style.fontSize = spec.size + "px";
+      kqDrag(el, spec, box);
+    });
+  }
+  window.kqUpdateBoardText();
+};
+
+window.kqUpdateBoardText = function () {
+  var box = document.querySelector("#compose-overlay .compose-preview-box");
+  if (!box) return;
+  var t = box.querySelector('[data-piece="title"]');
+  var b = box.querySelector('[data-piece="body"]');
+  var m = box.querySelector('[data-piece="media"]');
+  var title = document.getElementById("compose-title");
+  var body = document.getElementById("compose-content");
+  var fontT = document.getElementById("compose-title-font");
+  var fontB = document.getElementById("compose-body-font");
+  var colT = document.getElementById("compose-title-color");
+  var colB = document.getElementById("compose-body-color");
+  var url = document.getElementById("compose-media-url");
+  var fileImg = document.getElementById("compose-preview");
+  if (t) {
+    t.textContent = (title && title.value) ? title.value : "заголовок…";
+    if (fontT) t.style.fontFamily = fontT.value;
+    if (colT) t.style.color = colT.value;
+    if (window.kqBoard && window.kqBoard.title.size) t.style.fontSize = window.kqBoard.title.size + "px";
+  }
+  if (b) {
+    b.textContent = (body && body.value) ? body.value : "текст…";
+    if (fontB) b.style.fontFamily = fontB.value;
+    if (colB) b.style.color = colB.value;
+    b.style.whiteSpace = "pre-wrap";
+  }
+  if (m) {
+    var src = (fileImg && fileImg.src && fileImg.style.display !== "none") ? fileImg.src : ((url && url.value) || "");
+    if (src) { m.src = src; m.style.display = "block"; }
+    else { m.removeAttribute("src"); m.style.display = "none"; }
+  }
+};
+
+window.kqSyncBoard = function () {
+  window.kqInitBoard();
+  window.kqPaintStickersOnBoard && window.kqPaintStickersOnBoard();
+};
+
+window.kqPaintStickersOnBoard = function () {
+  var box = document.querySelector("#compose-overlay .compose-preview-box");
+  if (!box) return;
+  box.querySelectorAll(".kq-sticker-node").forEach(function (n) { n.remove(); });
+  (window.kqStickersOnPost || []).forEach(function (node) {
+    var el = document.createElement("pre");
+    el.className = "kq-sticker-node";
+    el.textContent = node.text;
+    el.style.left = node.x + "%";
+    el.style.top = node.y + "%";
+    el.style.background = "transparent";
+    el.style.transform = "rotate("+(node.rot||0)+"deg) scale("+(node.flipX||1)+","+(node.flipY||1)+")";
+    box.appendChild(el);
+    kqDrag(el, node, box);
+    el.onclick = function (ev) { ev.stopPropagation(); window.kqSelectSticker(node.uid); };
+  });
+};
+
+var _oldAdd = window.kqAddSticker;
+window.kqAddSticker = function (id, text) {
+  if (_oldAdd) _oldAdd(id, text);
+  window.kqPaintStickersOnBoard();
+};
