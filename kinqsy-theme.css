@@ -588,12 +588,35 @@ h1, .kq-title, .site-title, .notes-title, .quotes-title, .dreams-title, .about-t
   accent-color: #e8a0b8;
 }
 
-.kq-board .kq-piece {
+#compose-overlay .kq-board .kq-piece {
   position: absolute;
   cursor: grab;
   padding: 4px;
-  outline: 1px dashed rgba(255,255,255,.35);
+  outline: 1px dashed rgba(255,255,255,.45);
   z-index: 3;
 }
+.post.kq-board .kq-piece,
+.post .kq-sticker-node {
+  outline: none !important;
+  cursor: default;
+}
+.post {
+  overflow: hidden;
+}
+.post .kq-sticker-node {
+  max-width: 70%;
+  overflow: hidden;
+}
+
 .kq-board .kq-piece:active { cursor: grabbing; }
 .kq-board [data-piece="media"] { max-width: 46%; height: auto; border-radius: 10px; }
+
+#compose-overlay .kq-reserved {
+  position: absolute;
+  left: 10px; top: 8px;
+  font-size: 12px;
+  opacity: .55;
+  pointer-events: none;
+  z-index: 4;
+}
+#compose-body-size, #compose-title-size { accent-color: #e8a0b8; width: 100%; }
