@@ -792,14 +792,15 @@
 
     var pageWrap = document.getElementById("acc-page-wrap");
     var pageBtn = document.getElementById("acc-page");
-    if (typeof extraFn === "function" || typeof accountExtra === "function") {
+    var spec = extraFn || accountExtra;
+    var hasPage = spec && (typeof spec === "function" || typeof spec.run === "function");
+    if (hasPage) {
       pageWrap.style.display = "flex";
-      pageBtn.textContent = extraFn && extraFn.label ? extraFn.label : (accountExtra && accountExtra.label) || "открыть страницу";
+      pageBtn.textContent = (spec && spec.label) || "редактировать about";
       pageBtn.onclick = async function () {
         ov.classList.remove("open");
-        var fn = (extraFn && extraFn.run) ? extraFn.run : accountExtra;
+        var fn = (typeof spec === "function") ? spec : spec.run;
         if (typeof fn === "function") await fn(uid, prof);
-        else if (fn && typeof fn.run === "function") await fn.run(uid, prof);
       };
     } else {
       pageWrap.style.display = "none";
