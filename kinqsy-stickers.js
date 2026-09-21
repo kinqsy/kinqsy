@@ -458,3 +458,23 @@ window.kqClamp = function (x, y) {
     y: Math.max(8, Math.min(70, y))
   };
 };
+
+
+window.kqMountDecor = function (host, decor) {
+  if (!host || !decor) return;
+  var stickers = Array.isArray(decor) ? decor : (decor.stickers || []);
+  host.classList.add("kq-sticker-canvas");
+  if (getComputedStyle(host).position === "static") host.style.position = "relative";
+  stickers.forEach(function (node) {
+    var el = document.createElement("pre");
+    el.className = "kq-sticker-node";
+    el.textContent = node.text || "";
+    el.style.left = (node.x || 8) + "%";
+    el.style.top = (node.y || 35) + "%";
+    el.style.background = "transparent";
+    var sc = node.scale || 1;
+    el.style.transform = "rotate("+(node.rot||0)+"deg) scale("+(sc*(node.flipX||1))+","+(sc*(node.flipY||1))+")";
+    el.style.pointerEvents = "none";
+    host.appendChild(el);
+  });
+};
