@@ -1279,6 +1279,17 @@ if (mediaFileInput && mediaUrlInput && preview) {
       });
       var box = document.getElementById("compose-title");
       if (box && box.parentNode) { box.parentNode.insertBefore(lab, box.nextSibling); box.parentNode.insertBefore(rng, lab.nextSibling); }
+      var lab2 = document.createElement("label");
+      lab2.textContent = "размер текста";
+      var rng2 = document.createElement("input");
+      rng2.id = "compose-body-size";
+      rng2.type = "range"; rng2.min = "12"; rng2.max = "28"; rng2.value = "16";
+      rng2.addEventListener("input", function(){
+        if (window.kqBoard) window.kqBoard.body.size = Number(rng2.value);
+        if (window.kqUpdateBoardText) window.kqUpdateBoardText();
+      });
+      var body = document.getElementById("compose-content");
+      if (body && body.parentNode) { body.parentNode.insertBefore(lab2, body.nextSibling); body.parentNode.insertBefore(rng2, lab2.nextSibling); }
     }
 function postBgStyle(key) {
     if (key === "pink") return "rgba(240, 201, 214, 0.45)";
