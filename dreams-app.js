@@ -87,6 +87,8 @@
     if (post.body_font) document.getElementById("edit-body-font").value = post.body_font;
     if (post.title_color) document.getElementById("edit-title-color").value = post.title_color;
     if (post.body_color) document.getElementById("edit-body-color").value = post.body_color;
+    document.getElementById("edit-title-size").value = post.title_size || 29;
+    document.getElementById("edit-body-size").value = post.body_size || 17;
     document.getElementById("edit-error").textContent = "";
     updateEditPreview();
     document.getElementById("edit-overlay").classList.add("open");
@@ -101,6 +103,8 @@
     t.style.color = document.getElementById("compose-title-color").value;
     b.style.fontFamily = document.getElementById("compose-body-font").value;
     b.style.color = document.getElementById("compose-body-color").value;
+    t.style.fontSize = (document.getElementById("compose-title-size").value || 29) + "px";
+    b.style.fontSize = (document.getElementById("compose-body-size").value || 17) + "px";
   }
   function updateEditPreview() {
     var t = document.getElementById("edit-live-title");
@@ -111,16 +115,18 @@
     t.style.color = document.getElementById("edit-title-color").value;
     b.style.fontFamily = document.getElementById("edit-body-font").value;
     b.style.color = document.getElementById("edit-body-color").value;
+    t.style.fontSize = (document.getElementById("edit-title-size").value || 29) + "px";
+    b.style.fontSize = (document.getElementById("edit-body-size").value || 17) + "px";
   }
 
-  ["compose-title", "compose-content", "compose-title-font", "compose-body-font", "compose-title-color", "compose-body-color"].forEach(function (id) {
+  ["compose-title", "compose-content", "compose-title-font", "compose-body-font", "compose-title-color", "compose-body-color", "compose-title-size", "compose-body-size"].forEach(function (id) {
     var el = document.getElementById(id);
     if (el) {
       el.addEventListener("input", updateComposePreview);
       el.addEventListener("change", updateComposePreview);
     }
   });
-  ["edit-title", "edit-content", "edit-title-font", "edit-body-font", "edit-title-color", "edit-body-color"].forEach(function (id) {
+  ["edit-title", "edit-content", "edit-title-font", "edit-body-font", "edit-title-color", "edit-body-color", "edit-title-size", "edit-body-size"].forEach(function (id) {
     var el = document.getElementById(id);
     if (el) {
       el.addEventListener("input", updateEditPreview);
@@ -173,9 +179,11 @@
     article.id = "post-" + post.id;
 
     var titleStyle = "font-family:" + escapeHtml(post.title_font || "Georgia, serif") +
-      ";color:" + escapeHtml(post.title_color || "#1a0f14");
+      ";color:" + escapeHtml(post.title_color || "#1a0f14") +
+      ";font-size:" + (post.title_size || 29) + "px";
     var bodyStyle = "font-family:" + escapeHtml(post.body_font || "Georgia, serif") +
-      ";color:" + escapeHtml(post.body_color || "#1a0f14");
+      ";color:" + escapeHtml(post.body_color || "#1a0f14") +
+      ";font-size:" + (post.body_size || 17) + "px";
 
     var media = post.media_url
       ? '<div class="post-media ratio-landscape"><img src="' + escapeHtml(post.media_url) + '" alt="" loading="lazy"></div>'
@@ -343,7 +351,9 @@
       title_font: document.getElementById("compose-title-font").value,
       body_font: document.getElementById("compose-body-font").value,
       title_color: document.getElementById("compose-title-color").value,
-      body_color: document.getElementById("compose-body-color").value
+      body_color: document.getElementById("compose-body-color").value,
+      title_size: Number(document.getElementById("compose-title-size").value || 29),
+      body_size: Number(document.getElementById("compose-body-size").value || 17)
     };
     if (media_url) {
       payload.media_url = media_url;
@@ -376,7 +386,9 @@
       title_font: document.getElementById("edit-title-font").value,
       body_font: document.getElementById("edit-body-font").value,
       title_color: document.getElementById("edit-title-color").value,
-      body_color: document.getElementById("edit-body-color").value
+      body_color: document.getElementById("edit-body-color").value,
+      title_size: Number(document.getElementById("edit-title-size").value || 29),
+      body_size: Number(document.getElementById("edit-body-size").value || 17)
     };
     var mu = document.getElementById("edit-media-url").value.trim();
     if (mu) {
