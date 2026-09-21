@@ -707,3 +707,19 @@ h1, .kq-title, .site-title, .notes-title, .quotes-title, .dreams-title, .about-t
   position: absolute !important;
 }
 .post-media img { display: block; width: 100%; height: auto; }
+
+.post.has-board .kq-canvas .post-title,
+.post.has-board .kq-canvas .post-content,
+.post.has-board .kq-canvas .post-media {
+  position: relative !important;
+  left: auto !important;
+  top: auto !important;
+  width: auto !important;
+  max-width: 100% !important;
+}
+.post.has-board .kq-canvas {
+  height: auto !important;
+  min-height: 260px !important;
+  overflow: hidden;
+}
+.post-title { display: block; max-width: 100%; }
