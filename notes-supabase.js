@@ -188,7 +188,8 @@ else if (bgKey === "clear") article.style.background = "rgba(255, 255, 255, 0.08
 
     var titleHtml = '<h2 class="post-title" style="font-family:' + escapeHtml(post.title_font ? post.title_font : "Georgia, serif") + ';color:' + escapeHtml(post.title_color ? post.title_color : "#1a0f14") + '">' + escapeHtml(post.title || "") + '</h2>';
     var contentHtml = '<div class="post-content" style="font-family:' + escapeHtml(post.body_font ? post.body_font : "Georgia, serif") + ';color:' + escapeHtml(post.body_color ? post.body_color : "#1a0f14") + '">' + escapeHtml(post.content || "") + '</div>';
-    var hasBoard = post.decor && (post.decor.board || (post.decor.stickers && post.decor.stickers.length) || (Array.isArray(post.decor) && post.decor.length));
+    var hasBoard = !!(post.decor && (post.decor.board || (post.decor.stickers && post.decor.stickers.length) || (Array.isArray(post.decor) && post.decor.length)));
+    if (hasBoard) article.classList.add("has-board");
     var mid = hasBoard
         ? ('<div class="kq-canvas">' + titleHtml + mediaHtml + contentHtml + '</div>')
         : (titleHtml + mediaHtml + contentHtml);
@@ -418,15 +419,6 @@ btn.style.zIndex = "6";
 btn.addEventListener("click", async function (e) {
     e.preventDefault();
     e.stopPropagation();
-    var ok = await canEditPost(post);
-    if (!ok) {
-        showPostMenuNearFooter(article, post);
-        return;
-    }
-    if (activePostMenu && String(activePostMenu.id) === String(post.id)) {
-        hidePostMenu();
-        return;
-    }
     showPostMenuNearFooter(article, post);
 });
 }
