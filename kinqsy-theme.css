@@ -669,3 +669,13 @@ h1, .kq-title, .site-title, .notes-title, .quotes-title, .dreams-title, .about-t
   overflow-wrap: anywhere;
   max-width: 72%;
 }
+
+.post:not(:has(.kq-canvas)) .post-title,
+.post:not(:has(.kq-canvas)) .post-content,
+.post:not(:has(.kq-canvas)) .post-media {
+  position: relative !important;
+  left: auto !important;
+  top: auto !important;
+  width: auto !important;
+}
+.post-content { overflow-wrap: anywhere; word-break: break-word; }
