@@ -186,16 +186,18 @@ else if (bgKey === "clear") article.style.background = "rgba(255, 255, 255, 0.08
     const canDel = await canEditPost(post);
     const commentsHtml = await renderComments(comments, canDel);
 
+    var titleHtml = '<h2 class="post-title" style="font-family:' + escapeHtml(post.title_font ? post.title_font : "Georgia, serif") + ';color:' + escapeHtml(post.title_color ? post.title_color : "#1a0f14") + '">' + escapeHtml(post.title || "") + '</h2>';
+    var contentHtml = '<div class="post-content" style="font-family:' + escapeHtml(post.body_font ? post.body_font : "Georgia, serif") + ';color:' + escapeHtml(post.body_color ? post.body_color : "#1a0f14") + '">' + escapeHtml(post.content || "") + '</div>';
+    var hasBoard = post.decor && (post.decor.board || (post.decor.stickers && post.decor.stickers.length) || (Array.isArray(post.decor) && post.decor.length));
+    var mid = hasBoard
+        ? ('<div class="kq-canvas">' + titleHtml + mediaHtml + contentHtml + '</div>')
+        : (titleHtml + mediaHtml + contentHtml);
     article.innerHTML =
         '<div class="post-date">' +
             new Date(post.created_at).toLocaleDateString("en-GB") +
         '</div>' +
+        mid +
         reactionsHtml(postCounts, "post", post.id) +
-        '<div class="kq-canvas">' +
-        '<h2 class="post-title" style="font-family:' + escapeHtml(post.title_font ? post.title_font : "Georgia, serif") + ';color:' + escapeHtml(post.title_color ? post.title_color : "#1a0f14") + '">' + escapeHtml(post.title || "") + '</h2>' +
-    mediaHtml +
-    '<div class="post-content" style="font-family:' + escapeHtml(post.body_font ? post.body_font : "Georgia, serif") + ';color:' + escapeHtml(post.body_color ? post.body_color : "#1a0f14") + '">' + escapeHtml(post.content || "") + '</div>' +
-        '</div>' +
         '<div class="post-footer-row">' +
     '<div class="post-footer">comments · ' + comments.length + '</div>' +
     '<button type="button" class="post-owner-btn" aria-label="menu">⋯</button>' +
@@ -418,7 +420,7 @@ btn.addEventListener("click", async function (e) {
     e.stopPropagation();
     var ok = await canEditPost(post);
     if (!ok) {
-        alert("Войди через ★");
+        showPostMenuNearFooter(article, post);
         return;
     }
     if (activePostMenu && String(activePostMenu.id) === String(post.id)) {
