@@ -679,3 +679,31 @@ h1, .kq-title, .site-title, .notes-title, .quotes-title, .dreams-title, .about-t
   width: auto !important;
 }
 .post-content { overflow-wrap: anywhere; word-break: break-word; }
+
+.post .kq-canvas {
+  height: auto !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+}
+.post .kq-canvas .post-title,
+.post .kq-canvas .post-content,
+.post .kq-canvas .post-media {
+  position: relative !important;
+  left: auto !important;
+  top: auto !important;
+  width: auto !important;
+  max-width: 100% !important;
+  z-index: auto !important;
+}
+.post.has-board .kq-canvas {
+  position: relative;
+  min-height: 360px !important;
+  height: 380px !important;
+  overflow: hidden !important;
+}
+.post.has-board .kq-canvas .post-title,
+.post.has-board .kq-canvas .post-content,
+.post.has-board .kq-canvas .post-media {
+  position: absolute !important;
+}
+.post-media img { display: block; width: 100%; height: auto; }
