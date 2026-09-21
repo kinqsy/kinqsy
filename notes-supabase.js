@@ -190,10 +190,12 @@ else if (bgKey === "clear") article.style.background = "rgba(255, 255, 255, 0.08
         '<div class="post-date">' +
             new Date(post.created_at).toLocaleDateString("en-GB") +
         '</div>' +
+        reactionsHtml(postCounts, "post", post.id) +
+        '<div class="kq-canvas">' +
         '<h2 class="post-title" style="font-family:' + escapeHtml(post.title_font ? post.title_font : "Georgia, serif") + ';color:' + escapeHtml(post.title_color ? post.title_color : "#1a0f14") + '">' + escapeHtml(post.title || "") + '</h2>' +
     mediaHtml +
     '<div class="post-content" style="font-family:' + escapeHtml(post.body_font ? post.body_font : "Georgia, serif") + ';color:' + escapeHtml(post.body_color ? post.body_color : "#1a0f14") + '">' + escapeHtml(post.content || "") + '</div>' +
-        reactionsHtml(postCounts, "post", post.id) +
+        '</div>' +
         '<div class="post-footer-row">' +
     '<div class="post-footer">comments · ' + comments.length + '</div>' +
     '<button type="button" class="post-owner-btn" aria-label="menu">⋯</button>' +
@@ -206,7 +208,7 @@ else if (bgKey === "clear") article.style.background = "rgba(255, 255, 255, 0.08
             '</form>' +
         '</div>';
 
-    if (window.kqMountDecor) window.kqMountDecor(article, post.decor);
+    if (window.kqMountDecor) window.kqMountDecor(article.querySelector(".kq-canvas") || article, post.decor);
     const form = article.querySelector(".comment-form");
     const list = article.querySelector(".comments-list");
     const footer = article.querySelector(".post-footer");
@@ -409,6 +411,8 @@ menu.style.left = left + "px";
 menu.style.top = top + "px";
 }
 function bindPostOwnerActions(article, post) { var btn = article.querySelector(".post-owner-btn"); if (!btn) return;
+btn.style.pointerEvents = "auto";
+btn.style.zIndex = "6";
 btn.addEventListener("click", async function (e) {
     e.preventDefault();
     e.stopPropagation();
