@@ -1098,19 +1098,45 @@
         }
     }
 
+    function aboutClearLoader() {
+        document.documentElement.classList.remove("kq-wait");
+        var boot = document.getElementById("kq-boot-loader");
+        if (boot) boot.style.display = "none";
+    }
+
+    function aboutStep(name) { console.log("[about-load]", name); }
+
+    function withTimeout(promise, ms, label) {
+        return Promise.race([
+            promise,
+            new Promise(function (_, reject) {
+                setTimeout(function () { reject(new Error("timeout " + label)); }, ms);
+            })
+        ]);
+    }
+
     async function loadPublicProfile() {
+        aboutStep("start");
         try {
             fixMenu();
             var slug = getU();
-            var res = await sb.from("profiles").select("*").ilike("display_name", slug).maybeSingle();
+            aboutStep("profiles.ilike " + slug);
+            var res = await withTimeout(sb.from("profiles").select("*").ilike("display_name", slug).maybeSingle(), 4000, "profiles.ilike");
             if (res.error) console.warn("profiles select", res.error);
             if (!res.data && slug.toLowerCase() === OWNER_SLUG && OWNER_ID) {
-                res = await sb.from("profiles").select("*").eq("id", OWNER_ID).maybeSingle();
+                aboutStep("profiles.eq OWNER_ID");
+                res = await withTimeout(sb.from("profiles").select("*").eq("id", OWNER_ID).maybeSingle(), 4000, "profiles.id");
             }
             if (res.data) {
                 var acc = { ok: true, guest: true };
                 if (window.Kinqsy && Kinqsy.checkAccess) {
-                    acc = await Kinqsy.checkAccess("about", res.data.id);
+                    aboutStep("checkAccess about");
+                    try {
+                        acc = await withTimeout(Kinqsy.checkAccess("about", res.data.id), 4000, "checkAccess");
+                    } catch (e) {
+                        console.warn("[about-load] checkAccess failed", e);
+                        acc = { ok: true, guest: false, reason: "checkAccess-timeout" };
+                    }
                 }
                 if (!acc.ok) {
                     viewedProfileId = res.data.id;
@@ -1122,17 +1148,21 @@
                     if (atxt) atxt.textContent = "";
                     var st = document.getElementById("about-status");
                     if (st) st.textContent = "—";
+                    aboutStep("denied renderFilms");
                     try { await renderFilms(null); } catch (e) {}
                     if (window.Kinqsy && Kinqsy.showGate) {
                         Kinqsy.showGate({ mode: acc.guest ? "guest" : "friends", guest: acc.guest, page: "about" });
                     }
                     return;
                 }
+                aboutStep("applyProfile");
                 applyProfile(res.data);
+                aboutStep("renderFilms");
                 await renderFilms(res.data.favorites);
             } else {
                 viewedProfileId = null;
                 viewedProfile = null;
+                aboutStep("no profile currentUserId");
                 var me = (window.Kinqsy && Kinqsy.currentUserId) ? await Kinqsy.currentUserId() : null;
                 var rn = document.getElementById("about-real-name");
                 var hh = document.getElementById("about-handle");
@@ -1149,13 +1179,22 @@
                     return;
                 }
             }
+            aboutStep("refreshOwnerTools");
             try { await refreshOwnerTools(); } catch (e) { console.warn(e); }
+            aboutStep("loadFriends");
             try { await loadFriends(); } catch (e) { console.warn(e); }
+            aboutStep("loadGossipPreview async");
             try { loadGossipPreview(); } catch (e) { console.warn(e); }
+            aboutStep("renderInterests");
             try { if (typeof renderInterests === "function") await renderInterests(); } catch (e) { console.warn(e); }
+            aboutStep("done");
         } catch (e) {
             console.error("loadPublicProfile", e);
+            aboutStep("catch " + (e && e.message));
             try { await renderFilms(null); } catch (e2) {}
+        } finally {
+            aboutStep("finally clear loader");
+            aboutClearLoader();
         }
     }
 
