@@ -144,7 +144,7 @@
     var st = document.createElement("style");
     st.id = "kinqsy-auth-style";
     st.textContent = [
-      ".auth-overlay{display:none;position:fixed;inset:0;z-index:2000;background:rgba(20,10,16,.45);align-items:center;justify-content:center;padding:16px}",
+      ".auth-overlay{display:none;position:fixed;inset:0;z-index:100001;background:rgba(20,10,16,.45);align-items:center;justify-content:center;padding:16px}",
       ".auth-overlay.open{display:flex}",
       ".auth-modal{width:min(94vw,420px);max-height:90vh;overflow-y:auto;padding:22px;border-radius:20px;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.22);backdrop-filter:blur(16px);color:#2a1822;text-align:left}",
       ".auth-modal h2{margin:0 0 12px;font-weight:normal}",
@@ -367,6 +367,7 @@
           err.textContent = "код принят — задай новый пароль";
           return;
         }
+        kqReadyAuth();
         closeAuth();
         if (typeof onLoginSuccess === "function") await onLoginSuccess();
         else location.reload();
@@ -402,6 +403,7 @@
           else err.textContent = m;
           return;
         }
+        kqReadyAuth();
         closeAuth();
         if (typeof onLoginSuccess === "function") await onLoginSuccess();
         else location.reload();
@@ -609,7 +611,6 @@
   }
 
   function hideGate() {
-    if (typeof kqReadyAuth === "function") kqReadyAuth();
     var g = document.getElementById("kq-gate");
     if (g) g.classList.remove("open", "guest", "friends");
   }
@@ -884,9 +885,18 @@
     accountExtra = options.onStarLoggedIn || null;
     var sbAuth = getClient();
     if (sbAuth && sbAuth.auth) {
-      sbAuth.auth.getSession().then(function () { kqReadyAuth(); }).catch(function () { kqReadyAuth(); });
+      sbAuth.auth.getSession().then(function (res) {
+        var session = res && res.data && res.data.session;
+        if (session) {
+          kqReadyAuth();
+        } else {
+          openAuth("login");
+        }
+      }).catch(function () {
+        openAuth("login");
+      });
     } else {
-      kqReadyAuth();
+      openAuth("login");
     }
     currentUserId().then(function (uid) {
       if (uid) {
