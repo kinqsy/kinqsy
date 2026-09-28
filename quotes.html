@@ -646,6 +646,7 @@
     function makePin(post) {
         var pin = document.createElement("article");
         pin.className = "pin";
+        pin.id = "post-" + post.id;
         pin.dataset.id = String(post.id);
 
         var titleStyle = "font-family:" + escapeHtml(post.title_font || "Georgia, serif") +
@@ -805,7 +806,12 @@
 
         feed.innerHTML = "";
         data.forEach(function (post) { feed.appendChild(makePin(post)); });
+        if (location.hash) {
+            var el = document.getElementById(location.hash.replace(/^#/, "")) || document.querySelector(location.hash);
+            if (el) setTimeout(function () { el.scrollIntoView({ behavior: "smooth", block: "start" }); }, 80);
+        }
     }
+    window.loadBoard = loadBoard;
 
     // tabs
     document.getElementById("tab-mine").onclick = function () {
@@ -1008,13 +1014,12 @@
         loadBoard();
     };
 
-    document.getElementById("post-menu-delete").onclick = async function () {
+    document.getElementById("post-menu-delete").onclick = function () {
         if (!activePostMenu) return;
-        if (!confirm("Удалить?")) return;
-        var { error } = await sb.from("posts").delete().eq("id", activePostMenu.id);
+        window.__pendingQuoteDeleteId = activePostMenu.id;
         hidePostMenu();
-        if (error) alert(error.message);
-        else loadBoard();
+        var mm = document.getElementById("del-post-modal");
+        if (mm) mm.classList.add("open");
     };
 
     document.getElementById("post-menu-edit").onclick = async function () {
@@ -1058,6 +1063,38 @@
 })();
 </script>
 
+<div class="auth-overlay" id="del-post-modal">
+  <div class="auth-modal">
+    <h2>удалить?</h2>
+    <p style="margin:0 0 12px;font-size:14px">Убрать эту карточку с доски?</p>
+    <div class="auth-actions">
+      <button type="button" id="del-post-yes" class="danger">да, удалить</button>
+      <button type="button" id="del-post-no" class="secondary">нет</button>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  var no = document.getElementById("del-post-no");
+  var yes = document.getElementById("del-post-yes");
+  if (no) no.onclick = function () {
+    document.getElementById("del-post-modal").classList.remove("open");
+    window.__pendingQuoteDeleteId = null;
+  };
+  if (yes) yes.onclick = async function () {
+    var id = window.__pendingQuoteDeleteId;
+    document.getElementById("del-post-modal").classList.remove("open");
+    if (!id) return;
+    var sb = window.__kinqsy_sb;
+    if (!sb) return;
+    var { error } = await sb.from("posts").delete().eq("id", id);
+    window.__pendingQuoteDeleteId = null;
+    if (error) alert(error.message);
+    else if (typeof loadBoard === "function") loadBoard();
+    else location.reload();
+  };
+})();
+</script>
 <script src="kinqsy-player.js"></script>
 </body>
 </html>
