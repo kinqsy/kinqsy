@@ -89,11 +89,14 @@ function reactionsHtml(counts, kind, id) {
     "</div>"
   );
 }
-async function renderComments(comments, canDelete) {
+async function renderComments(comments, canDeletePost) {
     if (!comments.length) { return '<div class="comment-meta">пока нет комментариев</div>'; }
+    var session = await supabaseClient.auth.getSession();
+    var uid = session.data && session.data.session ? String(session.data.session.user.id) : "";
     const parts = [];
     for (const c of comments) {
         const counts = await countReactions({ comment_id: c.id });
+        var canThis = !!(canDeletePost || (uid && c.user_id && String(c.user_id) === uid));
         parts.push(
             '<div class="comment" data-cid="' + c.id + '">' +
                 '<div class="comment-meta">' +
@@ -102,7 +105,7 @@ async function renderComments(comments, canDelete) {
                     new Date(c.created_at).toLocaleDateString("en-GB") +
                 "</div>" +
                 '<div class="comment-body">' + escapeHtml(c.content) + "</div>" +
-                (canDelete ? '<button type="button" class="c-del" data-cid="' + c.id + '">удалить</button>' : "") +
+                (canThis ? '<button type="button" class="c-del" data-cid="' + c.id + '">удалить</button>' : "") +
                 '<div class="comment-reactions">' +
                     reactionsHtml(counts, "comment", c.id) +
                 "</div>" +
@@ -257,12 +260,15 @@ const { error } = await supabaseClient.from("comments").insert({
 
         textInput.value = "";
         const fresh = await loadComments(post.id);
-        list.innerHTML = await renderComments(fresh);
+        const canAfter = await canEditPost(post);
+        list.innerHTML = await renderComments(fresh, canAfter);
         footer.textContent = "comments · " + fresh.length;
         bindReactions(article);
+        bindCommentDeletes(article);
     });
 
     bindReactions(article);
+    bindCommentDeletes(article);
     article.dataset.postId = String(post.id);
 article.dataset.userId = post.user_id ? String(post.user_id) : "";
 bindPostOwnerActions(article, post);
@@ -379,6 +385,18 @@ if (clearBtn) {
 var activePostMenu = null;
 var pendingDeletePostId = null;
 var pendingDeleteComment = null;
+function bindCommentDeletes(article) {
+    if (!article) return;
+    article.querySelectorAll(".c-del").forEach(function (btn) {
+        btn.onclick = function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            pendingDeleteComment = { id: btn.getAttribute("data-cid") };
+            var m = document.getElementById("del-c-modal");
+            if (m) m.classList.add("open");
+        };
+    });
+}
 async function canEditPost(post) {
   var { data: { session } } = await supabaseClient.auth.getSession();
   if (!session) return false;
