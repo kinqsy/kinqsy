@@ -1151,7 +1151,7 @@
             }
             try { await refreshOwnerTools(); } catch (e) { console.warn(e); }
             try { await loadFriends(); } catch (e) { console.warn(e); }
-            try { await loadGossipPreview(); } catch (e) { console.warn(e); }
+            try { loadGossipPreview(); } catch (e) { console.warn(e); }
             try { if (typeof renderInterests === "function") await renderInterests(); } catch (e) { console.warn(e); }
         } catch (e) {
             console.error("loadPublicProfile", e);
@@ -1309,10 +1309,15 @@
             box.textContent = "войди, чтобы читать gossip";
             return;
         }
-        var { data, error } = await sb.from("gossip_cards")
+        var q = sb.from("gossip_cards")
             .select("id, title, author_label, author_mode, created_at")
             .order("created_at", { ascending: false })
             .limit(3);
+        var timeout = new Promise(function (resolve) {
+            setTimeout(function () { resolve({ data: null, error: { message: "timeout" } }); }, 2500);
+        });
+        var res = await Promise.race([q, timeout]);
+        var data = res.data, error = res.error;
         if (error) {
             box.textContent = "пока пусто";
             return;
