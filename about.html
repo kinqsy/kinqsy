@@ -731,6 +731,11 @@
             </div>
             <div class="pending-list" id="pending-list"></div>
         </section>
+        <section class="profile-module" data-module="gossip">
+            <h2>Gossip</h2>
+            <div id="gossip-preview" class="section-hint">закрытый клуб</div>
+            <p style="margin:10px 0 0"><a href="gossip.html" class="ghost-btn" style="display:inline-block;text-decoration:none;padding:4px 10px">открыть</a></p>
+        </section>
         </div>
         </div>
 
@@ -976,7 +981,7 @@
         return !!(uid && viewedProfileId && String(uid) === String(viewedProfileId));
     }
 
-    var DEFAULT_MODULE_ORDER = ["about","interests","achievements","films","music","books","games","friends"];
+    var DEFAULT_MODULE_ORDER = ["about","interests","achievements","films","music","books","games","friends","gossip"];
 
     function applyModuleOrder(order) {
         var list = Array.isArray(order) ? order.slice() : [];
@@ -1146,6 +1151,7 @@
             }
             try { await refreshOwnerTools(); } catch (e) { console.warn(e); }
             try { await loadFriends(); } catch (e) { console.warn(e); }
+            try { await loadGossipPreview(); } catch (e) { console.warn(e); }
             try { if (typeof renderInterests === "function") await renderInterests(); } catch (e) { console.warn(e); }
         } catch (e) {
             console.error("loadPublicProfile", e);
@@ -1293,6 +1299,33 @@
             }
             box.appendChild(add);
         }
+    }
+
+    async function loadGossipPreview() {
+        var box = document.getElementById("gossip-preview");
+        if (!box) return;
+        var { data: { session } } = await sb.auth.getSession();
+        if (!session) {
+            box.textContent = "войди, чтобы читать gossip";
+            return;
+        }
+        var { data, error } = await sb.from("gossip_cards")
+            .select("id, title, author_label, author_mode, created_at")
+            .order("created_at", { ascending: false })
+            .limit(3);
+        if (error) {
+            box.textContent = "пока пусто";
+            return;
+        }
+        if (!data || !data.length) {
+            box.textContent = "пока нет записей";
+            return;
+        }
+        box.innerHTML = data.map(function (row) {
+            var t = (row.title || "без названия").replace(/</g, "");
+            var a = (row.author_label || "Anonymous").replace(/</g, "");
+            return '<div style="margin:0 0 8px"><strong>' + a + '</strong> · ' + t + '</div>';
+        }).join("");
     }
 
     async function loadFriends() {
