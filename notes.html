@@ -752,13 +752,15 @@ a, button, .star, .top-menu .star, input, textarea, .react-btn, .post-menu butto
             font-family: Georgia, serif; font-size: 13px;
         }
         .auth-actions button.danger { background: rgba(180,80,100,.85); color: #fff; }
+        .comments { overflow: visible; }
+        .comment { position: relative; padding-right: 64px; overflow: visible; }
         .c-del {
-            position: absolute; top: 8px; right: 0;
-            border: 0; background: transparent; color: #7a4050;
+            position: absolute; top: 8px; right: 0; z-index: 4;
+            border: 0; background: rgba(255,255,255,.28); color: #7a4050;
             font-size: 12px; opacity: 0; transition: opacity .2s;
+            pointer-events: auto; padding: 2px 8px; border-radius: 999px;
         }
-        .comment { position: relative; }
-        .comment:hover .c-del { opacity: .85; }
+        .comment:hover .c-del { opacity: .95; }
         .react-btn { overflow: visible; }
         .react-ico { overflow: visible; flex-shrink: 0; }
     
