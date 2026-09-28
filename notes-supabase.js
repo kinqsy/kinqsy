@@ -313,6 +313,12 @@ if (q) {
 
 renderNotes(list);
 }
+function scrollToHashPost() {
+    var hash = location.hash;
+    if (!hash) return;
+    var el = document.getElementById(hash.replace(/^#/, "")) || document.querySelector(hash);
+    if (el) setTimeout(function () { el.scrollIntoView({ behavior: "smooth", block: "start" }); }, 80);
+}
 async function loadNotes() {
     const feed = document.getElementById("feed");
     if (!feed) return;
@@ -371,6 +377,7 @@ async function loadNotes() {
 
     window.__allNotes = data || [];
     applyFilters();
+    scrollToHashPost();
 }
 function setupFilters() { const qInput = document.getElementById("notes-search"); const dInput = document.getElementById("notes-date"); const clearBtn = document.getElementById("notes-date-clear");
 if (qInput) qInput.addEventListener("input", applyFilters);
