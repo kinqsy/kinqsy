@@ -329,6 +329,10 @@
     for (var i = 0; i < data.length; i++) {
       feed.appendChild(await makePost(data[i]));
     }
+    if (location.hash) {
+      var el = document.getElementById(location.hash.replace(/^#/, "")) || document.querySelector(location.hash);
+      if (el) setTimeout(function () { el.scrollIntoView({ behavior: "smooth", block: "start" }); }, 80);
+    }
   }
 
   document.getElementById("compose-close").onclick = function () {
