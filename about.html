@@ -61,15 +61,15 @@
         .about-page {
             position: relative; z-index: 2;
             min-height: calc(100vh - 42px); margin-top: 42px;
-            padding: 48px 16px 80px; border-radius: 0 0 30px 30px;
+            padding: 0; border-radius: 0 0 30px 30px;
             max-width: none; margin-left: auto; margin-right: auto;
         }
         .about-title {
             margin: 0 0 6px; font-family: "Bodoni 72", Didot, "Bodoni MT", Georgia, serif;
             font-size: clamp(52px, 12vw, 96px); font-weight: 400; line-height: 0.85; letter-spacing: -4px;
-            text-shadow: 0 2px 0 rgba(255,255,255,.3), 0 8px 24px rgba(0,0,0,.22);
+            color: #111; text-shadow: none;
         }
-        .page-subtitle { margin: 0 0 28px; font-size: 15px; font-style: italic; font-weight: bold; }
+        .page-subtitle { margin: 12px 0 0; font-size: 15px; font-style: italic; font-weight: bold; color: #111; text-shadow: none; }
 
         .glass {
             background: rgba(255,255,255,0.2);
@@ -205,6 +205,32 @@
             background: #f0c9d6; color: #3a2030; font-weight: bold;
             font-family: Arial, sans-serif; font-size: 13px;
         }
+        .pv-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 8px 0; position: relative; }
+        .pv-row > strong { font-size: 14px; font-weight: normal; min-width: 72px; }
+        .pv-dd { position: relative; }
+        .pv-btn {
+            min-width: 108px; height: 28px; padding: 0 10px;
+            border: 1px solid rgba(255,255,255,.35); border-radius: 10px;
+            background: rgba(255,255,255,.18); color: #1a0f14;
+            font: 12px Arial, sans-serif; text-align: left;
+        }
+        .pv-btn:after { content: " ▾"; opacity: .55; }
+        .pv-menu {
+            display: none; position: absolute; right: 0; top: 32px; z-index: 5;
+            min-width: 148px; padding: 6px; border-radius: 12px;
+            background: rgba(26,15,20,.82); color: #f6dce8;
+            border: 1px solid rgba(240,201,214,.35); backdrop-filter: blur(16px);
+        }
+        .pv-menu.open { display: block; }
+        .pv-menu button {
+            display: block; width: 100%; text-align: left; border: 0; background: transparent;
+            color: inherit; padding: 6px 8px; border-radius: 8px; font: 12px Arial, sans-serif;
+        }
+        .pv-menu button:hover { background: rgba(240,201,214,.2); }
+        .pv-menu button.on { color: #f0c9d6; }
+        .pv-friends { display: none; margin: 0 0 8px 84px; }
+        .pv-friends.show { display: block; }
+        .pv-friends label { display: block; font-size: 12px; margin: 3px 0; }
         .ghost-btn { background: rgba(255,255,255,0.35); }
         .friend-code-box {
             margin-top: 10px; padding: 10px 12px; border-radius: 12px;
@@ -1412,11 +1438,12 @@
 
 
     var PRIVACY_SECTIONS = ["home", "about", "notes", "dreams", "quotes"];
-    var PRIVACY_MODES = ["public", "friends", "only_me", "selected"];
+    var PRIVACY_MODES = ["public", "friends", "selected", "only_me"];
+    var PRIVACY_LABEL = { public: "Public", friends: "Friends", selected: "Selected", only_me: "Only me" };
 
     async function loadAcceptedFriends(uid) {
-        var a1 = await sb.from("friendships").select("requester_id,addressee_id,status").eq("requester_id", uid).eq("status", "accepted");
-        var a2 = await sb.from("friendships").select("requester_id,addressee_id,status").eq("addressee_id", uid).eq("status", "accepted");
+        var a1 = await sb.from("friendships").select("requester_id,addressee_id").eq("requester_id", uid).eq("status", "accepted");
+        var a2 = await sb.from("friendships").select("requester_id,addressee_id").eq("addressee_id", uid).eq("status", "accepted");
         var ids = [];
         (a1.data || []).concat(a2.data || []).forEach(function (r) {
             var o = String(r.requester_id) === String(uid) ? r.addressee_id : r.requester_id;
@@ -1425,6 +1452,10 @@
         if (!ids.length) return [];
         var { data } = await sb.from("profiles").select("id, display_name").in("id", ids);
         return data || [];
+    }
+
+    function pvCloseMenus() {
+        document.querySelectorAll(".pv-menu.open").forEach(function (m) { m.classList.remove("open"); });
     }
 
     async function openPrivacy() {
@@ -1440,35 +1471,58 @@
         var { data: rows } = await sb.from("privacy_settings").select("section,mode,friend_ids").eq("owner_id", uid);
         var map = {};
         (rows || []).forEach(function (r) { map[r.section] = r; });
+        var friends = await loadAcceptedFriends(uid);
         var box = document.getElementById("privacy-rows");
         box.innerHTML = PRIVACY_SECTIONS.map(function (sec) {
             var cur = (map[sec] && map[sec].mode) || "friends";
-            var opts = PRIVACY_MODES.map(function (m) {
-                return '<label style="margin-right:8px;font-size:13px"><input type="radio" name="pv-'+sec+'" value="'+m+'"'+(cur===m?" checked":"")+'> '+m+'</label>';
+            var chosen = {};
+            ((map[sec] && map[sec].friend_ids) || []).forEach(function (id) { chosen[id] = true; });
+            var menu = PRIVACY_MODES.map(function (m) {
+                return '<button type="button" data-mode="'+m+'" class="'+(cur===m?"on":"")+'">'+(cur===m?"◉ ":"○ ")+PRIVACY_LABEL[m]+'</button>';
             }).join("");
-            return '<div class="pv-sec" data-sec="'+sec+'" style="margin:10px 0"><strong>'+sec+'</strong><div>'+opts+'</div></div>';
+            var flist = friends.length
+                ? friends.map(function (f) {
+                    return '<label><input type="checkbox" data-sec="'+sec+'" value="'+f.id+'"'+(chosen[f.id]?" checked":"")+'> @'+(f.display_name||"user")+'</label>';
+                  }).join("")
+                : '<span class="auth-hint">нет друзей</span>';
+            return '<div class="pv-row" data-sec="'+sec+'" data-mode="'+cur+'">' +
+                '<strong>'+sec+'</strong>' +
+                '<div class="pv-dd"><button type="button" class="pv-btn">'+PRIVACY_LABEL[cur]+'</button>' +
+                '<div class="pv-menu">'+menu+'</div></div></div>' +
+                '<div class="pv-friends'+(cur==="selected"?" show":"")+'" data-friends="'+sec+'">'+flist+'</div>';
         }).join("");
-        var friends = await loadAcceptedFriends(uid);
-        var selected = {};
-        (rows || []).forEach(function (r) {
-            (r.friend_ids || []).forEach(function (id) { selected[id] = true; });
-        });
-        var fb = document.getElementById("privacy-friends");
-        if (!friends.length) {
-            fb.style.display = "block";
-            fb.innerHTML = '<p class="auth-hint">для selected сначала добавь друзей</p>';
-        } else {
-            fb.style.display = "block";
-            fb.innerHTML = '<p class="auth-hint">друзья для selected</p>' + friends.map(function (f) {
-                var on = selected[f.id] ? " checked" : "";
-                return '<label style="display:block;font-size:13px;margin:4px 0"><input type="checkbox" class="pv-friend" value="'+f.id+'"'+on+'> @'+(f.display_name||"user")+'</label>';
-            }).join("");
-        }
+        box.onclick = function (e) {
+            var btn = e.target.closest(".pv-btn");
+            if (btn) {
+                var menu = btn.parentNode.querySelector(".pv-menu");
+                var was = menu.classList.contains("open");
+                pvCloseMenus();
+                if (!was) menu.classList.add("open");
+                return;
+            }
+            var item = e.target.closest(".pv-menu button");
+            if (item) {
+                var row = item.closest(".pv-row");
+                var sec = row.getAttribute("data-sec");
+                var mode = item.getAttribute("data-mode");
+                row.setAttribute("data-mode", mode);
+                row.querySelector(".pv-btn").textContent = PRIVACY_LABEL[mode];
+                row.querySelectorAll(".pv-menu button").forEach(function (b) {
+                    var on = b.getAttribute("data-mode") === mode;
+                    b.className = on ? "on" : "";
+                    b.textContent = (on ? "◉ " : "○ ") + PRIVACY_LABEL[b.getAttribute("data-mode")];
+                });
+                var fl = document.querySelector('.pv-friends[data-friends="'+sec+'"]');
+                if (fl) fl.classList.toggle("show", mode === "selected");
+                pvCloseMenus();
+            }
+        };
         document.getElementById("privacy-overlay").classList.add("open");
     }
 
     document.getElementById("privacy-close").onclick = function () {
         document.getElementById("privacy-overlay").classList.remove("open");
+        pvCloseMenus();
     };
     var pOpen = document.getElementById("privacy-open-btn");
     if (pOpen) pOpen.onclick = openPrivacy;
@@ -1477,12 +1531,16 @@
         err.textContent = "";
         var uid = await currentUserId();
         if (!uid) { err.textContent = "войди"; return; }
-        var ids = [];
-        document.querySelectorAll(".pv-friend:checked").forEach(function (c) { ids.push(c.value); });
+        var allowed = {};
+        (await loadAcceptedFriends(uid)).forEach(function (f) { allowed[f.id] = true; });
         for (var i = 0; i < PRIVACY_SECTIONS.length; i++) {
             var sec = PRIVACY_SECTIONS[i];
-            var picked = document.querySelector('input[name="pv-'+sec+'"]:checked');
-            var mode = picked ? picked.value : "friends";
+            var rowEl = document.querySelector('.pv-row[data-sec="'+sec+'"]');
+            var mode = rowEl ? rowEl.getAttribute("data-mode") : "friends";
+            var ids = [];
+            document.querySelectorAll('.pv-friends[data-friends="'+sec+'"] input:checked').forEach(function (c) {
+                if (allowed[c.value]) ids.push(c.value);
+            });
             var row = { owner_id: uid, section: sec, mode: mode, friend_ids: mode === "selected" ? ids : [] };
             var up = await sb.from("privacy_settings").upsert(row, { onConflict: "owner_id,section" });
             if (up.error) { err.textContent = up.error.message; return; }
@@ -2243,3 +2301,6 @@
     }
 })();
 </script>
+<script src="kinqsy-player.js"></script>
+</body>
+</html>
