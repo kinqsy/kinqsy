@@ -882,8 +882,12 @@
     }
     wireAuthOnce();
     accountExtra = options.onStarLoggedIn || null;
-    currentUserId().then(function () { kqReadyAuth(); });
-    setTimeout(kqReadyAuth, 2500);
+    var sbAuth = getClient();
+    if (sbAuth && sbAuth.auth) {
+      sbAuth.auth.getSession().then(function () { kqReadyAuth(); }).catch(function () { kqReadyAuth(); });
+    } else {
+      kqReadyAuth();
+    }
     currentUserId().then(function (uid) {
       if (uid) {
         ensureFriendCode(uid);
