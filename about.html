@@ -79,11 +79,48 @@
             box-shadow: 0 12px 32px rgba(0,0,0,.12);
         }
 
-        .profile-card { padding: 22px; margin-bottom: 16px; }
-        .profile-top {
+        .profile-card { padding: 0; margin: 0; background: transparent; border: 0; backdrop-filter: none; }
+        .profile-identity {
             display: grid;
-            grid-template-columns: 96px 1fr auto;
-            gap: 16px; align-items: center;
+            grid-template-columns: 96px minmax(0, 1fr) auto;
+            gap: 18px;
+            align-items: start;
+            margin: 8px 0 28px;
+            padding: 0;
+            background: transparent;
+            border: 0;
+        }
+        .profile-identity-side {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 140px;
+        }
+        .profile-chip {
+            padding: 10px 12px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.22);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        .profile-modules { display: flex; flex-direction: column; gap: 22px; }
+        .profile-module {
+            padding: 18px 18px 16px;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.10);
+            border: 1px solid rgba(255,255,255,0.22);
+            backdrop-filter: blur(12px) saturate(130%);
+            -webkit-backdrop-filter: blur(12px) saturate(130%);
+            box-shadow: 0 10px 28px rgba(26,15,20,0.12);
+        }
+        .profile-module h2 { margin: 0 0 10px; }
+        @media (max-width: 700px) {
+            .profile-identity { grid-template-columns: 96px 1fr; }
+            .profile-identity-side { grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; }
+        }
+        .profile-top {
+            display: contents;
         }
         .about-avatar {
             width: 96px; height: 96px; border-radius: 14px;
@@ -564,8 +601,7 @@
         <div class="kq-user" id="about-user-label">about · @kinqsy</div>
         </div>
 
-        <section class="glass profile-card">
-            <div class="profile-top">
+        <header class="profile-identity">
                 <div class="about-avatar" data-avatar="1" id="about-avatar" aria-label="avatar"></div>
                 <div>
                     <p class="about-nick" id="about-real-name">имя</p>
@@ -573,42 +609,41 @@
                     <p class="about-status" id="about-status">—</p>
                     <p class="about-presence" id="about-presence" data-presence="online">онлайн</p>
                 </div>
-                <div class="about-rating">
+                <div class="profile-identity-side">
+                <div class="about-rating profile-chip">
                     <span class="about-rating-label">рейтинг</span>
                     <div class="about-rep-bar"><span class="about-rep-marker" id="about-rep-marker"></span></div>
                     <span class="about-rep-num" id="about-rep-num">0</span>
                     <span class="about-rep-title" id="about-rep-title">нейтральная</span>
                 </div>
-            </div>
-            <div class="profile-stats">
+            <div class="profile-stats profile-chip">
                 <div><strong id="stat-ach">0</strong><br>achievements</div>
                 <div><strong id="stat-friends">0</strong> / 5<br>friends</div>
             </div>
-        </section>
+                </div>
+        </header>
 
-        <section class="glass section">
+        <div class="profile-modules" id="profile-modules">
+        <section class="profile-module" data-module="about">
             <h2>About</h2>
             <div class="section-body" id="about-text">нажми ★ чтобы войти и написать о себе</div>
-            
         </section>
 
-        <section class="glass section">
+        <section class="profile-module" data-module="interests">
             <h2>Interests</h2>
             <div class="placeholder-tags" id="interests-box">
                 <span class="tag">скоро</span>
             </div>
-            
         </section>
 
-        <section class="glass section">
+        <section class="profile-module" data-module="achievements">
             <h2>Achievements</h2>
             <div class="ach-row" id="ach-box">
                 <span class="ach-chip">0 / 50 unlocked</span>
             </div>
-            
         </section>
 
-        <section class="glass section">
+        <section class="profile-module" data-module="films">
             <div class="vitrine-head">
                 <h2>Films</h2>
                 <button type="button" class="vitrine-add" id="film-add">+ фильм</button>
@@ -622,7 +657,7 @@
             </p>
         </section>
 
-        <section class="glass section">
+        <section class="profile-module" data-module="music">
             <div class="vitrine-head">
                 <h2>Music</h2>
                 <button type="button" class="vitrine-add" id="music-add">+ альбом</button>
@@ -634,7 +669,7 @@
             </p>
         </section>
 
-        <section class="glass section">
+        <section class="profile-module" data-module="books">
             <div class="vitrine-head">
                 <h2>Books</h2>
                 <button type="button" class="vitrine-add" id="book-add">+ книга</button>
@@ -647,7 +682,7 @@
             </p>
         </section>
 
-        <section class="glass section">
+        <section class="profile-module" data-module="games">
             <div class="vitrine-head">
                 <h2>Games</h2>
                 <button type="button" class="vitrine-add" id="game-add">+ игра</button>
@@ -659,7 +694,7 @@
             </p>
         </section>
 
-        <section class="glass section">
+        <section class="profile-module" data-module="friends">
             <h2>Friends</h2>
             <div class="friends-row" id="friends-row"></div>
             <div class="friend-code-box" id="my-code-box">твой код: <strong id="my-friend-code">—</strong></div>
@@ -669,8 +704,8 @@
                 <button type="button" id="privacy-open-btn">приватность</button>
             </div>
             <div class="pending-list" id="pending-list"></div>
-            
         </section>
+        </div>
         </div>
     </main>
 
