@@ -609,6 +609,7 @@
   }
 
   function hideGate() {
+    if (typeof kqReadyAuth === "function") kqReadyAuth();
     var g = document.getElementById("kq-gate");
     if (g) g.classList.remove("open", "guest", "friends");
   }
@@ -862,6 +863,12 @@
     if (!box.children.length) box.innerHTML = "<div class='auth-hint'>пока видно только это устройство</div>";
   }
 
+  function kqReadyAuth() {
+    document.documentElement.classList.remove("kq-wait");
+    var boot = document.getElementById("kq-boot-loader");
+    if (boot) boot.style.display = "none";
+  }
+
   function init(options) {
     options = options || {};
     onLoginSuccess = options.onLoginSuccess || null;
@@ -875,6 +882,8 @@
     }
     wireAuthOnce();
     accountExtra = options.onStarLoggedIn || null;
+    currentUserId().then(function () { kqReadyAuth(); });
+    setTimeout(kqReadyAuth, 2500);
     currentUserId().then(function (uid) {
       if (uid) {
         ensureFriendCode(uid);
@@ -892,7 +901,16 @@
             openAuth("login");
             return;
           }
-          await openAccount(options.onStarLoggedIn);
+          var extra = options.onStarLoggedIn;
+          if (typeof extra === "function") {
+            await extra(uid, await currentProfile());
+            return;
+          }
+          if (extra && typeof extra.run === "function") {
+            await extra.run(uid, await currentProfile());
+            return;
+          }
+          await openAccount(extra);
         };
       }
     }
