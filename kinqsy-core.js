@@ -536,13 +536,23 @@
 
   async function checkAccess(page, viewedId) {
     var uid = await currentUserId();
+    var section = page || "notes";
+    if (section === "inspiration" || section === "quotation" || section === "definition") section = "quotes";
     if (viewedId && uid && String(viewedId) === String(uid)) {
-      return { ok: true, reason: "owner", guest: false };
+      return { ok: true, reason: "owner", guest: false, rule: section };
     }
-    if (!uid) return { ok: false, reason: "guest", guest: true, rule: "friends" };
-    if (page === "quotes") return { ok: true, reason: "logged", guest: false };
+    if (!viewedId) {
+      return { ok: false, reason: "guest", guest: !uid, rule: section };
+    }
+    try {
+      var r = await getClient().rpc("can_view", { owner: viewedId, section: section });
+      if (!r.error) {
+        return { ok: !!r.data, reason: r.data ? "allowed" : "denied", guest: !uid, rule: section };
+      }
+    } catch (e) {}
+    if (!uid) return { ok: false, reason: "guest", guest: true, rule: section };
     var ok = await areFriends(uid, viewedId);
-    return { ok: ok, reason: ok ? "friend" : "friends", guest: false, rule: "friends" };
+    return { ok: ok, reason: ok ? "friend" : "denied", guest: false, rule: section };
   }
 
   function ensureGateStyles() {
