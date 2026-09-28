@@ -104,7 +104,21 @@
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
         }
-        .profile-modules { display: flex; flex-direction: column; gap: 22px; }
+        .profile-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 240px;
+            gap: 22px;
+            align-items: start;
+        }
+        .profile-main, .profile-side, .profile-modules {
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+            min-width: 0;
+        }
+        @media (max-width: 800px) {
+            .profile-layout { grid-template-columns: 1fr; }
+        }
         .profile-module {
             padding: 18px 18px 16px;
             border-radius: 16px;
@@ -126,7 +140,8 @@
             padding: 2px 8px;
             cursor: grab;
         }
-        .profile-modules.editing .mod-handle { display: inline-block; }
+        .profile-modules.editing .profile-module:hover .mod-handle,
+        .profile-modules.editing .profile-module.show-handle .mod-handle { display: inline-block; }
         .profile-module.dragging { opacity: .55; }
         @media (max-width: 700px) {
             .profile-identity { grid-template-columns: 96px 1fr; }
@@ -622,41 +637,22 @@
                     <p class="about-status" id="about-status">—</p>
                     <p class="about-presence" id="about-presence" data-presence="online">онлайн</p>
                 </div>
-                <div class="profile-identity-side">
-                <div class="about-rating profile-chip">
-                    <span class="about-rating-label">рейтинг</span>
-                    <div class="about-rep-bar"><span class="about-rep-marker" id="about-rep-marker"></span></div>
-                    <span class="about-rep-num" id="about-rep-num">0</span>
-                    <span class="about-rep-title" id="about-rep-title">нейтральная</span>
-                </div>
-            <div class="profile-stats profile-chip">
-                <div><strong id="stat-ach">0</strong><br>achievements</div>
-                <div><strong id="stat-friends">0</strong> / 5<br>friends</div>
-            </div>
-                </div>
         </header>
 
-        <div class="profile-modules" id="profile-modules">
+        <div class="profile-layout">
+        <div class="profile-main profile-modules" id="profile-main">
         <section class="profile-module" data-module="about">
             <h2>About</h2>
             <div class="section-body" id="about-text">нажми ★ чтобы войти и написать о себе</div>
         </section>
 
-        <section class="profile-module" data-module="interests">
+                <section class="profile-module" data-module="interests">
             <h2>Interests</h2>
             <div class="placeholder-tags" id="interests-box">
                 <span class="tag">скоро</span>
             </div>
         </section>
-
-        <section class="profile-module" data-module="achievements">
-            <h2>Achievements</h2>
-            <div class="ach-row" id="ach-box">
-                <span class="ach-chip">0 / 50 unlocked</span>
-            </div>
-        </section>
-
-        <section class="profile-module" data-module="films">
+<section class="profile-module" data-module="films">
             <div class="vitrine-head">
                 <h2>Films</h2>
                 <button type="button" class="vitrine-add" id="film-add">+ фильм</button>
@@ -669,8 +665,7 @@
                 <a href="https://www.themoviedb.org/" target="_blank" rel="noopener">themoviedb.org</a>
             </p>
         </section>
-
-        <section class="profile-module" data-module="music">
+<section class="profile-module" data-module="music">
             <div class="vitrine-head">
                 <h2>Music</h2>
                 <button type="button" class="vitrine-add" id="music-add">+ альбом</button>
@@ -681,8 +676,7 @@
                 Обложки с Deezer / iTunes, без стриминга на сайте. Клик — на страницу релиза.
             </p>
         </section>
-
-        <section class="profile-module" data-module="books">
+<section class="profile-module" data-module="books">
             <div class="vitrine-head">
                 <h2>Books</h2>
                 <button type="button" class="vitrine-add" id="book-add">+ книга</button>
@@ -694,8 +688,7 @@
                 <a href="https://openlibrary.org/" target="_blank" rel="noopener">openlibrary.org</a>
             </p>
         </section>
-
-        <section class="profile-module" data-module="games">
+<section class="profile-module" data-module="games">
             <div class="vitrine-head">
                 <h2>Games</h2>
                 <button type="button" class="vitrine-add" id="game-add">+ игра</button>
@@ -706,8 +699,28 @@
                 Арты Steam Store, без файлов игр на сайте. Клик — в магазин.
             </p>
         </section>
-
-        <section class="profile-module" data-module="friends">
+        </div>
+        <div class="profile-side profile-modules" id="profile-side">
+<section class="profile-module" data-module="reputation">
+            <h2>Reputation</h2>
+                <div class="about-rating profile-chip">
+                    <span class="about-rating-label">рейтинг</span>
+                    <div class="about-rep-bar"><span class="about-rep-marker" id="about-rep-marker"></span></div>
+                    <span class="about-rep-num" id="about-rep-num">0</span>
+                    <span class="about-rep-title" id="about-rep-title">нейтральная</span>
+                </div>
+            <div class="profile-stats profile-chip">
+                <div><strong id="stat-ach">0</strong><br>achievements</div>
+                <div><strong id="stat-friends">0</strong> / 5<br>friends</div>
+            </div>
+</section>
+<section class="profile-module" data-module="achievements">
+            <h2>Achievements</h2>
+            <div class="ach-row" id="ach-box">
+                <span class="ach-chip">0 / 50 unlocked</span>
+            </div>
+        </section>
+<section class="profile-module" data-module="friends">
             <h2>Friends</h2>
             <div class="friends-row" id="friends-row"></div>
             <div class="friend-code-box" id="my-code-box">твой код: <strong id="my-friend-code">—</strong></div>
@@ -720,7 +733,6 @@
         </section>
         </div>
         </div>
-    </main>
 
     <div class="kq-bottom"><div class="support-line">
         <a href="https://boosty.to/kinqsy/donate" target="_blank" rel="noopener noreferrer">support the diary</a>
@@ -967,21 +979,20 @@
     var DEFAULT_MODULE_ORDER = ["about","interests","achievements","films","music","books","games","friends"];
 
     function applyModuleOrder(order) {
-        var wrap = document.getElementById("profile-modules");
-        if (!wrap) return;
-        var list = Array.isArray(order) ? order.slice() : DEFAULT_MODULE_ORDER.slice();
-        DEFAULT_MODULE_ORDER.forEach(function (k) {
-            if (list.indexOf(k) < 0) list.push(k);
-        });
-        list.forEach(function (key) {
-            var el = wrap.querySelector('.profile-module[data-module="'+key+'"]');
-            if (el) wrap.appendChild(el);
+        var list = Array.isArray(order) ? order.slice() : [];
+        ["profile-main", "profile-side"].forEach(function (id) {
+            var wrap = document.getElementById(id);
+            if (!wrap) return;
+            list.forEach(function (key) {
+                var el = wrap.querySelector('.profile-module[data-module="'+key+'"]');
+                if (el) wrap.appendChild(el);
+            });
         });
     }
 
     function currentModuleOrder() {
         return Array.prototype.map.call(
-            document.querySelectorAll("#profile-modules .profile-module[data-module]"),
+            document.querySelectorAll(".profile-module[data-module]"),
             function (el) { return el.getAttribute("data-module"); }
         );
     }
@@ -1000,8 +1011,7 @@
     }
 
     function enableModuleSort(on) {
-        var wrap = document.getElementById("profile-modules");
-        if (!wrap) return;
+        document.querySelectorAll(".profile-modules").forEach(function (wrap) {
         wrap.classList.toggle("editing", !!on);
         wrap.querySelectorAll(".profile-module").forEach(function (mod) {
             var h = mod.querySelector(".mod-handle");
@@ -1029,11 +1039,23 @@
             var dragging = wrap.querySelector(".profile-module.dragging");
             if (!dragging) return;
             var over = e.target.closest(".profile-module");
-            if (!over || over === dragging) return;
+            if (!over || over === dragging || !wrap.contains(over)) return;
             var rect = over.getBoundingClientRect();
             var before = (e.clientY - rect.top) < rect.height / 2;
             wrap.insertBefore(dragging, before ? over : over.nextSibling);
         } : null;
+        wrap.querySelectorAll(".profile-module").forEach(function (mod) {
+            var timer = null;
+            mod.ontouchstart = on ? function () {
+                timer = setTimeout(function () { mod.classList.add("show-handle"); }, 450);
+            } : null;
+            mod.ontouchend = on ? function () {
+                clearTimeout(timer);
+                setTimeout(function () { mod.classList.remove("show-handle"); }, 1500);
+            } : null;
+            mod.ontouchmove = on ? function () { clearTimeout(timer); } : null;
+        });
+        });
     }
 
     function applyProfile(data) {
