@@ -115,6 +115,19 @@
             box-shadow: 0 10px 28px rgba(26,15,20,0.12);
         }
         .profile-module h2 { margin: 0 0 10px; }
+        .profile-module .mod-handle {
+            display: none;
+            float: right;
+            border: 0;
+            background: rgba(255,255,255,.22);
+            color: #3a2030;
+            border-radius: 999px;
+            font-size: 11px;
+            padding: 2px 8px;
+            cursor: grab;
+        }
+        .profile-modules.editing .mod-handle { display: inline-block; }
+        .profile-module.dragging { opacity: .55; }
         @media (max-width: 700px) {
             .profile-identity { grid-template-columns: 96px 1fr; }
             .profile-identity-side { grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; }
@@ -951,6 +964,78 @@
         return !!(uid && viewedProfileId && String(uid) === String(viewedProfileId));
     }
 
+    var DEFAULT_MODULE_ORDER = ["about","interests","achievements","films","music","books","games","friends"];
+
+    function applyModuleOrder(order) {
+        var wrap = document.getElementById("profile-modules");
+        if (!wrap) return;
+        var list = Array.isArray(order) ? order.slice() : DEFAULT_MODULE_ORDER.slice();
+        DEFAULT_MODULE_ORDER.forEach(function (k) {
+            if (list.indexOf(k) < 0) list.push(k);
+        });
+        list.forEach(function (key) {
+            var el = wrap.querySelector('.profile-module[data-module="'+key+'"]');
+            if (el) wrap.appendChild(el);
+        });
+    }
+
+    function currentModuleOrder() {
+        return Array.prototype.map.call(
+            document.querySelectorAll("#profile-modules .profile-module[data-module]"),
+            function (el) { return el.getAttribute("data-module"); }
+        );
+    }
+
+    async function saveModuleOrder() {
+        var uid = await currentUserId();
+        if (!uid || !(await canEditThisProfile())) return;
+        var { error } = await sb.from("profiles").upsert({
+            id: uid,
+            module_order: currentModuleOrder(),
+            updated_at: new Date().toISOString()
+        }, { onConflict: "id" });
+        if (error && /module_order/i.test(error.message || "")) {
+            console.warn("module_order column missing", error.message);
+        }
+    }
+
+    function enableModuleSort(on) {
+        var wrap = document.getElementById("profile-modules");
+        if (!wrap) return;
+        wrap.classList.toggle("editing", !!on);
+        wrap.querySelectorAll(".profile-module").forEach(function (mod) {
+            var h = mod.querySelector(".mod-handle");
+            if (!h) {
+                h = document.createElement("button");
+                h.type = "button";
+                h.className = "mod-handle";
+                h.textContent = "↕";
+                h.title = "перетащить";
+                mod.insertBefore(h, mod.firstChild);
+            }
+            h.draggable = !!on;
+            h.ondragstart = on ? function (e) {
+                mod.classList.add("dragging");
+                e.dataTransfer.setData("text/plain", mod.getAttribute("data-module"));
+                e.dataTransfer.effectAllowed = "move";
+            } : null;
+            h.ondragend = on ? function () {
+                mod.classList.remove("dragging");
+                saveModuleOrder();
+            } : null;
+        });
+        wrap.ondragover = on ? function (e) {
+            e.preventDefault();
+            var dragging = wrap.querySelector(".profile-module.dragging");
+            if (!dragging) return;
+            var over = e.target.closest(".profile-module");
+            if (!over || over === dragging) return;
+            var rect = over.getBoundingClientRect();
+            var before = (e.clientY - rect.top) < rect.height / 2;
+            wrap.insertBefore(dragging, before ? over : over.nextSibling);
+        } : null;
+    }
+
     function applyProfile(data) {
         if (!data) {
             viewedProfileId = null;
@@ -960,6 +1045,7 @@
         }
         viewedProfile = data;
         viewedProfileId = data.id || null;
+        applyModuleOrder(data.module_order);
         var handle = data.display_name || "guest";
         handle = String(handle).replace(/^@+/, "");
         var real = data.real_name || data.full_name || handle;
@@ -1047,6 +1133,7 @@
 
     async function refreshOwnerTools() {
         var mine = await canEditThisProfile();
+        enableModuleSort(mine);
         var tools = document.getElementById("friend-tools");
         var codeBox = document.getElementById("my-code-box");
         if (mine) {
