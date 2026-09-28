@@ -402,11 +402,13 @@
             } catch (e) {}
         }
         if (!pool.length) {
-            location.href = Kinqsy.menuUrl("quotes.html");
+            var latest = document.getElementById("latest-posts");
+            if (latest) latest.insertAdjacentHTML("beforeend", '<div class="home-card-text">пока нечего открыть</div>');
             return;
         }
-        var p = pool[Math.floor(Math.random() * pool.length)];
-        location.href = pageForCategory(p.category || "quotes") + "#post-" + p.id;
+        var pick = pool[Math.floor(Math.random() * pool.length)];
+        if (!pick || !pick.id) return;
+        location.href = pageForCategory(pick.category || "notes") + "#post-" + pick.id;
     };
 
     document.getElementById("site-title").onclick = function () {
