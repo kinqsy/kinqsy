@@ -193,11 +193,11 @@
         .auth-modal textarea { min-height: 90px; resize: vertical; }
         .auth-hint { margin-top: 4px; font-size: 11px; opacity: 0.7; font-family: Arial, sans-serif; }
         .style-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .attr-list { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+        .attr-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
         .attr-list label {
-            display: flex; align-items: flex-start; gap: 8px; font-weight: normal; font-size: 12px;
-            margin: 0; line-height: 1.3; padding: 8px 10px; border-radius: 12px;
-            background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.3);
+            display: inline-flex; align-items: center; gap: 6px; font-weight: normal; font-size: 11px;
+            margin: 0; line-height: 1.2; padding: 5px 8px; border-radius: 999px;
+            background: rgba(255,255,255,0.22); border: 1px solid rgba(255,255,255,0.3);
         }
         .check-row {
             padding: 10px 12px; border-radius: 12px;
@@ -387,6 +387,15 @@
             <label for="compose-content">цитата / текст</label>
             <textarea id="compose-content" rows="4" maxlength="600"></textarea>
             <div class="auth-hint">макс. 600 символов</div>
+            <label for="compose-title-size">размер заголовка</label>
+            <input id="compose-title-size" type="range" min="16" max="48" value="22">
+            <label for="compose-body-size">размер текста</label>
+            <input id="compose-body-size" type="range" min="12" max="28" value="16">
+            <div class="compose-live">
+                <div class="prev-title" id="compose-live-title">заголовок…</div>
+                <div class="prev-body" id="compose-live-body">цитата…</div>
+                <div class="prev-attr" id="compose-live-attr"></div>
+            </div>
 
             <div class="style-row">
                 <div>
@@ -425,6 +434,8 @@
 
             <label for="compose-media">картинка / gif (ссылка)</label>
             <input id="compose-media" type="url" placeholder="https://...">
+            <label for="compose-media-file">или файл с устройства</label>
+            <input id="compose-media-file" type="file" accept="image/*,.gif">
             <img id="compose-preview" class="compose-preview" alt="">
 
             <label>чьё изображение / работа</label>
@@ -638,9 +649,11 @@
         pin.dataset.id = String(post.id);
 
         var titleStyle = "font-family:" + escapeHtml(post.title_font || "Georgia, serif") +
-            ";color:" + escapeHtml(post.title_color || "#1a0f14");
+            ";color:" + escapeHtml(post.title_color || "#1a0f14") +
+            ";font-size:" + (post.title_size || 22) + "px";
         var bodyStyle = "font-family:" + escapeHtml(post.body_font || "Georgia, serif") +
-            ";color:" + escapeHtml(post.body_color || "#1a0f14");
+            ";color:" + escapeHtml(post.body_color || "#1a0f14") +
+            ";font-size:" + (post.body_size || 16) + "px";
 
         var media = post.media_url
             ? '<img class="pin-media" src="' + escapeHtml(post.media_url) + '" alt="">'
@@ -823,7 +836,7 @@
     var composeOverlay = document.getElementById("compose-overlay");
     function openAuth() { authOverlay.classList.add("open"); document.getElementById("auth-error").textContent = ""; }
     function closeAuth() { authOverlay.classList.remove("open"); }
-    function openCompose() { composeOverlay.classList.add("open"); document.getElementById("compose-error").textContent = ""; }
+    function openCompose() { composeOverlay.classList.add("open"); document.getElementById("compose-error").textContent = ""; if (typeof updateQuotePreview === "function") updateQuotePreview(); }
     window.__openQuoteCompose = openCompose;
     function closeCompose() { composeOverlay.classList.remove("open"); }
 
@@ -863,11 +876,50 @@
         }
     };
 
+    function updateQuotePreview() {
+        var t = document.getElementById("compose-live-title");
+        var b = document.getElementById("compose-live-body");
+        var a = document.getElementById("compose-live-attr");
+        if (!t || !b) return;
+        t.textContent = document.getElementById("compose-title").value || "заголовок…";
+        b.textContent = document.getElementById("compose-content").value || "цитата…";
+        t.style.fontFamily = document.getElementById("compose-title-font").value;
+        t.style.color = document.getElementById("compose-title-color").value;
+        t.style.fontSize = (document.getElementById("compose-title-size").value || 22) + "px";
+        b.style.fontFamily = document.getElementById("compose-body-font").value;
+        b.style.color = document.getElementById("compose-body-color").value;
+        b.style.fontSize = (document.getElementById("compose-body-size").value || 16) + "px";
+        var kind = selectedAttr();
+        var url = document.getElementById("compose-attr-url").value.trim();
+        var labels = { mine: "моя работа", author: "автор", found: "нашла в сети", unknown: "источник неизвестен" };
+        a.textContent = (labels[kind] || "") + (url ? " · " + url : "");
+    }
+    ["compose-title","compose-content","compose-title-font","compose-body-font","compose-title-color","compose-body-color","compose-title-size","compose-body-size","compose-attr-url"].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) { el.addEventListener("input", updateQuotePreview); el.addEventListener("change", updateQuotePreview); }
+    });
+    document.querySelectorAll('input[name="attr-type"]').forEach(function (el) {
+        el.addEventListener("change", updateQuotePreview);
+    });
     document.getElementById("compose-media").oninput = function () {
         var u = document.getElementById("compose-media").value.trim();
         var img = document.getElementById("compose-preview");
         if (u) { img.style.display = "block"; img.src = u; }
         else { img.style.display = "none"; img.src = ""; }
+        updateQuotePreview();
+    };
+    var fileEl = document.getElementById("compose-media-file");
+    if (fileEl) fileEl.onchange = function () {
+        var f = this.files && this.files[0];
+        if (!f) return;
+        var reader = new FileReader();
+        reader.onload = function () {
+            document.getElementById("compose-media").value = reader.result;
+            var img = document.getElementById("compose-preview");
+            img.style.display = "block";
+            img.src = reader.result;
+        };
+        reader.readAsDataURL(f);
     };
 
     function selectedAttr() {
@@ -911,6 +963,8 @@
             body_font: document.getElementById("compose-body-font").value,
             title_color: document.getElementById("compose-title-color").value,
             body_color: document.getElementById("compose-body-color").value,
+            title_size: Number(document.getElementById("compose-title-size").value || 22),
+            body_size: Number(document.getElementById("compose-body-size").value || 16),
             author_name: (prof && prof.display_name) ? prof.display_name : null
         };
         if (media_url) {
@@ -921,7 +975,7 @@
         var { error } = await sb.from("posts").insert(payload);
         if (error) {
             // если новых колонок нет — упрощённый insert
-            if (/is_public|attribution|title_font|body_font|title_color|body_color|author_name/i.test(error.message)) {
+            if (/is_public|attribution|title_font|body_font|title_color|body_color|title_size|body_size|author_name/i.test(error.message)) {
                 var basic = {
                     title: title,
                     content: content,
