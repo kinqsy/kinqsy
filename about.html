@@ -128,6 +128,10 @@
             -webkit-backdrop-filter: blur(12px) saturate(130%);
             box-shadow: 0 10px 28px rgba(26,15,20,0.12);
         }
+        .gp-item { display: block; margin: 0 0 10px; color: inherit; text-decoration: none; }
+        .gp-item strong { display: block; font-weight: bold; line-height: 1.25; word-break: break-word; }
+        .gp-item small { display: block; opacity: .7; font-size: 12px; margin-top: 2px; }
+        .gp-item:hover strong { text-decoration: underline; }
         .profile-module h2 { margin: 0 0 10px; }
         .profile-module .mod-handle {
             display: none;
@@ -735,7 +739,7 @@
         <section class="profile-module" data-module="gossip">
             <h2>Gossip</h2>
             <div id="gossip-preview" class="section-hint">закрытый клуб</div>
-            <p style="margin:10px 0 0"><a href="gossip.html" class="ghost-btn" style="display:inline-block;text-decoration:none;padding:4px 10px">открыть</a></p>
+            <p style="margin:10px 0 0"><a href="gossip.html" class="ghost-btn" style="display:inline-block;text-decoration:none;padding:4px 10px">все записи</a></p>
         </section>
         </div>
         </div>
@@ -1346,33 +1350,51 @@
     async function loadGossipPreview() {
         var box = document.getElementById("gossip-preview");
         if (!box) return;
-        var { data: { session } } = await sb.auth.getSession();
-        if (!session) {
-            box.textContent = "войди, чтобы читать gossip";
-            return;
+        try {
+            var sess = await sb.auth.getSession();
+            if (!sess || !sess.data || !sess.data.session) {
+                box.textContent = "войди, чтобы читать gossip";
+                return;
+            }
+            var q = sb.from("gossip_cards")
+                .select("id, title, author_label, author_mode, gossip_category, created_at")
+                .order("created_at", { ascending: false })
+                .limit(3);
+            var timeout = new Promise(function (resolve) {
+                setTimeout(function () { resolve({ data: null, error: { message: "timeout" } }); }, 2500);
+            });
+            var res = await Promise.race([q, timeout]);
+            if (res.error) {
+                box.textContent = "gossip пока недоступен";
+                return;
+            }
+            var data = res.data;
+            if (!data || !data.length) {
+                box.textContent = "пока нет записей";
+                return;
+            }
+            var CAT = {
+                confessions: "Признания", stories: "Истории", relationships: "Отношения",
+                work: "Работа", life: "Жизнь", random: "Случайное", questions: "Вопросы"
+            };
+            box.textContent = "";
+            data.forEach(function (row) {
+                var a = document.createElement("a");
+                a.className = "gp-item";
+                a.href = "gossip.html#g-" + encodeURIComponent(row.id);
+                var t = document.createElement("strong");
+                t.textContent = row.title || "без названия";
+                var who = row.author_mode === "anon" ? "Аноним" : (row.author_label || "user");
+                var m = document.createElement("small");
+                m.textContent = (CAT[row.gossip_category] ? CAT[row.gossip_category] + " · " : "") + who;
+                a.appendChild(t);
+                a.appendChild(m);
+                box.appendChild(a);
+            });
+        } catch (e) {
+            console.warn(e);
+            box.textContent = "gossip пока недоступен";
         }
-        var q = sb.from("gossip_cards")
-            .select("id, title, author_label, author_mode, created_at")
-            .order("created_at", { ascending: false })
-            .limit(3);
-        var timeout = new Promise(function (resolve) {
-            setTimeout(function () { resolve({ data: null, error: { message: "timeout" } }); }, 2500);
-        });
-        var res = await Promise.race([q, timeout]);
-        var data = res.data, error = res.error;
-        if (error) {
-            box.textContent = "пока пусто";
-            return;
-        }
-        if (!data || !data.length) {
-            box.textContent = "пока нет записей";
-            return;
-        }
-        box.innerHTML = data.map(function (row) {
-            var t = (row.title || "без названия").replace(/</g, "");
-            var a = (row.author_label || "Anonymous").replace(/</g, "");
-            return '<div style="margin:0 0 8px"><strong>' + a + '</strong> · ' + t + '</div>';
-        }).join("");
     }
 
     async function loadFriends() {
