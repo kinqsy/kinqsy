@@ -342,7 +342,9 @@ async function sendComment(pid) {
   var txt = inp && inp.value.trim();
   if (!txt) return;
   busy["c" + pid] = true;
-  var res = await sb.from("comments").insert({ post_id: pid, user_id: myId, content: txt.slice(0, 1000) });
+  // author_name в таблице comments обязателен (NOT NULL). В Gossip настоящее имя туда не пишем:
+  // подпись комментатора никогда не показывается, поэтому ставим нейтральную константу.
+  var res = await sb.from("comments").insert({ post_id: pid, user_id: myId, author_name: "gossip", content: txt.slice(0, 1000) });
   busy["c" + pid] = false;
   if (res.error) { alert(friendlyError(res.error, "не удалось отправить комментарий")); return; }
   refreshPost(pid);
