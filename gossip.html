@@ -48,42 +48,58 @@ html, body { margin: 0; background: #000; color: #111; font-family: Georgia, ser
 .friend-pick { max-height: 120px; overflow: auto; font-size: 13px; display: none; margin-bottom: 8px; }
 .comments { margin-top: 10px; }
 .comments input { width: 70%; padding: 6px 8px; border-radius: 10px; border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.12); }
+
+.head-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.pill.on, .pill.react.on { background: #f0c9d6; }
+.pill[disabled], .ghost[disabled] { opacity: .5; cursor: default; }
+.soft { font-size: 13px; opacity: .75; padding: 6px 2px; }
+.card .body { white-space: pre-wrap; word-break: break-word; }
+.c-item { display: flex; align-items: baseline; gap: 8px; margin: 0 0 4px; font-size: 13px; word-break: break-word; }
+.c-item .pill { flex: none; padding: 1px 8px; font-size: 11px; }
+.comments .c-form { display: flex; gap: 6px; margin-top: 8px; }
+.comments .c-form input { flex: 1; width: auto; min-width: 0; }
+.g-hint { font-size: 12px; opacity: .7; margin: 0 0 8px; }
 </style>
 </head>
 <body data-skin="notes">
 <nav class="top-menu">
-  <a href="index.html">home</a>
-  <a href="notes.html">notes</a>
-  <a href="dreams.html">dreams</a>
-  <a href="quotes.html">quotation/definition</a>
-  <a href="about.html">about</a>
+  <a href="index.html" id="nav-home">home</a>
+  <a href="notes.html" id="nav-notes">notes</a>
+  <a href="dreams.html" id="nav-dreams">dreams</a>
+  <a href="quotes.html" id="nav-quotes">quotation/definition</a>
+  <a href="about.html" id="nav-about">about</a>
   <span class="star" id="admin-star">★</span>
 </nav>
 <div class="kq-bg" aria-hidden="true"></div>
 <div class="kq-grain" aria-hidden="true"></div>
 <main class="page">
-  <h1 class="kq-title">GOSSIP</h1>
-  <div class="kq-tagline">things I probably shouldn't publish</div>
+  <div class="head-row">
+    <div>
+      <h1 class="kq-title">GOSSIP</h1>
+      <div class="kq-tagline">things I probably shouldn't publish</div>
+    </div>
+    <button type="button" class="ghost" id="g-open">написать</button>
+  </div>
   <div class="filters" id="filters"></div>
   <div class="compose" id="compose">
     <input id="g-title" maxlength="120" placeholder="заголовок">
-    <textarea id="g-text" rows="5" placeholder="текст"></textarea>
+    <textarea id="g-text" rows="5" maxlength="6000" placeholder="текст"></textarea>
     <div class="row">
       <select id="g-cat"></select>
       <select id="g-mode">
-        <option value="self">под ником</option>
+        <option value="self">под своим именем</option>
         <option value="anon">анонимно</option>
-        <option value="alias">псевдоним</option>
+        <option value="alias">под псевдонимом</option>
       </select>
       <select id="g-vis">
-        <option value="friends">friends</option>
-        <option value="selected">selected</option>
-        <option value="only_me">only me</option>
-        <option value="kinqsy">kinqsy</option>
+        <option value="friends">только друзья</option>
+        <option value="selected">выбранные друзья</option>
+        <option value="only_me">только я</option>
+        <option value="kinqsy">все в Kinqsy</option>
       </select>
     </div>
-    <input id="g-alias" placeholder="псевдоним" style="display:none">
-    <label style="font-size:13px"><input type="checkbox" id="g-comments" checked> комментарии</label>
+    <input id="g-alias" maxlength="40" placeholder="псевдоним" style="display:none">
+    <label style="font-size:13px"><input type="checkbox" id="g-comments" checked> разрешить комментарии</label>
     <div class="friend-pick" id="g-selected"></div>
     <div class="row">
       <button type="button" class="ghost" id="g-publish">опубликовать</button>
@@ -103,26 +119,52 @@ html, body { margin: 0; background: #000; color: #111; font-family: Georgia, ser
   </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="kinqsy-core.js"></script>
 <script>
 var CATS = ["confessions","stories","relationships","work","life","random","questions"];
+var CAT_LABELS = {
+  confessions: "Признания", stories: "Истории", relationships: "Отношения",
+  work: "Работа", life: "Жизнь", random: "Случайное", questions: "Вопросы"
+};
+var VIS_LABELS = { friends: "только друзья", selected: "выбранные друзья", only_me: "только я", kinqsy: "все в Kinqsy" };
 var SUPABASE_URL = "https://rgkfegdtxaojceknnzlr.supabase.co";
 var SUPABASE_KEY = "sb_publishable_uK7zrVyq8AlHpoj13pGQ6g_q3L47Akw";
 var sb = window.__kinqsy_sb || (window.__kinqsy_sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: true, storageKey: "kinqsy-auth" } }));
 var filterCat = "";
 var pendingDelete = null;
 var myId = null;
+var busy = {};
 
-function esc(s) { return String(s || "").replace(/[&<>]/g, function (c) { return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]; }); }
+function esc(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+    return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c];
+  });
+}
+
+function friendlyError(err, fallback) {
+  if (err) console.warn("gossip:", err);
+  var code = err && err.code ? String(err.code) : "";
+  var msg = err && err.message ? String(err.message) : "";
+  if (code === "42501" || /row-level security|not allowed|permission denied/i.test(msg)) return "нет доступа к этой записи";
+  if (code === "28000" || /not authenticated|jwt/i.test(msg)) return "нужен вход";
+  if (/Failed to fetch|NetworkError|timeout/i.test(msg)) return "нет связи, попробуй ещё раз";
+  return fallback || "не получилось, попробуй ещё раз";
+}
 
 async function sessionUid() {
-  var { data: { session } } = await sb.auth.getSession();
+  var res = await sb.auth.getSession();
+  var session = res && res.data ? res.data.session : null;
   return session ? session.user.id : null;
+}
+
+function fmtDate(iso) {
+  try { return new Date(iso).toLocaleDateString("ru-RU", { day: "numeric", month: "long" }); } catch (e) { return ""; }
 }
 
 function renderFilters() {
   var box = document.getElementById("filters");
   box.innerHTML = '<button type="button" class="pill on" data-cat="">все</button>' +
-    CATS.map(function (c) { return '<button type="button" class="pill" data-cat="'+c+'">'+c+'</button>'; }).join("");
+    CATS.map(function (c) { return '<button type="button" class="pill" data-cat="' + c + '">' + esc(CAT_LABELS[c]) + '</button>'; }).join("");
   box.onclick = function (e) {
     var b = e.target.closest("[data-cat]");
     if (!b) return;
@@ -142,69 +184,116 @@ async function loadAcceptedFriends() {
     if (ids.indexOf(o) < 0) ids.push(o);
   });
   if (!ids.length) return [];
-  var { data } = await sb.from("profiles").select("id, display_name").in("id", ids);
-  return data || [];
+  var res = await sb.from("profiles").select("id, display_name").in("id", ids);
+  return res.data || [];
 }
 
 async function fillSelected() {
   var wrap = document.getElementById("g-selected");
+  wrap.innerHTML = "загрузка…";
   var friends = await loadAcceptedFriends();
   wrap.innerHTML = friends.map(function (f) {
-    return '<label><input type="checkbox" value="'+f.id+'"> @'+esc(f.display_name || "user")+'</label>';
-  }).join("<br>") || "нет принятых друзей";
+    return '<label><input type="checkbox" value="' + esc(f.id) + '"> @' + esc(f.display_name || "user") + '</label>';
+  }).join("<br>") || "пока нет принятых друзей";
 }
 
-async function loadComments(postId, box) {
-  var { data } = await sb.from("comments").select("id, user_id, content, created_at").eq("post_id", postId).order("created_at");
-  var rows = data || [];
-  box.innerHTML = rows.map(function (c) {
-    var mine = myId && String(c.user_id) === String(myId);
-    return '<div class="meta" data-cid="'+c.id+'">'+(mine ? '<button type="button" class="pill del-c" data-cid="'+c.id+'">удалить</button> ' : "")+esc(c.content)+'</div>';
-  }).join("") +
-    '<div><input data-cinput="'+postId+'" placeholder="комментарий"><button type="button" class="ghost send-c" data-pid="'+postId+'">ок</button></div>';
+/* ---------- комментарии и реакции: только через безопасные представления ---------- */
+
+function commentsHtml(postId, rows, enabled) {
+  var html = rows.map(function (c) {
+    return '<div class="c-item">' + esc(c.content) +
+      (c.can_delete ? ' <button type="button" class="pill del-c" data-cid="' + Number(c.id) + '">удалить</button>' : "") +
+      '</div>';
+  }).join("");
+  if (!rows.length && !enabled) html = '<div class="soft">комментарии выключены</div>';
+  if (enabled) {
+    html += '<div class="c-form"><input data-cinput="' + postId + '" maxlength="1000" placeholder="комментарий">' +
+      '<button type="button" class="ghost send-c" data-pid="' + postId + '">ок</button></div>';
+  }
+  return html;
 }
 
-async function loadReacts(postId, el) {
-  var { data } = await sb.from("reactions").select("type, user_id").eq("post_id", postId);
-  var heart = (data || []).filter(function (r) { return r.type === "heart" || r.type === "like"; }).length;
-  var broken = (data || []).filter(function (r) { return r.type === "broken"; }).length;
-  el.textContent = "♡ " + heart + "  ♡̸ " + broken;
+function applyReact(card, r) {
+  if (!card) return;
+  var h = card.querySelector('.react[data-t="heart"]');
+  var b = card.querySelector('.react[data-t="broken"]');
+  var hearts = r ? Number(r.hearts) || 0 : 0;
+  var broken = r ? Number(r.broken) || 0 : 0;
+  if (h) { h.textContent = "♡ " + hearts; h.classList.toggle("on", !!(r && r.my_heart)); }
+  if (b) { b.textContent = "♡̸ " + broken; b.classList.toggle("on", !!(r && r.my_broken)); }
+}
+
+async function refreshPost(postId) {
+  var card = document.getElementById("g-" + postId);
+  if (!card) return;
+  var cRes = await sb.from("gossip_comments").select("id, post_id, content, created_at, can_delete").eq("post_id", postId).order("created_at", { ascending: true });
+  var rRes = await sb.from("gossip_reactions").select("target_id, hearts, broken, my_heart, my_broken").eq("target_kind", "post").eq("target_id", postId);
+  var box = card.querySelector("[data-comments]");
+  if (box && !cRes.error) box.innerHTML = commentsHtml(postId, cRes.data || [], box.getAttribute("data-enabled") === "1");
+  if (!rRes.error) applyReact(card, (rRes.data || [])[0]);
 }
 
 async function loadFeed() {
   var feed = document.getElementById("feed");
-  feed.textContent = "…";
-  var q = sb.from("gossip_cards").select("id, title, content, gossip_category, visibility, author_mode, author_alias, author_id, author_label, comments_enabled, created_at").order("created_at", { ascending: false }).limit(40);
+  feed.innerHTML = '<div class="soft">загрузка…</div>';
+  if (!myId) {
+    feed.innerHTML = '<div class="soft">войди, чтобы читать gossip</div>';
+    return;
+  }
+  var q = sb.from("gossip_cards")
+    .select("id, title, content, gossip_category, visibility, author_mode, author_alias, author_id, author_label, comments_enabled, created_at")
+    .order("created_at", { ascending: false }).limit(40);
   if (filterCat) q = q.eq("gossip_category", filterCat);
-  var { data, error } = await q;
-  if (error) { feed.textContent = error.message; return; }
-  var rows = data || [];
-  if (!rows.length) { feed.textContent = "пусто"; return; }
+  var res = await q;
+  if (res.error) { feed.innerHTML = '<div class="soft">' + esc(friendlyError(res.error, "gossip сейчас не загружается")) + '</div>'; return; }
+  var rows = res.data || [];
+  if (!rows.length) { feed.innerHTML = '<div class="soft">пока пусто</div>'; return; }
+
+  var ids = rows.map(function (r) { return r.id; });
+  var both = await Promise.all([
+    sb.from("gossip_comments").select("id, post_id, content, created_at, can_delete").in("post_id", ids).order("created_at", { ascending: true }),
+    sb.from("gossip_reactions").select("target_id, hearts, broken, my_heart, my_broken").eq("target_kind", "post").in("target_id", ids)
+  ]);
+  var cRes = both[0], rRes = both[1];
+  var byPost = {}, reactBy = {};
+  (cRes.data || []).forEach(function (c) { (byPost[c.post_id] = byPost[c.post_id] || []).push(c); });
+  (rRes.data || []).forEach(function (r) { reactBy[r.target_id] = r; });
+
   feed.innerHTML = "";
   rows.forEach(function (row) {
+    var mine = !!(myId && row.author_id && String(row.author_id) === String(myId));
+    var who;
+    if (row.author_mode === "anon") who = "Аноним";
+    else if (row.author_mode === "alias") who = esc(row.author_label || "без имени");
+    else who = esc(row.author_label || "user");
+    var canLink = row.author_mode === "self" && row.author_id;
+    var enabled = row.comments_enabled !== false;
     var card = document.createElement("article");
     card.className = "card";
     card.id = "g-" + row.id;
-    var who = esc(row.author_label || "Anonymous");
-    var canLink = row.author_mode === "self" && row.author_id;
     card.innerHTML =
-      '<div class="meta">'+(canLink ? '<a href="about.html?u='+encodeURIComponent(row.author_id)+'">'+who+'</a>' : who)+
-      ' · '+esc(row.gossip_category || "")+' · '+esc(row.visibility || "")+'</div>'+
-      '<h3>'+esc(row.title || "без названия")+'</h3>'+
-      '<div>'+esc(row.content || "")+'</div>'+
-      '<div class="row" style="margin-top:8px">'+
-      '<button type="button" class="pill react" data-t="heart" data-id="'+row.id+'">♡</button>'+
-      '<button type="button" class="pill react" data-t="broken" data-id="'+row.id+'">♡̸</button>'+
-      '<span class="meta react-count" data-rc="'+row.id+'"></span>'+
-      (myId && row.author_id && String(row.author_id) === String(myId) ? '<button type="button" class="pill del-p" data-id="'+row.id+'">удалить</button>' : '')+
-      '</div>'+
-      (row.comments_enabled !== false ? '<div class="comments" data-comments="'+row.id+'"></div>' : '');
+      '<div class="meta">' + (canLink ? '<a href="about.html?u=' + encodeURIComponent(row.author_id) + '">' + who + '</a>' : who) +
+      ' · ' + esc(CAT_LABELS[row.gossip_category] || "") +
+      ' · ' + esc(VIS_LABELS[row.visibility] || "") +
+      ' · ' + esc(fmtDate(row.created_at)) + (mine ? ' · твоя запись' : '') + '</div>' +
+      '<h3>' + esc(row.title || "без названия") + '</h3>' +
+      '<div class="body">' + esc(row.content || "") + '</div>' +
+      '<div class="row" style="margin-top:8px">' +
+      '<button type="button" class="pill react" data-t="heart" data-id="' + Number(row.id) + '">♡ 0</button>' +
+      '<button type="button" class="pill react" data-t="broken" data-id="' + Number(row.id) + '">♡̸ 0</button>' +
+      (mine ? '<button type="button" class="pill del-p" data-id="' + Number(row.id) + '">удалить</button>' : '') +
+      '</div>' +
+      '<div class="comments" data-comments="' + Number(row.id) + '" data-enabled="' + (enabled ? "1" : "0") + '"></div>';
     feed.appendChild(card);
-    var rc = card.querySelector("[data-rc]");
-    loadReacts(row.id, rc);
-    var cbox = card.querySelector("[data-comments]");
-    if (cbox) loadComments(row.id, cbox);
+    applyReact(card, reactBy[row.id]);
+    var box = card.querySelector("[data-comments]");
+    if (cRes.error) box.innerHTML = '<div class="soft">комментарии временно недоступны</div>';
+    else box.innerHTML = commentsHtml(row.id, byPost[row.id] || [], enabled);
   });
+  if (/^#g-\d+$/.test(location.hash)) {
+    var target = document.getElementById(location.hash.slice(1));
+    if (target) target.scrollIntoView({ block: "start" });
+  }
 }
 
 document.getElementById("feed").onclick = async function (e) {
@@ -214,47 +303,66 @@ document.getElementById("feed").onclick = async function (e) {
     document.getElementById("del-post-modal").classList.add("open");
     return;
   }
+  if (!myId) return;
+
   var react = e.target.closest(".react");
-  if (react && myId) {
+  if (react) {
     var pid = Number(react.getAttribute("data-id"));
-    var t = react.getAttribute("data-t");
-    await sb.from("reactions").delete().eq("post_id", pid).eq("user_id", myId);
-    await sb.from("reactions").insert({ post_id: pid, user_id: myId, type: t });
-    var el = document.querySelector('[data-rc="'+pid+'"]');
-    if (el) loadReacts(pid, el);
+    if (busy["r" + pid]) return;
+    busy["r" + pid] = true;
+    var r = await sb.rpc("gossip_toggle_reaction", { p_post_id: pid, p_reaction: react.getAttribute("data-t") });
+    busy["r" + pid] = false;
+    if (r.error) { alert(friendlyError(r.error, "не удалось поставить реакцию")); return; }
+    refreshPost(pid);
     return;
   }
+
   var send = e.target.closest(".send-c");
-  if (send && myId) {
-    var pid = Number(send.getAttribute("data-pid"));
-    var inp = document.querySelector('[data-cinput="'+pid+'"]');
-    var txt = inp && inp.value.trim();
-    if (!txt) return;
-    var { error } = await sb.from("comments").insert({ post_id: pid, user_id: myId, content: txt });
-    if (!error) {
-      var box = document.querySelector('[data-comments="'+pid+'"]');
-      if (box) loadComments(pid, box);
-    }
-    return;
-  }
+  if (send) { await sendComment(Number(send.getAttribute("data-pid"))); return; }
+
   var dc = e.target.closest(".del-c");
-  if (dc && myId) {
-    await sb.from("comments").delete().eq("id", dc.getAttribute("data-cid")).eq("user_id", myId);
+  if (dc) {
     var box = dc.closest("[data-comments]");
-    if (box) loadComments(box.getAttribute("data-comments"), box);
+    var post = box ? Number(box.getAttribute("data-comments")) : null;
+    var d = await sb.rpc("gossip_delete_comment", { p_comment_id: Number(dc.getAttribute("data-cid")) });
+    if (d.error) { alert(friendlyError(d.error, "не удалось удалить комментарий")); return; }
+    if (post) refreshPost(post);
   }
 };
+
+document.getElementById("feed").onkeydown = function (e) {
+  if (e.key !== "Enter") return;
+  var inp = e.target.closest("[data-cinput]");
+  if (inp) { e.preventDefault(); sendComment(Number(inp.getAttribute("data-cinput"))); }
+};
+
+async function sendComment(pid) {
+  if (!myId || busy["c" + pid]) return;
+  var inp = document.querySelector('[data-cinput="' + pid + '"]');
+  var txt = inp && inp.value.trim();
+  if (!txt) return;
+  busy["c" + pid] = true;
+  var res = await sb.from("comments").insert({ post_id: pid, user_id: myId, content: txt.slice(0, 1000) });
+  busy["c" + pid] = false;
+  if (res.error) { alert(friendlyError(res.error, "не удалось отправить комментарий")); return; }
+  refreshPost(pid);
+}
 
 document.getElementById("del-post-no").onclick = function () {
   pendingDelete = null;
   document.getElementById("del-post-modal").classList.remove("open");
 };
 document.getElementById("del-post-yes").onclick = async function () {
-  if (pendingDelete && myId) await sb.from("posts").delete().eq("id", pendingDelete).eq("user_id", myId);
+  if (pendingDelete && myId) {
+    var res = await sb.from("posts").delete().eq("id", pendingDelete).eq("user_id", myId);
+    if (res.error) alert(friendlyError(res.error, "не удалось удалить запись"));
+  }
   pendingDelete = null;
   document.getElementById("del-post-modal").classList.remove("open");
   loadFeed();
 };
+
+/* ---------- форма публикации ---------- */
 
 document.getElementById("g-mode").onchange = function () {
   document.getElementById("g-alias").style.display = this.value === "alias" ? "block" : "none";
@@ -266,47 +374,80 @@ document.getElementById("g-vis").onchange = function () {
 document.getElementById("g-cancel").onclick = function () {
   document.getElementById("compose").classList.remove("open");
 };
+
+async function openCompose() {
+  myId = await sessionUid();
+  if (!myId) {
+    if (window.Kinqsy && Kinqsy.openAuth) Kinqsy.openAuth("login");
+    return;
+  }
+  document.getElementById("compose").classList.add("open");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+document.getElementById("g-open").onclick = openCompose;
+
 document.getElementById("g-publish").onclick = async function () {
+  var btn = this;
   var err = document.getElementById("g-err");
   err.textContent = "";
+  if (btn.disabled) return;
   if (!myId) { err.textContent = "нужен вход"; return; }
   var mode = document.getElementById("g-mode").value;
   var vis = document.getElementById("g-vis").value;
+  var title = document.getElementById("g-title").value.trim();
+  var text = document.getElementById("g-text").value.trim();
+  var alias = document.getElementById("g-alias").value.trim();
+  if (!title) { err.textContent = "напиши заголовок"; return; }
+  if (!text) { err.textContent = "напиши текст"; return; }
+  if (mode === "alias" && !alias) { err.textContent = "укажи псевдоним"; return; }
   var selected = [];
   if (vis === "selected") {
     document.querySelectorAll("#g-selected input:checked").forEach(function (x) { selected.push(x.value); });
+    if (!selected.length) { err.textContent = "выбери хотя бы одного друга"; return; }
   }
   var row = {
     user_id: myId,
     category: "gossip",
-    title: document.getElementById("g-title").value.trim(),
-    content: document.getElementById("g-text").value.trim(),
+    title: title,
+    content: text,
     gossip_category: document.getElementById("g-cat").value,
     author_mode: mode,
-    author_alias: mode === "alias" ? document.getElementById("g-alias").value.trim() : null,
+    author_alias: mode === "alias" ? alias : null,
     visibility: vis,
     visible_to: vis === "selected" ? selected : null,
     comments_enabled: document.getElementById("g-comments").checked
   };
-  var { error } = await sb.from("posts").insert(row);
-  if (error) { err.textContent = error.message; return; }
+  btn.disabled = true;
+  var res = await sb.from("posts").insert(row);
+  btn.disabled = false;
+  if (res.error) { err.textContent = friendlyError(res.error, "не получилось опубликовать"); return; }
+  document.getElementById("g-title").value = "";
+  document.getElementById("g-text").value = "";
+  document.getElementById("g-alias").value = "";
   document.getElementById("compose").classList.remove("open");
   loadFeed();
 };
 
-document.getElementById("admin-star").onclick = async function () {
-  myId = await sessionUid();
-  if (!myId) return;
-  document.getElementById("compose").classList.toggle("open");
-};
-
 (async function init() {
+  var sel = document.getElementById("g-cat");
   CATS.forEach(function (c) {
     var o = document.createElement("option");
-    o.value = c; o.textContent = c;
-    document.getElementById("g-cat").appendChild(o);
+    o.value = c; o.textContent = CAT_LABELS[c];
+    sel.appendChild(o);
   });
   renderFilters();
+
+  if (window.Kinqsy && Kinqsy.init) {
+    // общий вход и «замок» Kinqsy, как на остальных страницах
+    Kinqsy.init({
+      onLoginSuccess: async function () { myId = await sessionUid(); await loadFeed(); },
+      onStarLoggedIn: { label: "написать в gossip", run: function () { return openCompose(); } }
+    });
+  } else {
+    // core не загрузился — не оставляем страницу под служебной шторкой
+    document.documentElement.classList.remove("kq-wait");
+  }
+
   myId = await sessionUid();
   await loadFeed();
 })();
