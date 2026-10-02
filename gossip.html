@@ -18,17 +18,18 @@ body { color: #f4e3ea; font-family: Georgia, serif; }
 /* ---------- верхнее меню (как на других страницах, чуть плотнее на тёмном фоне) ---------- */
 .top-menu {
   position: fixed; top: 0; left: 0; width: 100%; height: 42px;
-  background: rgba(240,201,214,.82); backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px);
-  border-bottom: 1px solid rgba(255,255,255,.35);
+  background: rgba(20,8,14,.30); backdrop-filter: blur(16px) saturate(140%); -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border-bottom: 1px solid rgba(240,201,214,.16);
   display: flex; align-items: center; justify-content: center; gap: 18px; z-index: 1000;
 }
-.top-menu a { color: #050505; text-decoration: none; font-size: 21px; font-weight: bold; white-space: nowrap; }
-.top-menu .star { margin-left: 6px; cursor: pointer; color: #111; font-size: 18px; opacity: .75; }
+.top-menu a { color: #f0c9d6; text-decoration: none; font-size: 21px; font-weight: bold; white-space: nowrap; text-shadow: 0 1px 8px rgba(0,0,0,.45); }
+.top-menu a:hover { color: #fff; }
+.top-menu .star { margin-left: 6px; cursor: pointer; color: #f0c9d6; font-size: 18px; opacity: .85; }
 .top-menu .star:hover { opacity: 1; }
 
 /* ---------- фон: медленно плывущие винные пятна (только transform, без blur-фильтров) ---------- */
 .g-bg {
-  position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
+  position: fixed; top: 0; left: 0; width: 100%; height: 100vh; height: 100lvh; z-index: 0; overflow: hidden; pointer-events: none;
   background: linear-gradient(165deg, #0c0508 0%, #190a13 48%, #0f0710 100%);
   contain: layout paint;
 }
@@ -56,19 +57,34 @@ body { color: #f4e3ea; font-family: Georgia, serif; }
 @media (prefers-reduced-motion: reduce) { .g-bg i { animation: none; } }
 
 /* ---------- страница ---------- */
-.page { position: relative; z-index: 2; padding: 100px 20px 80px; max-width: 900px; margin: 0 auto; }
+/* Три колонки: 240 + 22 + 860 (лента, как у Notes/Dreams) + 22 + 240 = 1384, плюс поля 2×20 = 1424.
+   Боковые колонки равной ширины — лента остаётся ровно по центру и не сжимается. */
+.page { position: relative; z-index: 2; padding: 100px 20px 80px; max-width: 1424px; margin: 0 auto; }
+.g-layout { display: grid; grid-template-columns: 240px minmax(0, 860px) 240px; gap: 22px; justify-content: center; align-items: start; }
+.g-center { min-width: 0; }
+.g-side { min-width: 0; }
+/* не хватает места для трёх колонок (с запасом на полосу прокрутки): лента — обычной ширины, как Notes;
+   боковые блоки — компактной парой над лентой */
+@media (max-width: 1444px) {
+  .page { max-width: 900px; }
+  .g-layout { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  .g-center { display: contents; }
+  .g-head, .g-trending, .filters, .compose, #feed { grid-column: 1 / -1; margin: 0; }
+  .g-head { order: 1; margin-bottom: 8px; }
+  .g-trending { order: 2; }
+  .g-left { order: 3; }
+  .g-right { order: 4; }
+  .filters { order: 5; }
+  .compose { order: 6; }
+  #feed { order: 7; }
+}
+@media (max-width: 640px) {
+  .g-layout { grid-template-columns: minmax(0, 1fr); }
+}
 
-/* заголовок: те же классы и переменные, что у About/Notes, но светлый на тёмном фоне */
-.g-head { margin: 0 0 28px; user-select: none; -webkit-user-select: none; }
-main.page .kq-title {
-  margin: 0; font-size: var(--kq-title) !important; letter-spacing: var(--kq-title-track) !important;
-  color: #f0c9d6 !important;
-  text-shadow: 0 0 32px rgba(214,100,148,.38), 0 2px 0 rgba(0,0,0,.4) !important;
-}
-main.page .kq-tagline {
-  margin: 12px 0 0; color: rgba(244,227,234,.86) !important;
-  text-shadow: 0 2px 10px rgba(0,0,0,.45);
-}
+/* заголовок: те же классы, размеры и цвета, что у ABOUT/NOTES/DREAMS (цвет задаёт общий kinqsy-skins.css) */
+.g-head { margin: 0 0 18px; user-select: none; -webkit-user-select: none; }
+.kq-title { font-size: var(--kq-title) !important; letter-spacing: var(--kq-title-track) !important; }
 
 .filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
 .pill {
@@ -124,13 +140,67 @@ input::placeholder, textarea::placeholder { color: rgba(244,227,234,.5); }
 .g-hint { font-size: 12px; opacity: .7; margin: 0 0 8px; }
 
 /* ---------- защита текста публикаций (как на Notes/Dreams: user-select: none, поля ввода — исключение) ---------- */
-.card, .card * {
+.card, .card *, .g-mod, .g-mod * {
   -webkit-user-select: none; user-select: none;
   -webkit-touch-callout: none;
 }
-.card input, .card textarea, .card select {
+.card input, .card textarea, .card select, .g-mod input {
   -webkit-user-select: text; user-select: text; -webkit-touch-callout: default;
 }
+
+/* ---------- боковые модули и TRENDING TOPICS ---------- */
+.g-cap, .g-mod h2 {
+  margin: 0 0 10px; font: 11px/1.3 Arial, Helvetica, sans-serif; letter-spacing: .14em; text-transform: uppercase;
+  color: #f0c9d6; font-weight: normal;
+}
+.g-mod {
+  background: rgba(34,14,24,.52); border: 1px solid rgba(240,201,214,.16);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 10px 30px rgba(0,0,0,.30), 0 0 28px rgba(190,70,120,.08);
+  border-radius: 16px; padding: 14px 14px 12px; color: #f4e3ea; font-size: 14px; margin-bottom: 14px;
+}
+.g-mod h2 { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.g-mod h2 span { min-width: 0; }
+.g-plus {
+  flex: none; width: 24px; height: 24px; padding: 0; border-radius: 50%; cursor: pointer;
+  border: 1px solid rgba(240,201,214,.45); background: rgba(240,201,214,.10); color: #f0c9d6;
+  font: 16px/1 Arial, Helvetica, sans-serif; display: flex; align-items: center; justify-content: center;
+}
+.g-plus:hover { background: #f0c9d6; color: #3a2030; }
+.g-item {
+  display: block; padding: 8px 10px; margin: 0 0 6px; border-radius: 10px; text-decoration: none;
+  color: #f4e3ea; background: rgba(240,201,214,.06); border-left: 2px solid transparent;
+  font-size: 14px; line-height: 1.3; word-break: break-word;
+}
+.g-item:hover { background: rgba(240,201,214,.12); }
+.g-item.promoted { border-left-color: #e8a0b8; background: rgba(214,100,148,.14); }
+.g-badge {
+  display: inline-block; margin-right: 6px; padding: 0 6px; border-radius: 999px; font: 10px/16px Arial, sans-serif;
+  letter-spacing: .08em; text-transform: uppercase; background: #e8a0b8; color: #3a2030;
+}
+.g-topics { list-style: none; margin: 0; padding: 0; }
+.g-topics li { padding: 6px 10px; margin: 0 0 6px; border-radius: 10px; background: rgba(240,201,214,.06); word-break: break-word; }
+.g-topic-form { display: none; margin: 0 0 10px; }
+.g-topic-form.open { display: block; }
+.g-topic-form input {
+  width: 100%; margin: 0 0 6px; padding: 7px 9px; border-radius: 10px;
+  border: 1px solid rgba(240,201,214,.28); background: rgba(10,4,8,.55); color: #f4e3ea; font-size: 14px;
+}
+.g-topic-form .row { margin: 0; gap: 6px; }
+.g-topic-form .ghost { padding: 4px 12px; font-size: 13px; }
+#g-topic-err { font-size: 12px; color: #ff9fb8; margin-top: 4px; }
+.g-trending { margin: 0 0 14px; }
+.g-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.g-tag {
+  border: 1px solid rgba(240,201,214,.28); background: rgba(34,14,24,.5); color: #f0c9d6;
+  border-radius: 999px; padding: 4px 11px; font: 12px Georgia, serif; cursor: pointer;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+}
+.g-tag small { opacity: .7; margin-left: 4px; font: 11px Arial, sans-serif; }
+.g-tag:hover { background: rgba(240,201,214,.16); }
+.g-tag.on { background: #f0c9d6; color: #3a2030; border-color: #f0c9d6; }
+.compose { scroll-margin-top: 62px; }
+.card { scroll-margin-top: 62px; }
 </style>
 </head>
 <body data-skin="gossip">
@@ -145,38 +215,67 @@ input::placeholder, textarea::placeholder { color: rgba(244,227,234,.5); }
 <div class="g-bg" aria-hidden="true"><i class="b1"></i><i class="b2"></i><i class="b3"></i><i class="b4"></i></div>
 <div class="kq-grain" aria-hidden="true"></div>
 <main class="page">
-  <header class="g-head">
-    <h1 class="kq-title gossip-title">GOSSIP</h1>
-    <div class="kq-tagline">things I probably shouldn't publish</div>
-  </header>
-  <div class="filters" id="filters"></div>
-  <div class="compose" id="compose">
-    <input id="g-title" maxlength="120" placeholder="заголовок">
-    <textarea id="g-text" rows="5" maxlength="6000" placeholder="текст"></textarea>
-    <div class="row">
-      <select id="g-cat"></select>
-      <select id="g-mode">
-        <option value="self">под своим именем</option>
-        <option value="anon">анонимно</option>
-        <option value="alias">под псевдонимом</option>
-      </select>
-      <select id="g-vis">
-        <option value="friends">только друзья</option>
-        <option value="selected">выбранные друзья</option>
-        <option value="only_me">только я</option>
-        <option value="kinqsy">все в Kinqsy</option>
-      </select>
+  <div class="g-layout">
+    <aside class="g-side g-left">
+      <section class="g-mod" id="g-most" aria-label="Most viewed / promoted">
+        <h2><span>Most viewed / promoted</span></h2>
+        <div id="g-most-list"></div>
+      </section>
+    </aside>
+    <div class="g-center">
+    <header class="g-head">
+      <h1 class="kq-title gossip-title">GOSSIP</h1>
+      <div class="kq-tagline">things I probably shouldn't publish</div>
+    </header>
+      <section class="g-trending" aria-label="Trending topics">
+        <h2 class="g-cap">Trending topics</h2>
+        <div class="g-tags" id="g-trending"></div>
+      </section>
+    <div class="filters" id="filters"></div>
+    <div class="compose" id="compose">
+      <input id="g-title" maxlength="120" placeholder="заголовок">
+      <textarea id="g-text" rows="5" maxlength="6000" placeholder="текст"></textarea>
+      <div class="row">
+        <select id="g-cat"></select>
+        <select id="g-mode">
+          <option value="self">под своим именем</option>
+          <option value="anon">анонимно</option>
+          <option value="alias">под псевдонимом</option>
+        </select>
+        <select id="g-vis">
+          <option value="friends">только друзья</option>
+          <option value="selected">выбранные друзья</option>
+          <option value="only_me">только я</option>
+          <option value="kinqsy">все в Kinqsy</option>
+        </select>
+      </div>
+      <input id="g-alias" maxlength="40" placeholder="псевдоним" style="display:none">
+      <label style="font-size:13px"><input type="checkbox" id="g-comments" checked> разрешить комментарии</label>
+      <div class="friend-pick" id="g-selected"></div>
+      <div class="row">
+        <button type="button" class="ghost" id="g-publish">опубликовать</button>
+        <button type="button" class="ghost" id="g-cancel">закрыть</button>
+      </div>
+      <div id="g-err"></div>
     </div>
-    <input id="g-alias" maxlength="40" placeholder="псевдоним" style="display:none">
-    <label style="font-size:13px"><input type="checkbox" id="g-comments" checked> разрешить комментарии</label>
-    <div class="friend-pick" id="g-selected"></div>
-    <div class="row">
-      <button type="button" class="ghost" id="g-publish">опубликовать</button>
-      <button type="button" class="ghost" id="g-cancel">закрыть</button>
+      <div id="feed"></div>
     </div>
-    <div id="g-err"></div>
+    <aside class="g-side g-right">
+      <section class="g-mod" id="g-personal" aria-label="Personal topics">
+        <h2><span>Personal topics</span><button type="button" class="g-plus" id="g-topic-add" aria-label="создать тему" title="создать тему">+</button></h2>
+        <div class="g-topic-form" id="g-topic-form">
+          <input id="g-topic-name" maxlength="40" placeholder="название темы" autocomplete="off">
+          <div class="row">
+            <button type="button" class="ghost" id="g-topic-ok">создать</button>
+            <button type="button" class="ghost" id="g-topic-cancel">отмена</button>
+          </div>
+          <div id="g-topic-err"></div>
+        </div>
+        <ul class="g-topics" id="g-topics"></ul>
+        <p class="g-hint" id="g-topics-note"></p>
+      </section>
+    </aside>
   </div>
-  <div id="feed"></div>
 </main>
 <div class="auth-overlay" id="del-post-modal">
   <div class="auth-modal">
@@ -230,6 +329,23 @@ function fmtDate(iso) {
   try { return new Date(iso).toLocaleDateString("ru-RU", { day: "numeric", month: "long" }); } catch (e) { return ""; }
 }
 
+var catCounts = null; // сколько публикаций каждой категории среди последних загруженных (только реальные данные ленты)
+
+function syncCategoryUi() {
+  document.querySelectorAll("#filters .pill").forEach(function (x) {
+    x.classList.toggle("on", (x.getAttribute("data-cat") || "") === filterCat);
+  });
+  document.querySelectorAll("#g-trending .g-tag").forEach(function (x) {
+    x.classList.toggle("on", x.getAttribute("data-cat") === filterCat);
+  });
+}
+
+function setCategory(cat) {
+  filterCat = cat || "";
+  syncCategoryUi();
+  loadFeed();
+}
+
 function renderFilters() {
   var box = document.getElementById("filters");
   box.innerHTML = '<button type="button" class="pill on" data-cat="">все</button>' +
@@ -237,11 +353,92 @@ function renderFilters() {
   box.onclick = function (e) {
     var b = e.target.closest("[data-cat]");
     if (!b) return;
-    filterCat = b.getAttribute("data-cat") || "";
-    box.querySelectorAll(".pill").forEach(function (x) { x.classList.toggle("on", x === b); });
-    loadFeed();
+    setCategory(b.getAttribute("data-cat") || "");
   };
 }
+
+/* TRENDING TOPICS — общие темы площадки = системные категории Gossip.
+   Порядок — по числу публикаций среди последних загруженных (простой подсчёт, не рейтинг популярности). */
+function renderTrending() {
+  var box = document.getElementById("g-trending");
+  var list = CATS.slice();
+  if (catCounts) {
+    list.sort(function (a, b) { return (catCounts[b] || 0) - (catCounts[a] || 0) || CATS.indexOf(a) - CATS.indexOf(b); });
+  }
+  box.innerHTML = list.map(function (c) {
+    var n = catCounts && catCounts[c] ? '<small>' + catCounts[c] + '</small>' : "";
+    return '<button type="button" class="g-tag" data-cat="' + c + '">' + esc(CAT_LABELS[c]) + n + '</button>';
+  }).join("");
+  syncCategoryUi();
+}
+document.getElementById("g-trending").onclick = function (e) {
+  var b = e.target.closest("[data-cat]");
+  if (!b) return;
+  var cat = b.getAttribute("data-cat");
+  setCategory(cat === filterCat ? "" : cat);
+};
+
+/* MOST VIEWED / PROMOTED — готовая структура списка. Данных о просмотрах и продвижении в базе пока нет,
+   поэтому список пуст. Когда появится источник, достаточно вызвать renderMostViewed([{id, title, promoted}]). */
+function renderMostViewed(items) {
+  var box = document.getElementById("g-most-list");
+  if (!items || !items.length) { box.innerHTML = '<div class="soft">пока пусто</div>'; return; }
+  box.innerHTML = items.map(function (it) {
+    return '<a class="g-item' + (it.promoted ? ' promoted' : '') + '" href="#g-' + Number(it.id) + '">' +
+      (it.promoted ? '<span class="g-badge">promo</span>' : '') + esc(it.title || "без названия") + '</a>';
+  }).join("");
+}
+
+/* PERSONAL TOPICS — интерфейс создания тем. Постоянного хранилища (таблицы тем) в базе пока нет,
+   поэтому темы живут только в памяти страницы и исчезают после перезагрузки. */
+var personalTopics = [];
+var TOPICS_PERSISTENT = false;
+
+function renderTopics() {
+  var ul = document.getElementById("g-topics");
+  ul.innerHTML = personalTopics.length
+    ? personalTopics.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join("")
+    : '<li class="soft" style="background:none;padding-left:0">пока нет тем — создай первую</li>';
+  document.getElementById("g-topics-note").textContent = TOPICS_PERSISTENT || !personalTopics.length
+    ? "" : "пока темы не сохраняются: после перезагрузки страницы они исчезнут";
+}
+
+function closeTopicForm() {
+  document.getElementById("g-topic-form").classList.remove("open");
+  document.getElementById("g-topic-name").value = "";
+  document.getElementById("g-topic-err").textContent = "";
+}
+
+function createTopic() {
+  var inp = document.getElementById("g-topic-name");
+  var err = document.getElementById("g-topic-err");
+  var name = inp.value.replace(/\s+/g, " ").trim();
+  err.textContent = "";
+  if (!name) { err.textContent = "напиши название темы"; return; }
+  var low = name.toLowerCase();
+  var isSystem = CATS.some(function (c) { return CAT_LABELS[c].toLowerCase() === low; });
+  if (isSystem) { err.textContent = "это системная категория, придумай свою тему"; return; }
+  if (personalTopics.some(function (t) { return t.toLowerCase() === low; })) { err.textContent = "такая тема уже есть"; return; }
+  if (personalTopics.length >= 30) { err.textContent = "слишком много тем"; return; }
+  personalTopics.unshift(name);
+  renderTopics();
+  closeTopicForm();
+}
+
+document.getElementById("g-topic-add").onclick = async function () {
+  var uid = await sessionUid();
+  if (!uid) { if (window.Kinqsy && Kinqsy.openAuth) Kinqsy.openAuth("login"); return; }
+  var form = document.getElementById("g-topic-form");
+  if (form.classList.contains("open")) { closeTopicForm(); return; }
+  form.classList.add("open");
+  document.getElementById("g-topic-name").focus();
+};
+document.getElementById("g-topic-ok").onclick = createTopic;
+document.getElementById("g-topic-cancel").onclick = closeTopicForm;
+document.getElementById("g-topic-name").onkeydown = function (e) {
+  if (e.key === "Enter") { e.preventDefault(); createTopic(); }
+  else if (e.key === "Escape") { closeTopicForm(); }
+};
 
 async function loadAcceptedFriends() {
   if (!myId) return [];
@@ -316,6 +513,11 @@ async function loadFeed() {
   var res = await q;
   if (res.error) { feed.innerHTML = '<div class="soft">' + esc(friendlyError(res.error, "gossip сейчас не загружается")) + '</div>'; return; }
   var rows = res.data || [];
+  if (!filterCat) {
+    catCounts = {};
+    rows.forEach(function (r) { if (r.gossip_category) catCounts[r.gossip_category] = (catCounts[r.gossip_category] || 0) + 1; });
+    renderTrending();
+  }
   if (!rows.length) { feed.innerHTML = '<div class="soft">пока пусто</div>'; return; }
 
   var ids = rows.map(function (r) { return r.id; });
@@ -419,15 +621,18 @@ async function sendComment(pid) {
   refreshPost(pid);
 }
 
-/* защита текста публикаций: только внутри ленты (#feed); поля ввода, формы и комментарии-поля не затрагиваются */
+/* защита текста публикаций: только внутри ленты (#feed) и боковых модулей; поля ввода и формы не затрагиваются */
 (function () {
-  var feedEl = document.getElementById("feed");
   function target(e) { var t = e.target; return t && t.nodeType === 3 ? t.parentNode : t; }
-  ["contextmenu", "copy", "cut", "selectstart", "dragstart"].forEach(function (ev) {
-    feedEl.addEventListener(ev, function (e) {
-      var t = target(e);
-      if (t && t.closest && t.closest("input, textarea, select, [contenteditable]")) return;
-      e.preventDefault();
+  ["feed", "g-most", "g-personal"].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    ["contextmenu", "copy", "cut", "selectstart", "dragstart"].forEach(function (ev) {
+      el.addEventListener(ev, function (e) {
+        var t = target(e);
+        if (t && t.closest && t.closest("input, textarea, select, [contenteditable]")) return;
+        e.preventDefault();
+      });
     });
   });
 })();
@@ -466,7 +671,7 @@ async function openCompose() {
     return;
   }
   document.getElementById("compose").classList.add("open");
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  document.getElementById("compose").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 document.getElementById("g-publish").onclick = async function () {
@@ -519,6 +724,9 @@ document.getElementById("g-publish").onclick = async function () {
     sel.appendChild(o);
   });
   renderFilters();
+  renderTrending();
+  renderMostViewed([]);
+  renderTopics();
 
   if (window.Kinqsy && Kinqsy.init) {
     // общий вход и «замок» Kinqsy, как на остальных страницах
