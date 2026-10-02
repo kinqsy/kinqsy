@@ -96,7 +96,16 @@ html, body { margin: 0; background: #000; }
   position: relative;
   z-index: 3;
 }
-.about-page > .kq-inner { max-width: 720px; }
+/* About: основная лента такой же ширины, как у Notes/Dreams (контейнер 900 с полями → 860 текста),
+   а правая колонка стоит рядом и ширину ленты не отнимает.
+   1162 = 900 (лента) + 22 (gap) + 240 (правая колонка) — числа из .profile-layout в about.html. */
+.about-page > .kq-inner { max-width: 1162px; }
+/* когда двум колонкам не хватает места (с запасом на полосу прокрутки) — как Notes:
+   лента на обычной ширине, правая колонка уходит под неё */
+@media (max-width: 1180px) {
+  .about-page > .kq-inner { max-width: 900px; }
+  .about-page .profile-layout { grid-template-columns: minmax(0, 1fr); }
+}
 
 .kq-grain,
 .notes-bg, .notes-grain,
