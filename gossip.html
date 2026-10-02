@@ -11,57 +11,129 @@
 <link rel="stylesheet" href="kinqsy-finish.css">
 <style>
 * { box-sizing: border-box; }
-html, body { margin: 0; background: #000; color: #111; font-family: Georgia, serif; }
+html, body { margin: 0; background: #000; }
+body { color: #f4e3ea; font-family: Georgia, serif; }
+::selection { background: rgba(240,201,214,.9); color: #3a2030; }
+
+/* ---------- верхнее меню (как на других страницах, чуть плотнее на тёмном фоне) ---------- */
 .top-menu {
   position: fixed; top: 0; left: 0; width: 100%; height: 42px;
-  background: rgba(240,201,214,.35); backdrop-filter: blur(22px);
+  background: rgba(240,201,214,.82); backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px);
+  border-bottom: 1px solid rgba(255,255,255,.35);
   display: flex; align-items: center; justify-content: center; gap: 18px; z-index: 1000;
 }
-.top-menu a { color: #050505; text-decoration: none; font-size: 21px; font-weight: bold; }
-.top-menu .star { margin-left: 6px; cursor: pointer; }
-.page { padding: 72px 20px 80px; max-width: 900px; margin: 0 auto; }
-.kq-title { font-size: 42px; margin: 0; }
-.kq-tagline { opacity: .75; margin: 6px 0 22px; }
+.top-menu a { color: #050505; text-decoration: none; font-size: 21px; font-weight: bold; white-space: nowrap; }
+.top-menu .star { margin-left: 6px; cursor: pointer; color: #111; font-size: 18px; opacity: .75; }
+.top-menu .star:hover { opacity: 1; }
+
+/* ---------- фон: медленно плывущие винные пятна (только transform, без blur-фильтров) ---------- */
+.g-bg {
+  position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
+  background: linear-gradient(165deg, #0c0508 0%, #190a13 48%, #0f0710 100%);
+  contain: layout paint;
+}
+.g-bg i { position: absolute; display: block; border-radius: 50%; will-change: transform; }
+.g-bg .b1 { width: 80vmax; height: 80vmax; left: -24vmax; top: -28vmax;
+  background: radial-gradient(closest-side, rgba(122,31,56,.62), rgba(122,31,56,0));
+  animation: gDrift1 38s ease-in-out infinite alternate; }
+.g-bg .b2 { width: 74vmax; height: 74vmax; right: -30vmax; top: 6vh;
+  background: radial-gradient(closest-side, rgba(74,31,84,.60), rgba(74,31,84,0));
+  animation: gDrift2 46s ease-in-out infinite alternate; }
+.g-bg .b3 { width: 70vmax; height: 70vmax; left: 4vw; bottom: -42vmax;
+  background: radial-gradient(closest-side, rgba(176,82,118,.34), rgba(176,82,118,0));
+  animation: gDrift3 52s ease-in-out infinite alternate; }
+.g-bg .b4 { width: 58vmax; height: 58vmax; right: 10vw; bottom: -32vmax;
+  background: radial-gradient(closest-side, rgba(96,22,44,.58), rgba(96,22,44,0));
+  animation: gDrift4 42s ease-in-out infinite alternate; }
+.g-bg::after {
+  content: ""; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 38%, rgba(0,0,0,0) 38%, rgba(0,0,0,.58) 100%);
+}
+@keyframes gDrift1 { from { transform: translate3d(0,0,0) scale(1); }    to { transform: translate3d(20vmax,14vmax,0) scale(1.18); } }
+@keyframes gDrift2 { from { transform: translate3d(0,0,0) scale(1.1); }  to { transform: translate3d(-22vmax,10vmax,0) scale(.92); } }
+@keyframes gDrift3 { from { transform: translate3d(0,0,0) scale(.95); }  to { transform: translate3d(24vmax,-14vmax,0) scale(1.2); } }
+@keyframes gDrift4 { from { transform: translate3d(0,0,0) scale(1); }    to { transform: translate3d(-16vmax,-18vmax,0) scale(1.12); } }
+@media (prefers-reduced-motion: reduce) { .g-bg i { animation: none; } }
+
+/* ---------- страница ---------- */
+.page { position: relative; z-index: 2; padding: 100px 20px 80px; max-width: 900px; margin: 0 auto; }
+
+/* заголовок: те же классы и переменные, что у About/Notes, но светлый на тёмном фоне */
+.g-head { margin: 0 0 28px; user-select: none; -webkit-user-select: none; }
+main.page .kq-title {
+  margin: 0; font-size: var(--kq-title) !important; letter-spacing: var(--kq-title-track) !important;
+  color: #f0c9d6 !important;
+  text-shadow: 0 0 32px rgba(214,100,148,.38), 0 2px 0 rgba(0,0,0,.4) !important;
+}
+main.page .kq-tagline {
+  margin: 12px 0 0; color: rgba(244,227,234,.86) !important;
+  text-shadow: 0 2px 10px rgba(0,0,0,.45);
+}
+
 .filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
 .pill {
-  border: 1px solid rgba(255,255,255,.3); background: rgba(255,255,255,.12);
-  color: #3a2030; border-radius: 999px; padding: 4px 10px; font-size: 12px; cursor: pointer;
+  border: 1px solid rgba(240,201,214,.3); background: rgba(240,201,214,.09);
+  color: #f0c9d6; border-radius: 999px; padding: 4px 10px; font-size: 12px; cursor: pointer;
+  font-family: inherit;
 }
-.pill.on { background: #f0c9d6; }
+.pill.on, .pill.react.on { background: #f0c9d6; color: #3a2030; border-color: #f0c9d6; }
+.pill[disabled], .ghost[disabled] { opacity: .5; cursor: default; }
+
 .card {
-  background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.22);
-  backdrop-filter: blur(12px); border-radius: 16px; padding: 14px 16px; margin-bottom: 14px;
+  background: rgba(34,14,24,.64); border: 1px solid rgba(240,201,214,.16);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 10px 30px rgba(0,0,0,.35);
+  border-radius: 16px; padding: 16px 18px; margin-bottom: 14px; color: #f4e3ea;
 }
-.card h3 { margin: 0 0 6px; font-size: 18px; }
-.meta { font-size: 12px; opacity: .7; margin-bottom: 8px; }
+.card h3 { margin: 0 0 8px; font-size: 22px; line-height: 1.25; color: #fbeaf1; font-weight: normal; }
+.card .body { white-space: pre-wrap; word-break: break-word; font-size: 16px; line-height: 1.5; }
+.meta { font-size: 12px; color: rgba(244,227,234,.66); margin-bottom: 8px; font-family: Arial, Helvetica, sans-serif; }
+.meta a { color: #f0c9d6; }
+
 .compose {
-  display: none; background: rgba(26,15,20,.55); border: 1px solid rgba(255,255,255,.22);
-  border-radius: 16px; padding: 14px; margin-bottom: 18px; backdrop-filter: blur(16px);
+  display: none; background: rgba(26,12,20,.82); border: 1px solid rgba(240,201,214,.22);
+  border-radius: 16px; padding: 14px; margin-bottom: 18px;
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 10px 30px rgba(0,0,0,.4); color: #f4e3ea;
 }
 .compose.open { display: block; }
+input, textarea, select { font-family: inherit; }
 .compose input, .compose textarea, .compose select {
   width: 100%; margin: 0 0 8px; padding: 8px 10px; border-radius: 10px;
-  border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.12); color: #3a2030;
+  border: 1px solid rgba(240,201,214,.28); background: rgba(10,4,8,.55); color: #f4e3ea;
 }
+.compose input[type="checkbox"] { width: auto; margin: 0 6px 0 0; }
+.compose select option { background: #1a0f14; color: #f4e3ea; }
+input::placeholder, textarea::placeholder { color: rgba(244,227,234,.5); }
 .row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
-.ghost { border: 0; background: rgba(240,201,214,.45); border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+.compose .row select { flex: 1 1 150px; width: auto; margin: 0; }
+.ghost { border: 0; background: #f0c9d6; color: #3a2030; border-radius: 999px; padding: 6px 14px; cursor: pointer; font-family: inherit; }
 .friend-pick { max-height: 120px; overflow: auto; font-size: 13px; display: none; margin-bottom: 8px; }
-.comments { margin-top: 10px; }
-.comments input { width: 70%; padding: 6px 8px; border-radius: 10px; border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.12); }
+#g-err { font-size: 13px; color: #ff9fb8; }
 
-.head-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-.pill.on, .pill.react.on { background: #f0c9d6; }
-.pill[disabled], .ghost[disabled] { opacity: .5; cursor: default; }
-.soft { font-size: 13px; opacity: .75; padding: 6px 2px; }
-.card .body { white-space: pre-wrap; word-break: break-word; }
-.c-item { display: flex; align-items: baseline; gap: 8px; margin: 0 0 4px; font-size: 13px; word-break: break-word; }
-.c-item .pill { flex: none; padding: 1px 8px; font-size: 11px; }
+.comments { margin-top: 10px; }
+.comments input {
+  padding: 6px 8px; border-radius: 10px; border: 1px solid rgba(240,201,214,.28);
+  background: rgba(10,4,8,.55); color: #f4e3ea;
+}
 .comments .c-form { display: flex; gap: 6px; margin-top: 8px; }
 .comments .c-form input { flex: 1; width: auto; min-width: 0; }
+.c-item { display: flex; align-items: baseline; gap: 8px; margin: 0 0 4px; font-size: 13px; word-break: break-word; }
+.c-item .pill { flex: none; padding: 1px 8px; font-size: 11px; }
+.soft { font-size: 13px; opacity: .78; padding: 6px 2px; }
 .g-hint { font-size: 12px; opacity: .7; margin: 0 0 8px; }
+
+/* ---------- защита текста публикаций (как на Notes/Dreams: user-select: none, поля ввода — исключение) ---------- */
+.card, .card * {
+  -webkit-user-select: none; user-select: none;
+  -webkit-touch-callout: none;
+}
+.card input, .card textarea, .card select {
+  -webkit-user-select: text; user-select: text; -webkit-touch-callout: default;
+}
 </style>
 </head>
-<body data-skin="notes">
+<body data-skin="gossip">
 <nav class="top-menu">
   <a href="index.html" id="nav-home">home</a>
   <a href="notes.html" id="nav-notes">notes</a>
@@ -70,16 +142,13 @@ html, body { margin: 0; background: #000; color: #111; font-family: Georgia, ser
   <a href="about.html" id="nav-about">about</a>
   <span class="star" id="admin-star">★</span>
 </nav>
-<div class="kq-bg" aria-hidden="true"></div>
+<div class="g-bg" aria-hidden="true"><i class="b1"></i><i class="b2"></i><i class="b3"></i><i class="b4"></i></div>
 <div class="kq-grain" aria-hidden="true"></div>
 <main class="page">
-  <div class="head-row">
-    <div>
-      <h1 class="kq-title">GOSSIP</h1>
-      <div class="kq-tagline">things I probably shouldn't publish</div>
-    </div>
-    <button type="button" class="ghost" id="g-open">написать</button>
-  </div>
+  <header class="g-head">
+    <h1 class="kq-title gossip-title">GOSSIP</h1>
+    <div class="kq-tagline">things I probably shouldn't publish</div>
+  </header>
   <div class="filters" id="filters"></div>
   <div class="compose" id="compose">
     <input id="g-title" maxlength="120" placeholder="заголовок">
@@ -105,7 +174,7 @@ html, body { margin: 0; background: #000; color: #111; font-family: Georgia, ser
       <button type="button" class="ghost" id="g-publish">опубликовать</button>
       <button type="button" class="ghost" id="g-cancel">закрыть</button>
     </div>
-    <div id="g-err" style="font-size:13px;color:#7a2030"></div>
+    <div id="g-err"></div>
   </div>
   <div id="feed"></div>
 </main>
@@ -350,6 +419,19 @@ async function sendComment(pid) {
   refreshPost(pid);
 }
 
+/* защита текста публикаций: только внутри ленты (#feed); поля ввода, формы и комментарии-поля не затрагиваются */
+(function () {
+  var feedEl = document.getElementById("feed");
+  function target(e) { var t = e.target; return t && t.nodeType === 3 ? t.parentNode : t; }
+  ["contextmenu", "copy", "cut", "selectstart", "dragstart"].forEach(function (ev) {
+    feedEl.addEventListener(ev, function (e) {
+      var t = target(e);
+      if (t && t.closest && t.closest("input, textarea, select, [contenteditable]")) return;
+      e.preventDefault();
+    });
+  });
+})();
+
 document.getElementById("del-post-no").onclick = function () {
   pendingDelete = null;
   document.getElementById("del-post-modal").classList.remove("open");
@@ -386,7 +468,6 @@ async function openCompose() {
   document.getElementById("compose").classList.add("open");
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
-document.getElementById("g-open").onclick = openCompose;
 
 document.getElementById("g-publish").onclick = async function () {
   var btn = this;
