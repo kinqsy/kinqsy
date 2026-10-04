@@ -29,6 +29,7 @@
     el.innerHTML =
       '<div class="kq-vinyl" aria-hidden="true"></div>' +
       '<i class="kq-reel l" aria-hidden="true"></i><i class="kq-reel r" aria-hidden="true"></i>' +
+      '<button type="button" id="kq-p-drag" aria-label="переместить">⋮⋮</button>' +
       '<button type="button" id="kq-p-prev" disabled>⟨</button>' +
       '<button type="button" id="kq-p-play" disabled>▶</button>' +
       '<button type="button" id="kq-p-next" disabled>⟩</button>' +
@@ -134,6 +135,38 @@
     };
     audio.onended = function () { playAt(idx + 1); };
     document.getElementById("kq-p-lib").onclick = openLib;
+    var drag = document.getElementById("kq-p-drag");
+    var host = document.getElementById("kq-player");
+    try {
+      var saved = JSON.parse(localStorage.getItem("kq-player-pos") || "null");
+      if (saved && typeof saved.x === "number") {
+        host.style.left = saved.x + "px";
+        host.style.top = saved.y + "px";
+        host.style.bottom = "auto";
+        host.style.transform = "none";
+      }
+    } catch (e) {}
+    if (drag) {
+      drag.onpointerdown = function (e) {
+        var r = host.getBoundingClientRect();
+        var ox = e.clientX - r.left, oy = e.clientY - r.top;
+        function move(ev) {
+          var x = Math.max(8, Math.min(window.innerWidth - r.width - 8, ev.clientX - ox));
+          var y = Math.max(48, Math.min(window.innerHeight - r.height - 72, ev.clientY - oy));
+          host.style.left = x + "px";
+          host.style.top = y + "px";
+          host.style.bottom = "auto";
+          host.style.transform = "none";
+          localStorage.setItem("kq-player-pos", JSON.stringify({ x: x, y: y }));
+        }
+        function up() {
+          window.removeEventListener("pointermove", move);
+          window.removeEventListener("pointerup", up);
+        }
+        window.addEventListener("pointermove", move);
+        window.addEventListener("pointerup", up);
+      };
+    }
   }
 
   async function loadTracks() {
