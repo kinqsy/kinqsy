@@ -50,9 +50,21 @@
       document.getElementById("g-thread-back").onclick = function () {
         activeTopic = null;
         banner.style.display = "none";
+        var hid = document.getElementById("g-topic-id");
+        if (hid) hid.value = "";
+        var now = document.getElementById("g-topic-now");
+        if (now) now.style.display = "none";
+        var cat = document.getElementById("g-cat");
+        if (cat) cat.style.display = "";
         if (window.loadFeed) window.loadFeed();
       };
     }
+    var hid = document.getElementById("g-topic-id");
+    if (hid) hid.value = id;
+    var now = document.getElementById("g-topic-now");
+    if (now) { now.style.display = "inline-block"; now.textContent = "тема: " + name; }
+    var cat = document.getElementById("g-cat");
+    if (cat) cat.style.display = "none";
     if (window.loadFeed) window.loadFeed();
   }
 
@@ -78,6 +90,10 @@
     if (window.openCompose) window.openCompose();
     var hid = document.getElementById("g-topic-id");
     if (hid) hid.value = res.data.id;
+    var now = document.getElementById("g-topic-now");
+    if (now) { now.style.display = "inline-block"; now.textContent = "тема: " + res.data.name; }
+    var cat = document.getElementById("g-cat");
+    if (cat) cat.style.display = "none";
   }
 
   function mountTopics() {
@@ -189,9 +205,11 @@
     var bar = document.createElement("div");
     bar.className = "row";
     bar.innerHTML =
+      '<span id="g-topic-now" class="pill" style="display:none"></span>' +
       '<button type="button" class="pill" id="g-add-title">заголовок</button>' +
       '<button type="button" class="pill" id="g-add-text">текст</button>' +
       '<button type="button" class="pill" id="g-add-img">фото/gif</button>' +
+      '<button type="button" class="pill" id="g-add-sticker">стикер</button>' +
       '<input type="hidden" id="g-topic-id">';
     compose.insertBefore(bar, compose.querySelector(".row"));
     var board = document.createElement("div");
@@ -206,16 +224,37 @@
       inp.onchange = async function () {
         var f = inp.files && inp.files[0];
         if (!f || !sb) return;
-        var session = await sb.auth.getSession();
-        var uid = session.data && session.data.session && session.data.session.user.id;
-        if (!uid) return;
-        var path = "gossip/" + uid + "/" + Date.now() + "-" + Math.random().toString(36).slice(2) + (/\.gif$/i.test(f.name) ? ".gif" : ".img");
+        var path = "gossip/" + Date.now() + "-" + Math.random().toString(36).slice(2) + (/\.gif$/i.test(f.name) ? ".gif" : ".img");
         var up = await sb.storage.from("media").upload(path, f, { contentType: f.type || "image/jpeg" });
-        if (up.error) { document.getElementById("g-err").textContent = "файл не загрузился"; return; }
-        var signed = await sb.storage.from("media").createSignedUrl(path, 60 * 60 * 24 * 7);
-        addItem("image", { src: signed.data && signed.data.signedUrl, path: path, w: 180, h: 140 });
+        var err = document.getElementById("g-err");
+        if (up.error) { if (err) err.textContent = "файл не загрузился"; return; }
+        var signed = await sb.storage.from("media").createSignedUrl(path, 60 * 60);
+        addItem("image", { path: path, src: signed.data && signed.data.signedUrl, w: 180, h: 140 });
       };
       inp.click();
+    };
+    document.getElementById("g-add-sticker").onclick = async function () {
+      var res = await sb.from("stickers").select("id, text, kind").limit(80);
+      var err = document.getElementById("g-err");
+      var dock = document.getElementById("g-sticker-dock");
+      if (!dock) {
+        dock = document.createElement("div");
+        dock.id = "g-sticker-dock";
+        dock.style.cssText = "display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;max-height:140px;overflow:auto";
+        document.getElementById("g-board").before(dock);
+      }
+      if (res.error || !res.data || !res.data.length) { if (err) err.textContent = "стикеры недоступны"; return; }
+      dock.innerHTML = "";
+      res.data.forEach(function (s) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "pill";
+        b.textContent = s.text || s.kind || "стикер";
+        b.onclick = function () {
+          addItem("text", { text: s.text || "", stickerId: s.id, w: 120, h: 48, size: 22 });
+        };
+        dock.appendChild(b);
+      });
     };
   }
 
@@ -244,18 +283,76 @@
   var orig = window.loadFeed;
   window.loadFeed = async function () {
     if (orig) await orig();
-    var topic = activeTopic;
-    if (!topic || !sb) return;
-    var labels = await sb.from("gossip_topic_labels").select("post_id, topic_id, topic_name").eq("topic_id", topic.id);
-    var allow = {};
-    (labels.data || []).forEach(function (r) { allow[r.post_id] = r.topic_name; });
+    if (!sb) return;
+    var labels = await sb.from("gossip_topic_labels").select("post_id, topic_id, topic_name");
+    var byId = {};
+    (labels.data || []).forEach(function (r) { if (r.topic_id) byId[r.post_id] = r; });
     document.querySelectorAll("#feed .card").forEach(function (card) {
       var id = Number(String(card.id).replace("g-", ""));
-      if (!allow[id]) card.style.display = "none";
-      else {
-        var meta = card.querySelector(".meta");
-        if (meta && meta.textContent.indexOf(allow[id]) < 0) meta.textContent += " · " + allow[id];
+      var info = byId[id];
+      var topicEl = card.querySelector(".g-topic");
+      var catEl = card.querySelector(".g-cat");
+      if (info) {
+        if (topicEl) topicEl.textContent = "тема: " + info.topic_name;
+        if (catEl) catEl.textContent = "";
       }
     });
+    var ids = [];
+    document.querySelectorAll("#feed .card").forEach(function (card) {
+      ids.push(Number(String(card.id).replace("g-", "")));
+    });
+    if (!ids.length) return;
+    var lay = await sb.from("gossip_layouts").select("id, decor").in("id", ids);
+    for (var i = 0; i < (lay.data || []).length; i++) {
+      var row = lay.data[i];
+      var card = document.getElementById("g-" + row.id);
+      var items = row.decor && row.decor.layout;
+      if (!card || !items || !items.length) continue;
+      var body = card.querySelector(".body");
+      if (!body) continue;
+      var plain = body.textContent;
+      body.textContent = "";
+      body.style.position = "relative";
+      var bottom = 0;
+      items.forEach(function (it) { bottom = Math.max(bottom, (it.y || 0) + (it.h || 40)); });
+      body.style.minHeight = Math.max(220, bottom + 12) + "px";
+      body.style.overflow = "hidden";
+      if (plain) {
+        var base = document.createElement("div");
+        base.textContent = plain;
+        base.style.position = "relative";
+        base.style.zIndex = "1";
+        base.style.whiteSpace = "pre-wrap";
+        body.appendChild(base);
+      }
+      for (var j = 0; j < items.length; j++) {
+        var it = items[j];
+        var n = document.createElement("div");
+        n.style.position = "absolute";
+        n.style.left = (it.x || 0) + "px";
+        n.style.top = (it.y || 0) + "px";
+        n.style.width = (it.w || 80) + "px";
+        n.style.height = (it.h || 40) + "px";
+        n.style.zIndex = String(it.z || 2);
+        n.style.overflow = "hidden";
+        n.style.fontFamily = it.font || "Georgia, serif";
+        n.style.color = it.color || "#f6dce8";
+        n.style.fontSize = (it.size || 16) + "px";
+        if (it.path) {
+          var signed = await sb.storage.from("media").createSignedUrl(it.path, 3600);
+          it.src = signed.data && signed.data.signedUrl;
+        }
+        if (it.src) {
+          var img = document.createElement("img");
+          img.src = it.src;
+          img.alt = "";
+          img.style.width = "100%";
+          img.style.height = "100%";
+          img.style.objectFit = "contain";
+          n.appendChild(img);
+        } else n.textContent = it.text || "";
+        body.appendChild(n);
+      }
+    }
   };
 })();
