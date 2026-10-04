@@ -134,48 +134,55 @@
     };
     audio.onended = function () { playAt(idx + 1); };
     document.getElementById("kq-p-lib").onclick = openLib;
-    if (document.body && document.body.getAttribute("data-skin") === "gossip") {
-      var host = document.getElementById("kq-player");
-      var drag = document.getElementById("kq-p-drag");
-      if (!drag) {
-        drag = document.createElement("button");
-        drag.type = "button";
-        drag.id = "kq-p-drag";
-        drag.textContent = "⋮⋮";
-        drag.setAttribute("aria-label", "переместить");
-        host.insertBefore(drag, host.firstChild);
-      }
-      try {
-        var saved = JSON.parse(localStorage.getItem("kq-player-pos") || "null");
-        if (saved && typeof saved.x === "number") {
-          host.style.left = saved.x + "px";
-          host.style.top = saved.y + "px";
-          host.style.bottom = "auto";
-          host.style.transform = "none";
-        }
-      } catch (e) {}
-      drag.onpointerdown = function (e) {
-        e.preventDefault();
-        var r = host.getBoundingClientRect();
-        var ox = e.clientX - r.left, oy = e.clientY - r.top;
-        function move(ev) {
-          var w = host.offsetWidth, h = host.offsetHeight;
-          var x = Math.max(8, Math.min(window.innerWidth - w - 8, ev.clientX - ox));
-          var y = Math.max(48, Math.min(window.innerHeight - h - 8, ev.clientY - oy));
-          host.style.left = x + "px";
-          host.style.top = y + "px";
-          host.style.bottom = "auto";
-          host.style.transform = "none";
-          localStorage.setItem("kq-player-pos", JSON.stringify({ x: x, y: y }));
-        }
-        function up() {
-          window.removeEventListener("pointermove", move);
-          window.removeEventListener("pointerup", up);
-        }
-        window.addEventListener("pointermove", move);
-        window.addEventListener("pointerup", up);
-      };
+    if (document.body && document.body.getAttribute("data-skin") === "gossip") setupDrag();
+  }
+
+  function setupDrag() {
+    var host = document.getElementById("kq-player");
+    if (!host || host.getAttribute("data-drag") === "1") return;
+    host.setAttribute("data-drag", "1");
+    var drag = document.getElementById("kq-p-drag");
+    if (!drag) {
+      drag = document.createElement("button");
+      drag.type = "button";
+      drag.id = "kq-p-drag";
+      drag.textContent = "⋮⋮";
+      drag.setAttribute("aria-label", "переместить");
+      host.insertBefore(drag, host.firstChild);
     }
+    function place(x, y) {
+      var w = host.offsetWidth || 180;
+      var h = host.offsetHeight || 48;
+      x = Math.max(8, Math.min(window.innerWidth - w - 8, x));
+      y = Math.max(48, Math.min(window.innerHeight - h - 8, y));
+      host.style.left = x + "px";
+      host.style.top = y + "px";
+      host.style.right = "auto";
+      host.style.bottom = "auto";
+      host.style.transform = "none";
+      localStorage.setItem("kq-player-pos", JSON.stringify({ x: x, y: y }));
+    }
+    try {
+      var saved = JSON.parse(localStorage.getItem("kq-player-pos") || "null");
+      if (saved && typeof saved.x === "number") place(saved.x, saved.y);
+    } catch (e) {}
+    drag.addEventListener("pointerdown", function (e) {
+      if (e.button != null && e.button !== 0) return;
+      e.preventDefault();
+      e.stopPropagation();
+      drag.setPointerCapture(e.pointerId);
+      var r = host.getBoundingClientRect();
+      var ox = e.clientX - r.left;
+      var oy = e.clientY - r.top;
+      function move(ev) { place(ev.clientX - ox, ev.clientY - oy); }
+      function up(ev) {
+        drag.removeEventListener("pointermove", move);
+        drag.removeEventListener("pointerup", up);
+        try { drag.releasePointerCapture(ev.pointerId); } catch (err) {}
+      }
+      drag.addEventListener("pointermove", move);
+      drag.addEventListener("pointerup", up);
+    });
   }
 
   async function loadTracks() {
