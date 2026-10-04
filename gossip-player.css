@@ -1,5 +1,9 @@
 body[data-skin="gossip"] #kq-player { bottom: 92px; }
-body[data-skin="gossip"] #kq-p-drag { cursor: grab; background: transparent; min-width: 16px; }
+body[data-skin="gossip"] #kq-p-drag {
+  cursor: grab; background: transparent; color: #f0c9d6; min-width: 22px; z-index: 6;
+  pointer-events: auto; touch-action: none;
+}
+body[data-skin="gossip"] #kq-player.empty #kq-p-drag { opacity: 1; pointer-events: auto; }
 body[data-skin="gossip"] #kq-player[data-skin="vinyl"] {
   width: 240px; height: 176px; padding: 0; border: 0; background: transparent; box-shadow: none; border-radius: 0;
 }
@@ -19,14 +23,8 @@ body[data-skin="gossip"] #kq-player[data-skin="vinyl"] #kq-p-vol { display: none
 body[data-skin="gossip"] #kq-player.playing[data-skin="vinyl"] .kq-vinyl { animation: spin 3.6s linear infinite; }
 body[data-skin="gossip"] #kq-player:not(.playing)[data-skin="vinyl"] .kq-vinyl { animation: none; }
 body[data-skin="gossip"] #kq-player[data-skin="cassette"] {
-  width: 240px; height: 150px; padding: 96px 8px 0; border: 0; background: transparent url("cassette.png") center / contain no-repeat;
-  box-shadow: none; border-radius: 0; color: #3a2030;
+  width: 240px; height: 160px; padding: 118px 8px 0; border: 0; border-radius: 0;
+  background: transparent url("cassette.png") center top / contain no-repeat;
+  box-shadow: none; color: #3a2030;
 }
-body[data-skin="gossip"] #kq-player[data-skin="cassette"] .kq-reel {
-  display: block; position: absolute; width: 34px; height: 34px; border-radius: 50%; top: 52px;
-  background: repeating-conic-gradient(#3a2030 0 12deg, transparent 12deg 24deg);
-}
-body[data-skin="gossip"] #kq-player[data-skin="cassette"] .kq-reel.l { left: 52px; }
-body[data-skin="gossip"] #kq-player[data-skin="cassette"] .kq-reel.r { right: 52px; }
-body[data-skin="gossip"] #kq-player.playing[data-skin="cassette"] .kq-reel { animation: spin 1.4s linear infinite; }
-body[data-skin="gossip"] #kq-player:not(.playing)[data-skin="cassette"] .kq-reel { animation: none; }
+body[data-skin="gossip"] #kq-player[data-skin="cassette"] .kq-reel { display: none; }
