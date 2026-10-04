@@ -11,8 +11,12 @@
 <link rel="stylesheet" href="kinqsy-finish.css">
 <style>
 * { box-sizing: border-box; }
-html, body { margin: 0; background: #000; }
-body { color: #f4e3ea; font-family: Georgia, serif; }
+html, body { margin: 0; background: #000; min-height: 100%; }
+body { color: #f4e3ea; font-family: Georgia, serif; display: flex !important; flex-direction: column !important; min-height: 100vh; }
+.page { flex: 1 0 auto; width: 100%; }
+.kq-bottom, .g-bottom { width: 100vw; max-width: none; margin-top: auto; margin-left: calc(50% - 50vw); background: #000; position: relative; z-index: 4; }
+.kq-title, .gossip-title { color: #f6dce8; text-shadow: none; }
+.kq-tagline { color: #f0c9d6; }
 ::selection { background: rgba(240,201,214,.9); color: #3a2030; }
 
 /* ---------- верхнее меню (как на других страницах, чуть плотнее на тёмном фоне) ---------- */
@@ -172,7 +176,7 @@ input::placeholder, textarea::placeholder { color: rgba(244,227,234,.5); }
   letter-spacing: .08em; text-transform: uppercase; background: #e8a0b8; color: #3a2030;
 }
 /* нижняя шторка: на всю ширину окна (вне контейнера .page), без соцсетей */
-.g-bottom { position: relative; z-index: 5; margin-top: 8px; }
+.g-bottom { position: relative; z-index: 5; width: 100%; max-width: none; margin-top: auto; }
 .g-bottom footer { display: block; min-height: 0; padding: 4px 16px 76px; text-align: center; letter-spacing: .12em; }
 .g-bottom .support-line a { letter-spacing: .16em; }
 #g-board { position: relative; min-height: 280px; margin: 8px 0 12px; border-radius: 14px; background: rgba(255,255,255,.06); border: 1px dashed rgba(240,201,214,.35); overflow: hidden; }
@@ -412,8 +416,17 @@ async function loadFeed() {
   }
   var q = sb.from("gossip_cards")
     .select("id, title, content, gossip_category, visibility, author_mode, author_alias, author_id, author_label, comments_enabled, created_at")
-    .order("created_at", { ascending: false }).limit(40);
-  if (filterCat) q = q.eq("gossip_category", filterCat);
+    .order("created_at", { ascending: false });
+  var topic = window.gossipActiveTopic && window.gossipActiveTopic();
+  if (topic && topic.id) {
+    var lab = await sb.from("gossip_topic_labels").select("post_id").eq("topic_id", topic.id);
+    var ids = (lab.data || []).map(function (r) { return r.post_id; });
+    if (!ids.length) { feed.innerHTML = '<div class="soft">в этой теме пока пусто</div>'; return; }
+    q = q.in("id", ids);
+  } else {
+    q = q.limit(40);
+    if (filterCat) q = q.eq("gossip_category", filterCat);
+  }
   var res = await q;
   if (res.error) { feed.innerHTML = '<div class="soft">' + esc(friendlyError(res.error, "gossip сейчас не загружается")) + '</div>'; return; }
   var rows = res.data || [];
@@ -442,10 +455,7 @@ async function loadFeed() {
     card.className = "card";
     card.id = "g-" + row.id;
     card.innerHTML =
-      '<div class="meta">' + (canLink ? '<a href="about.html?u=' + encodeURIComponent(row.author_id) + '">' + who + '</a>' : who) +
-      ' · ' + esc(CAT_LABELS[row.gossip_category] || "") +
-      ' · ' + esc(VIS_LABELS[row.visibility] || "") +
-      ' · ' + esc(fmtDate(row.created_at)) + (mine ? ' · твоя запись' : '') + '</div>' +
+      '<div class="meta"><span class="g-who"></span> <span class="g-cat"></span> <span class="g-topic"></span> <span class="g-vis"></span></div>' +
       '<h3>' + esc(row.title || "без названия") + '</h3>' +
       '<div class="body">' + esc(row.content || "") + '</div>' +
       '<div class="row" style="margin-top:8px">' +
@@ -455,6 +465,10 @@ async function loadFeed() {
       '</div>' +
       '<div class="comments" data-comments="' + Number(row.id) + '" data-enabled="' + (enabled ? "1" : "0") + '"></div>';
     feed.appendChild(card);
+    card.querySelector(".g-who").textContent = who + " · " + fmtDate(row.created_at) + (mine ? " · твоя запись" : "");
+    card.querySelector(".g-cat").textContent = CAT_LABELS[row.gossip_category] || "";
+    card.querySelector(".g-vis").textContent = VIS_LABELS[row.visibility] || "";
+    card.dataset.cat = row.gossip_category || "";
     applyReact(card, reactBy[row.id]);
     var box = card.querySelector("[data-comments]");
     if (cRes.error) box.innerHTML = '<div class="soft">комментарии временно недоступны</div>';
@@ -597,7 +611,7 @@ document.getElementById("g-publish").onclick = async function () {
     category: "gossip",
     title: title,
     content: text,
-    gossip_category: document.getElementById("g-cat").value,
+    gossip_category: (document.getElementById("g-topic-id") && document.getElementById("g-topic-id").value) ? "random" : document.getElementById("g-cat").value,
     author_mode: mode,
     author_alias: mode === "alias" ? alias : null,
     visibility: vis,
@@ -609,13 +623,8 @@ document.getElementById("g-publish").onclick = async function () {
   if (!row.topic_id) delete row.topic_id;
   btn.disabled = true;
   var res = await sb.from("posts").insert(row);
-  if (res.error && /decor|topic_id/i.test(res.error.message || "")) {
-    delete row.decor;
-    delete row.topic_id;
-    res = await sb.from("posts").insert(row);
-  }
   btn.disabled = false;
-  if (res.error) { err.textContent = friendlyError(res.error, "не получилось опубликовать"); return; }
+  if (res.error) { err.textContent = friendlyError(res.error, "не получилось опубликовать. тема и текст на месте"); return; }
   document.getElementById("g-title").value = "";
   document.getElementById("g-text").value = "";
   document.getElementById("g-alias").value = "";
