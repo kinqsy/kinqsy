@@ -1,5 +1,5 @@
 #kq-player {
-  position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%);
+  position: fixed; left: 50%; bottom: 88px; transform: translateX(-50%);
   z-index: 35;
   display: flex; gap: 8px; align-items: center;
   max-width: min(720px, calc(100vw - 24px));
@@ -10,6 +10,7 @@
   backdrop-filter: blur(18px);
   color: #1a0f14;
 }
+#kq-p-drag { cursor: grab; background: transparent; min-width: 18px; }
 #kq-player button {
   border: 0; background: rgba(255,255,255,.28);
   border-radius: 999px; min-width: 32px; height: 32px;
