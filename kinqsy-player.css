@@ -15,7 +15,7 @@
   border: 0; background: rgba(255,255,255,.28);
   border-radius: 999px; min-width: 32px; height: 32px;
 }
-#kq-player.empty button:not(#kq-p-lib),
+#kq-player.empty button:not(#kq-p-lib):not(#kq-p-drag),
 #kq-player.empty input { opacity: .35; pointer-events: none; }
 #kq-p-title { font-size: 12px; max-width: 140px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 #kq-p-seek { width: 140px; accent-color: #e8a0b8; }
