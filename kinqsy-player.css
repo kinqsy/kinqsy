@@ -36,11 +36,41 @@
   background: rgba(40,24,32,.45);
   color: #f6dce8;
 }
-#kq-music-lib {
-  position: fixed; inset: 0; z-index: 45;
-  display: none; align-items: center; justify-content: center;
-  background: rgba(20,10,16,.35);
+#kq-music-lib { position: fixed; inset: 0; z-index: 80; display: none; align-items: center; justify-content: center; background: rgba(12,5,8,.55); }
+.kq-lib-card { background: rgba(26,15,20,.92); color: #f6dce8; border-color: rgba(240,201,214,.35); }
+.kq-lib-card .hint, .kq-lib-row span { color: #f0c9d6; }
+#kq-player[data-skin="vinyl"] {
+  width: 220px; height: 168px; padding: 0; justify-content: center;
+  background: transparent; border: 0; box-shadow: none;
 }
+#kq-player[data-skin="vinyl"] .kq-vinyl {
+  display: block; position: absolute; left: 56px; top: 0; width: 108px; height: 108px; border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, #f0c9d6 0 12px, #1a0f14 13px 16px, #111 17px, #2a2a2a 18px, #111 22px, #333 23px, #111 28px, #2a2a2a 29px, #111 70%, #0a0a0a 71%);
+  box-shadow: 0 8px 24px rgba(0,0,0,.45);
+}
+#kq-player[data-skin="vinyl"] #kq-p-play { position: absolute; left: 94px; top: 38px; z-index: 2; border-radius: 50%; background: #f0c9d6; color: #3a2030; }
+#kq-player[data-skin="vinyl"] #kq-p-prev { position: absolute; left: 8px; top: 38px; }
+#kq-player[data-skin="vinyl"] #kq-p-next { position: absolute; right: 8px; top: 38px; }
+#kq-player[data-skin="vinyl"] #kq-p-title { position: absolute; top: 114px; left: 0; right: 0; text-align: center; max-width: none; }
+#kq-player[data-skin="vinyl"] #kq-p-lib { position: absolute; top: 136px; left: 70px; font-size: 11px; }
+#kq-player[data-skin="vinyl"] #kq-p-seek,
+#kq-player[data-skin="vinyl"] #kq-p-vol { display: none; }
+#kq-player[data-skin="vinyl"].playing .kq-vinyl { animation: spin 3.6s linear infinite; }
+#kq-player:not(.playing) .kq-vinyl { animation: none; }
+#kq-player[data-skin="cassette"] {
+  width: 220px; height: 138px; border-radius: 16px; padding: 78px 12px 8px;
+  background: transparent url("cassette.png") center / contain no-repeat;
+  border: 0; box-shadow: none; color: #3a2030;
+}
+#kq-player[data-skin="cassette"] .kq-reel {
+  display: block; position: absolute; width: 36px; height: 36px; border-radius: 50%;
+  border: 3px solid #f0c9d6; top: 48px; background: repeating-conic-gradient(#3a2030 0 12deg, transparent 12deg 24deg);
+}
+#kq-player[data-skin="cassette"] .kq-reel.l { left: 48px; }
+#kq-player[data-skin="cassette"] .kq-reel.r { right: 48px; }
+#kq-player[data-skin="cassette"].playing .kq-reel { animation: spin 1.4s linear infinite; }
+#kq-player[data-skin="cassette"] #kq-p-seek, #kq-player[data-skin="cassette"] #kq-p-vol { display: none; }
+
 .kq-lib-card {
   width: min(420px, calc(100vw - 24px));
   max-height: 80vh; overflow: auto;
