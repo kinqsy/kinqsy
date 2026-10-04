@@ -1,0 +1,32 @@
+body[data-skin="gossip"] #kq-player { bottom: 92px; }
+body[data-skin="gossip"] #kq-p-drag { cursor: grab; background: transparent; min-width: 16px; }
+body[data-skin="gossip"] #kq-player[data-skin="vinyl"] {
+  width: 240px; height: 176px; padding: 0; border: 0; background: transparent; box-shadow: none; border-radius: 0;
+}
+body[data-skin="gossip"] #kq-player[data-skin="vinyl"] .kq-vinyl {
+  position: absolute; left: 66px; top: 0; width: 108px; height: 108px; border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, #f0c9d6 0 12px, #1a0f14 13px 16px, #111 17px, #2a2a2a 18px, #111 22px, #333 23px, #111 28px, #2a2a2a 29px, #111 70%, #0a0a0a 71%);
+}
+body[data-skin="gossip"] #kq-player[data-skin="vinyl"] #kq-p-play {
+  position: absolute; left: 104px; top: 38px; z-index: 2; border-radius: 50%;
+}
+body[data-skin="gossip"] #kq-player[data-skin="vinyl"] #kq-p-prev { position: absolute; left: 12px; top: 38px; }
+body[data-skin="gossip"] #kq-player[data-skin="vinyl"] #kq-p-next { position: absolute; right: 12px; top: 38px; }
+body[data-skin="gossip"] #kq-player[data-skin="vinyl"] #kq-p-title { position: absolute; top: 116px; left: 0; right: 0; text-align: center; max-width: none; }
+body[data-skin="gossip"] #kq-player[data-skin="vinyl"] #kq-p-lib { position: absolute; top: 140px; left: 78px; }
+body[data-skin="gossip"] #kq-player[data-skin="vinyl"] #kq-p-seek,
+body[data-skin="gossip"] #kq-player[data-skin="vinyl"] #kq-p-vol { display: none; }
+body[data-skin="gossip"] #kq-player.playing[data-skin="vinyl"] .kq-vinyl { animation: spin 3.6s linear infinite; }
+body[data-skin="gossip"] #kq-player:not(.playing)[data-skin="vinyl"] .kq-vinyl { animation: none; }
+body[data-skin="gossip"] #kq-player[data-skin="cassette"] {
+  width: 240px; height: 150px; padding: 96px 8px 0; border: 0; background: transparent url("cassette.png") center / contain no-repeat;
+  box-shadow: none; border-radius: 0; color: #3a2030;
+}
+body[data-skin="gossip"] #kq-player[data-skin="cassette"] .kq-reel {
+  display: block; position: absolute; width: 34px; height: 34px; border-radius: 50%; top: 52px;
+  background: repeating-conic-gradient(#3a2030 0 12deg, transparent 12deg 24deg);
+}
+body[data-skin="gossip"] #kq-player[data-skin="cassette"] .kq-reel.l { left: 52px; }
+body[data-skin="gossip"] #kq-player[data-skin="cassette"] .kq-reel.r { right: 52px; }
+body[data-skin="gossip"] #kq-player.playing[data-skin="cassette"] .kq-reel { animation: spin 1.4s linear infinite; }
+body[data-skin="gossip"] #kq-player:not(.playing)[data-skin="cassette"] .kq-reel { animation: none; }
