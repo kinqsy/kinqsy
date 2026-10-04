@@ -175,7 +175,19 @@ input::placeholder, textarea::placeholder { color: rgba(244,227,234,.5); }
 .g-bottom { position: relative; z-index: 5; margin-top: 8px; }
 .g-bottom footer { display: block; min-height: 0; padding: 4px 16px 76px; text-align: center; letter-spacing: .12em; }
 .g-bottom .support-line a { letter-spacing: .16em; }
-.compose { scroll-margin-top: 62px; }
+#g-board { position: relative; min-height: 280px; margin: 8px 0 12px; border-radius: 14px; background: rgba(255,255,255,.06); border: 1px dashed rgba(240,201,214,.35); overflow: hidden; }
+.g-obj { position: absolute; box-sizing: border-box; padding: 4px; border: 1px dashed rgba(240,201,214,.4); overflow: hidden; touch-action: none; }
+.g-obj img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+.g-handle { position: absolute; right: 2px; bottom: 2px; width: 12px; height: 12px; background: #f0c9d6; border-radius: 2px; cursor: nwse-resize; }
+#g-topic-search, #g-topic-name { width: 100%; margin: 6px 0; padding: 6px 8px; border-radius: 10px; border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.1); color: #f6dce8; }
+body[data-skin="gossip"] #kq-music-lib { z-index: 80; }
+body[data-skin="gossip"] #kq-player[data-skin="vinyl"] { width: 92px; height: 92px; border-radius: 50%; padding: 0; justify-content: center; }
+body[data-skin="gossip"] #kq-player[data-skin="vinyl"] .kq-vinyl { width: 92px; height: 92px; position: absolute; }
+body[data-skin="gossip"] #kq-player[data-skin="vinyl"] #kq-p-play { position: relative; z-index: 2; border-radius: 50%; }
+body[data-skin="gossip"] #kq-player[data-skin="cassette"] { background: rgba(20,10,14,.2) url("cassette.png") center / contain no-repeat; min-width: 180px; min-height: 100px; color: #f6dce8; }
+body[data-skin="gossip"] #kq-player.playing[data-skin="vinyl"] .kq-vinyl { animation: spin 4s linear infinite; }
+body[data-skin="gossip"] #kq-player:not(.playing) .kq-vinyl { animation: none; }
+
 .card { scroll-margin-top: 62px; }
 </style>
 </head>
@@ -590,10 +602,18 @@ document.getElementById("g-publish").onclick = async function () {
     author_alias: mode === "alias" ? alias : null,
     visibility: vis,
     visible_to: vis === "selected" ? selected : null,
-    comments_enabled: document.getElementById("g-comments").checked
+    comments_enabled: document.getElementById("g-comments").checked,
+    topic_id: (document.getElementById("g-topic-id") && document.getElementById("g-topic-id").value) || null,
+    decor: window.gossipDecor ? window.gossipDecor() : null
   };
+  if (!row.topic_id) delete row.topic_id;
   btn.disabled = true;
   var res = await sb.from("posts").insert(row);
+  if (res.error && /decor|topic_id/i.test(res.error.message || "")) {
+    delete row.decor;
+    delete row.topic_id;
+    res = await sb.from("posts").insert(row);
+  }
   btn.disabled = false;
   if (res.error) { err.textContent = friendlyError(res.error, "не получилось опубликовать"); return; }
   document.getElementById("g-title").value = "";
@@ -612,6 +632,8 @@ document.getElementById("g-publish").onclick = async function () {
   });
   renderFilters();
   renderMostViewed([]);
+  var most = document.getElementById("g-most-list");
+  if (most && !most.textContent.trim()) most.innerHTML = '<div class="soft">нет статистики просмотров</div>';
 
   if (window.Kinqsy && Kinqsy.init) {
     // общий вход и «замок» Kinqsy, как на остальных страницах
@@ -629,5 +651,6 @@ document.getElementById("g-publish").onclick = async function () {
 })();
 </script>
 <script src="kinqsy-player.js"></script>
+<script src="gossip-extra.js"></script>
 </body>
 </html>
