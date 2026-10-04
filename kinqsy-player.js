@@ -8,7 +8,12 @@
     var s = await sb().auth.getSession();
     return s.data && s.data.session && s.data.session.user && s.data.session.user.id;
   }
-  function skin() { return localStorage.getItem("kq-player-skin") || "standard"; }
+  function skin() {
+    var s = localStorage.getItem("kq-player-skin") || "standard";
+    if (s === "mini") return "mini";
+    if (SKINS.indexOf(s) < 0) s = "standard";
+    return s;
+  }
   function setSkin(s) {
     localStorage.setItem("kq-player-skin", s);
     var el = document.getElementById("kq-player");
@@ -23,6 +28,7 @@
     el.setAttribute("data-skin", skin());
     el.innerHTML =
       '<div class="kq-vinyl" aria-hidden="true"></div>' +
+      '<i class="kq-reel l" aria-hidden="true"></i><i class="kq-reel r" aria-hidden="true"></i>' +
       '<button type="button" id="kq-p-prev" disabled>⟨</button>' +
       '<button type="button" id="kq-p-play" disabled>▶</button>' +
       '<button type="button" id="kq-p-next" disabled>⟩</button>' +
@@ -186,12 +192,15 @@
       row.innerHTML = "<span></span><button type='button'>▶</button><button type='button'>имя</button><button type='button'>удалить</button>";
       row.querySelector("span").textContent = t.title;
       row.children[1].onclick = function () { playAt(i); };
-      row.children[2].onclick = async function () {
-        var n = prompt("название", t.title);
-        if (!n) return;
-        await sb().from("tracks").update({ title: n }).eq("id", t.id);
-        openLib();
-      };
+      var input = document.createElement("input");
+        input.value = t.title;
+        input.maxLength = 80;
+        row.replaceChild(input, row.children[2]);
+        input.onblur = async function () {
+          var name = input.value.trim();
+          if (name && name !== t.title) await sb().from("tracks").update({ title: name }).eq("id", t.id);
+          openLib();
+        };
       row.children[3].onclick = async function () {
         await sb().storage.from("user-audio").remove([t.path]);
         await sb().from("tracks").delete().eq("id", t.id);
