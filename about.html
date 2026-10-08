@@ -106,7 +106,8 @@
         }
         .profile-layout {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) 240px;
+            grid-template-columns: minmax(0, 900px) 240px;
+            justify-content: start;
             gap: 22px;
             align-items: start;
         }
@@ -116,7 +117,7 @@
             gap: 22px;
             min-width: 0;
         }
-        .profile-main { max-width: 900px; }
+        #profile-main { width: 900px; max-width: 100%; }
         @media (max-width: 800px) {
             .profile-layout { grid-template-columns: 1fr; }
         }
