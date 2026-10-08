@@ -1,4 +1,21 @@
 (function () {
+  if (window.top !== window) {
+    document.addEventListener("click", function (e) {
+      var a = e.target && e.target.closest && e.target.closest("a[href]");
+      if (!a || a.target === "_blank" || a.hasAttribute("download")) return;
+      var href = a.getAttribute("href") || "";
+      if (!href || href.charAt(0) === "#" || /^https?:/i.test(href) || href.indexOf("mailto:") === 0) return;
+      if (href.indexOf(".html") < 0) return;
+      e.preventDefault();
+      window.top.postMessage({ type: "kq-nav", path: href }, location.origin);
+    });
+    return;
+  }
+  if (!/kinqsy-keep\.html$/.test(location.pathname)) {
+    var page = (location.pathname.split("/").pop() || "index.html") + location.search;
+    location.replace("kinqsy-keep.html?p=" + encodeURIComponent(page));
+    return;
+  }
   var MAX = 15 * 1024 * 1024;
   var OK = /\.(mp3|m4a|ogg|wav|aac)$/i;
   var SKINS = ["standard", "mini", "vinyl", "cassette"];
@@ -134,7 +151,7 @@
     };
     audio.onended = function () { playAt(idx + 1); };
     document.getElementById("kq-p-lib").onclick = openLib;
-    if (document.body && document.body.getAttribute("data-skin") === "gossip") setupDrag();
+    setupDrag();
   }
 
   function setupDrag() {
