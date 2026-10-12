@@ -1,45 +1,147 @@
-body[data-skin="gossip"] #kq-player { bottom: 92px; }
-body[data-skin="gossip"] #kq-p-drag {
-  cursor: grab; background: transparent; color: #f0c9d6; min-width: 22px; z-index: 6;
-  pointer-events: auto; touch-action: none;
+/* Kinqsy · Gossip · оформление плеера. Подключается ТОЛЬКО на gossip.html (все правила под body.gossip-page).
+   Логику воспроизведения (один <audio>, библиотека tracks, громкость, user-audio) даёт общий kinqsy-player.js — он не менялся.
+   Четыре оформления общего плеера: standard, mini, vinyl, cassette. Здесь они приведены к тёмному фону Gossip. */
+
+@keyframes gpSpin { to { transform: rotate(360deg); } }
+
+/* ---------- общая тёмная гамма (читаемость на тёмном фоне) ---------- */
+body.gossip-page #kq-player {
+  background: rgba(26,12,20,.78); border-color: rgba(240,201,214,.28); color: #f4e3ea;
+  box-shadow: 0 10px 30px rgba(0,0,0,.45);
 }
-body[data-skin="gossip"] #kq-player.empty #kq-p-drag { opacity: 1; pointer-events: auto; }
-body[data-skin="gossip"] #kq-p-title {
-  max-width: none;
-  overflow: visible;
-  text-overflow: clip;
-  white-space: nowrap;
+body.gossip-page #kq-player button {
+  background: rgba(240,201,214,.16); color: #f0c9d6; cursor: pointer; font-family: Arial, Helvetica, sans-serif;
+}
+body.gossip-page #kq-player button:hover:not(:disabled) { background: #f0c9d6; color: #3a2030; }
+body.gossip-page #kq-p-title { color: #f4e3ea; }
+
+/* ---------- библиотека ---------- */
+body.gossip-page #kq-music-lib { z-index: 1100; background: rgba(8,3,6,.62); }
+body.gossip-page .kq-lib-card {
+  background: rgba(30,14,22,.94); color: #f4e3ea; border-color: rgba(240,201,214,.28);
+  box-shadow: 0 20px 60px rgba(0,0,0,.6);
+}
+body.gossip-page .kq-lib-card h3 { margin: 0 0 6px; font-weight: normal; letter-spacing: .06em; color: #f0c9d6; }
+body.gossip-page .kq-lib-row button,
+body.gossip-page .kq-lib-card button,
+body.gossip-page .kq-lib-card input { background: rgba(240,201,214,.16); color: #f4e3ea; cursor: pointer; font: 13px Arial, Helvetica, sans-serif; }
+body.gossip-page .kq-lib-card button:hover { background: #f0c9d6; color: #3a2030; }
+body.gossip-page .kq-skins button.on { background: #f0c9d6; color: #3a2030; }
+body.gossip-page .kq-lib-row span { color: #f4e3ea; }
+body.gossip-page .kq-lib-card .hint { color: #f4e3ea; opacity: .75; }
+
+/* ---------- MINI: компактная таблетка + громкость (в общем плеере она скрыта) ---------- */
+body.gossip-page #kq-player[data-skin="mini"] #kq-p-vol { display: inline-block; width: 76px; accent-color: #e8a0b8; }
+
+/* ---------- CASSETTE: исходный PNG пользователя, без карточки и без белого фона ----------
+   Play — строго в центре кассеты; Prev слева, Next справа от неё, на её уровне. */
+body.gossip-page #kq-player[data-skin="cassette"] {
+  display: block; position: fixed; left: auto; right: 76px; bottom: 24px; transform: none;
+  width: min(380px, calc(100vw - 168px)); max-width: none; aspect-ratio: 1229 / 740; height: auto;
+  padding: 0; border: 0; border-radius: 0; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none;
+  /* показываем кассету целиком, без обрезки и растяжения: непрозрачная часть PNG — прямоугольник 1229×740 внутри файла 1536×1024 */
+  background: transparent url("gossip-cassette.png") 49.84% 58.8% / 124.98% auto no-repeat;
+  filter: drop-shadow(0 12px 22px rgba(0,0,0,.55));
+  container-type: inline-size; color: #6b1f3a;
+}
+body.gossip-page #kq-player[data-skin="cassette"] > * { position: absolute; margin: 0; }
+body.gossip-page #kq-player[data-skin="cassette"] #kq-p-title {
+  left: 11%; top: 11%; width: 78%; height: 9.5%; max-width: none; display: flex; align-items: center;
+  font: 3cqw/1.1 'Bad Script', Georgia, cursive; color: #6b1f3a; overflow: hidden; white-space: normal; word-break: break-word;
+}
+body.gossip-page #kq-player[data-skin="cassette"] #kq-p-seek { display: block; left: 12%; top: 60.5%; width: 52%; accent-color: #a8324f; }
+body.gossip-page #kq-player[data-skin="cassette"] #kq-p-vol  { display: block; left: 68%; top: 60.5%; width: 21%; accent-color: #a8324f; }
+body.gossip-page #kq-player[data-skin="cassette"] button:not(#kq-p-lib) {
+  display: flex; align-items: center; justify-content: center; padding: 0; min-width: 0; line-height: 1;
+  border-radius: 50%; background: rgba(255,255,255,.72); color: #6b1f3a; border: 1px solid rgba(107,31,58,.4);
+  box-shadow: 0 2px 8px rgba(0,0,0,.3);
+}
+body.gossip-page #kq-player[data-skin="cassette"] #kq-p-play {
+  left: 50%; top: 50%; transform: translate(-50%, -50%); width: 11.5cqw; height: 11.5cqw; font-size: 4.4cqw; z-index: 3;
+}
+body.gossip-page #kq-player[data-skin="cassette"] #kq-p-prev,
+body.gossip-page #kq-player[data-skin="cassette"] #kq-p-next {
+  top: 50%; transform: translateY(-50%); width: 40px; height: 40px; font-size: 16px;
+  background: rgba(26,12,20,.82); color: #f0c9d6; border: 1px solid rgba(240,201,214,.4);
+}
+body.gossip-page #kq-player[data-skin="cassette"] #kq-p-prev { left: -54px; }
+body.gossip-page #kq-player[data-skin="cassette"] #kq-p-next { right: -54px; }
+body.gossip-page #kq-player[data-skin="cassette"] #kq-p-lib {
+  left: 50%; top: 79.5%; transform: translateX(-50%); height: auto; min-width: 0; padding: 5px 16px; white-space: nowrap;
+  border-radius: 999px; background: rgba(255,255,255,.78); color: #6b1f3a; border: 1px solid rgba(107,31,58,.4);
+  font: max(11px, 2.9cqw)/1.25 Georgia, serif;
+}
+/* катушки: прозрачные накладки только во время воспроизведения; на паузе кассета выглядит как исходный PNG */
+.gp-reel { display: none; }
+body.gossip-page #kq-player[data-skin="cassette"] .gp-reel {
+  display: block; width: 10cqw; height: 10cqw; top: calc(43.2% - 5cqw); border-radius: 50%; pointer-events: none;
+  background: repeating-conic-gradient(rgba(168,50,79,.5) 0 12deg, rgba(168,50,79,0) 12deg 60deg);
+  opacity: 0; transition: opacity .25s;
+}
+body.gossip-page #kq-player[data-skin="cassette"] .gp-reel-l { left: calc(29.5% - 5cqw); }
+body.gossip-page #kq-player[data-skin="cassette"] .gp-reel-r { left: calc(71.4% - 5cqw); }
+body.gossip-page #kq-player[data-skin="cassette"].playing .gp-reel { opacity: .7; animation: gpSpin 2.2s linear infinite; }
+@media (max-width: 560px) {
+  body.gossip-page #kq-player[data-skin="cassette"] { right: 12px; bottom: 66px; width: calc(100vw - 24px); }
+  body.gossip-page #kq-player[data-skin="cassette"] #kq-p-prev,
+  body.gossip-page #kq-player[data-skin="cassette"] #kq-p-next { top: calc(100% + 8px); transform: none; }
+  body.gossip-page #kq-player[data-skin="cassette"] #kq-p-prev { left: 8%; }
+  body.gossip-page #kq-player[data-skin="cassette"] #kq-p-next { right: 8%; }
 }
 
-body[data-skin="gossip"] #kq-player[data-skin="vinyl"] {
-  width: 240px; height: 176px; padding: 0; border: 0; background: transparent; box-shadow: none; border-radius: 0;
+/* ---------- VINYL: пластинка, центральная кнопка и общая композиция — без изменений;
+              ползунок перемотки и громкость вынесены ПОД пластинку (не поверх неё) ---------- */
+body.gossip-page #kq-player[data-skin="vinyl"] {
+  display: block; position: fixed; left: auto; right: 76px; bottom: 76px; transform: none;
+  width: 168px; height: 168px; max-width: none; padding: 0; border: 0; border-radius: 50%;
+  background: none; box-shadow: none; backdrop-filter: none; color: #f4e3ea;
 }
-body[data-skin="gossip"] #kq-player[data-skin="vinyl"] .kq-vinyl {
-  position: absolute; left: 66px; top: 0; width: 108px; height: 108px; border-radius: 50%;
-  background: radial-gradient(circle at 50% 50%, #f0c9d6 0 12px, #1a0f14 13px 16px, #111 17px, #2a2a2a 18px, #111 22px, #333 23px, #111 28px, #2a2a2a 29px, #111 70%, #0a0a0a 71%);
+body.gossip-page #kq-player[data-skin="vinyl"] > * { position: absolute; margin: 0; }
+body.gossip-page #kq-player[data-skin="vinyl"] .kq-vinyl {
+  display: block; inset: 0; width: auto; height: auto; border-radius: 50%; pointer-events: none;
+  background:
+    radial-gradient(circle closest-side at 50% 50%, #0b0b0d 0 4%, transparent 4.4%),
+    radial-gradient(circle 3px at 50% 33%, #fff 96%, transparent 100%),
+    radial-gradient(circle closest-side at 50% 50%, transparent 0 40%, #1a1a1d 40.4% 43%, transparent 43.4%),
+    radial-gradient(circle closest-side at 50% 50%, #c9567c 0 40%, transparent 40.4%),
+    repeating-radial-gradient(circle closest-side at 50% 50%, #121214 0 1.2px, #212126 1.3px 2.6px),
+    conic-gradient(from 25deg, #1b1b1f, #2c2c33 12%, #141417 28%, #2c2c33 52%, #141417 70%, #28282e 88%, #1b1b1f);
+  box-shadow: 0 10px 30px rgba(0,0,0,.6), inset 0 0 0 2px rgba(255,255,255,.07);
+  animation: gpSpin 3.2s linear infinite; animation-play-state: paused;
 }
-body[data-skin="gossip"] #kq-player[data-skin="vinyl"] #kq-p-play {
-  position: absolute; left: 104px; top: 38px; z-index: 2; border-radius: 50%;
+/* вращение по часовой стрелке; пауза замораживает текущий угол (без скачка назад) */
+body.gossip-page #kq-player[data-skin="vinyl"].playing .kq-vinyl { animation: gpSpin 3.2s linear infinite; animation-play-state: running; }
+body.gossip-page #kq-player[data-skin="vinyl"] #kq-p-play {
+  left: 50%; top: 50%; transform: translate(-50%, -50%); width: 48px; height: 48px; min-width: 0; padding: 0;
+  border-radius: 50%; background: rgba(14,5,10,.88); color: #f0c9d6; border: 1px solid rgba(240,201,214,.5);
+  font-size: 18px; z-index: 3;
 }
-body[data-skin="gossip"] #kq-player[data-skin="vinyl"] #kq-p-prev { position: absolute; left: 12px; top: 38px; }
-body[data-skin="gossip"] #kq-player[data-skin="vinyl"] #kq-p-next { position: absolute; right: 12px; top: 38px; }
-body[data-skin="gossip"] #kq-player[data-skin="vinyl"] #kq-p-title { position: absolute; top: 116px; left: 0; right: 0; text-align: center; max-width: none; overflow: visible; text-overflow: clip; }
-body[data-skin="gossip"] #kq-player[data-skin="vinyl"] #kq-p-lib { position: absolute; top: 140px; left: 78px; }
-body[data-skin="gossip"] #kq-player[data-skin="vinyl"] #kq-p-seek {
-  display: block;
-  position: absolute;
-  left: 8px;
-  top: 148px;
-  width: 64px;
-  margin: 0;
+body.gossip-page #kq-player[data-skin="vinyl"] #kq-p-prev,
+body.gossip-page #kq-player[data-skin="vinyl"] #kq-p-next {
+  top: 50%; transform: translateY(-50%); width: 40px; height: 40px; min-width: 0; padding: 0; border-radius: 50%;
+  background: rgba(26,12,20,.82); border: 1px solid rgba(240,201,214,.35); font-size: 16px;
 }
-body[data-skin="gossip"] #kq-player[data-skin="vinyl"] #kq-p-vol { display: none; }
-body[data-skin="gossip"] #kq-player.playing[data-skin="vinyl"] .kq-vinyl { animation: spin 3.6s linear infinite; }
-body[data-skin="gossip"] #kq-player:not(.playing)[data-skin="vinyl"] .kq-vinyl { animation: none; }
+body.gossip-page #kq-player[data-skin="vinyl"] #kq-p-prev { left: -52px; }
+body.gossip-page #kq-player[data-skin="vinyl"] #kq-p-next { right: -52px; }
+body.gossip-page #kq-player[data-skin="vinyl"] #kq-p-title {
+  left: 50%; bottom: calc(100% + 10px); transform: translateX(-50%); width: max-content; max-width: min(300px, 90vw);
+  padding: 4px 12px; border-radius: 999px; background: rgba(20,8,14,.72); text-align: center; font-size: 12px;
+  overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+}
+/* нижняя часть композиции: перемотка на всю ширину под пластинкой, ниже — громкость и библиотека */
+body.gossip-page #kq-player[data-skin="vinyl"] #kq-p-seek { left: 0; top: calc(100% + 10px); width: 168px; }
+body.gossip-page #kq-player[data-skin="vinyl"] #kq-p-vol  { left: 0; top: calc(100% + 36px); width: 84px; }
+body.gossip-page #kq-player[data-skin="vinyl"] #kq-p-lib {
+  right: 0; top: calc(100% + 32px); height: auto; min-width: 0; padding: 4px 14px; font-size: 12px; line-height: 1.25; white-space: nowrap;
+  background: rgba(26,12,20,.82); border: 1px solid rgba(240,201,214,.35);
+}
 
-body[data-skin="gossip"] #kq-player[data-skin="cassette"] {
-  width: 240px; height: 160px; padding: 118px 8px 0; border: 0; border-radius: 0;
-  background: transparent url("cassette.png") center top / contain no-repeat;
-  box-shadow: none; color: #3a2030;
+/* сообщение об ошибке в названии трека */
+body.gossip-page #kq-p-title.gp-err { color: #ff9fb8; }
+
+@media (prefers-reduced-motion: reduce) {
+  body.gossip-page #kq-player[data-skin="vinyl"] .kq-vinyl,
+  body.gossip-page #kq-player[data-skin="vinyl"].playing .kq-vinyl,
+  body.gossip-page #kq-player[data-skin="cassette"].playing .gp-reel { animation: none; }
+  body.gossip-page #kq-player[data-skin="cassette"].playing .gp-reel { opacity: 0; }
 }
-body[data-skin="gossip"] #kq-player[data-skin="cassette"] .kq-reel { display: none; }
