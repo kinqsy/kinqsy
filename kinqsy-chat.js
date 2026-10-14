@@ -61,7 +61,7 @@
     var box = document.createElement("section");
     box.id = "kq-msgr";
     box.className = "profile-module";
-    box.innerHTML = '<h3>messages</h3><input type="search" id="kq-msgr-q" placeholder="поиск друга"><div id="kq-msgr-list"></div><p id="kq-msgr-empty"></p><p id="kq-msgr-err"></p>';
+    box.innerHTML = '<h3>messages <span id="kq-msgr-note"></span></h3><input type="search" id="kq-msgr-q" placeholder="поиск друга"><div id="kq-msgr-list"></div><p id="kq-msgr-empty"></p><p id="kq-msgr-err"></p>';
     if (host.id === "profile-side") host.appendChild(box);
     else { box.style.cssText = "position:fixed;right:16px;bottom:16px;width:240px;z-index:70"; document.body.appendChild(box); }
     document.getElementById("kq-msgr-q").oninput = paint;
@@ -109,6 +109,8 @@
     drawWin(sid, otherId, name || "друг");
     listen(sid, otherId);
     await sb().rpc("mark_chat_seen", { sid: sid });
+    await sb().from("notifications").update({ read: true }).eq("user_id", uid).eq("kind", "chat").eq("read", false);
+    noteCount();
   };
 
   function drawWin(sid, otherId, name) {
@@ -216,13 +218,22 @@
     });
   }
 
+  async function noteCount() {
+    var uid = await me();
+    var el = document.getElementById("kq-msgr-note");
+    if (!uid || !el) return;
+    var { count } = await sb().from("notifications").select("id", { count: "exact", head: true }).eq("user_id", uid).eq("kind", "chat").eq("read", false);
+    el.textContent = count ? "(" + count + ")" : "";
+  }
+
   async function boot() {
     var uid = await me();
     if (!uid) return;
     mount();
     await loadFriends();
     await paint();
-    setInterval(function () { paint(); }, 15000);
+    await noteCount();
+    setInterval(function () { paint(); noteCount(); }, 15000);
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
