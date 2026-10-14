@@ -940,6 +940,21 @@ a, button, .star, .top-menu .star, input, textarea, .react-btn, .post-menu butto
     <label for="compose-media-file">или с устройства</label>
     <input id="compose-media-file" type="file" accept="image/*,.gif">
     <img id="compose-preview" alt="" style="display:none;max-width:100%;border-radius:12px;margin-top:8px">
+    <div class="kq-flow-tools">
+      <select id="compose-wrap" title="обтекание">
+        <option value="square">квадрат</option>
+        <option value="inline">в тексте</option>
+        <option value="contour">по контуру</option>
+        <option value="topbottom">сверху и снизу</option>
+        <option value="front">перед текстом</option>
+        <option value="behind">за текстом</option>
+      </select>
+      <select id="compose-align" title="сторона">
+        <option value="right">справа</option>
+        <option value="left">слева</option>
+      </select>
+      <label>отступ <input id="compose-gap" type="number" min="0" max="40" value="10" style="width:64px"></label>
+    </div>
         <div class="auth-actions">
             <button type="button" id="compose-publish">опубликовать</button>
             <button type="button" id="compose-close" class="secondary">закрыть</button>
@@ -1252,9 +1267,10 @@ if (mediaFileInput && mediaUrlInput && preview) {
         location.reload();
     };
     if (window.kqSyncBoard) {
-  ["compose-title","compose-content","compose-media-url"].forEach(function(id){
+  ["compose-title","compose-content","compose-media-url","compose-wrap","compose-align","compose-gap"].forEach(function(id){
     var el = document.getElementById(id);
     if (el) el.addEventListener("input", window.kqSyncBoard);
+    if (el) el.addEventListener("change", window.kqSyncBoard);
   });
 }
     var sizeWrap = document.getElementById("compose-live-title");
@@ -1421,6 +1437,7 @@ document.addEventListener("dragstart", function (e) {
 </div>
 
 <script src="./notes-supabase.js"></script>
+<link rel="stylesheet" href="notes-flow.css">
 <script src="kinqsy-stickers.js"></script>
 <script src="kinqsy-player.js"></script>
 <script src="kinqsy-chat.js"></script>
