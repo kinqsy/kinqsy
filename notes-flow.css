@@ -1,0 +1,95 @@
+.kq-flow { position: relative; display: flow-root; min-height: 0; }
+.kq-flow-title { display: block; margin: 0 0 8px; max-width: 100%; }
+.kq-flow-body { display: flow-root; position: relative; }
+.kq-flow-body .kq-body {
+  position: relative;
+  z-index: 1;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.kq-obj {
+  box-sizing: border-box;
+  max-width: 46%;
+  height: auto;
+  border-radius: 10px;
+}
+.kq-obj[data-wrap="square"],
+.kq-obj[data-wrap="contour"] {
+  float: right;
+  width: var(--obj-w, 36%);
+  margin: 0 0 var(--obj-gap, 10px) var(--obj-gap, 10px);
+  shape-outside: margin-box;
+}
+.kq-obj[data-wrap="square"][data-align="left"],
+.kq-obj[data-wrap="contour"][data-align="left"] {
+  float: left;
+  margin: 0 var(--obj-gap, 10px) var(--obj-gap, 10px) 0;
+}
+.kq-obj[data-wrap="inline"] {
+  display: inline-block;
+  float: none;
+  width: var(--obj-w, 32%);
+  vertical-align: middle;
+  margin: 0 var(--obj-gap, 8px);
+}
+.kq-obj[data-wrap="topbottom"] {
+  display: block;
+  float: none;
+  clear: both;
+  width: min(100%, var(--obj-w, 70%));
+  max-width: 100%;
+  margin: var(--obj-gap, 10px) auto;
+}
+.kq-obj[data-wrap="front"],
+.kq-obj[data-wrap="behind"] {
+  position: absolute;
+  left: var(--obj-x, 8%);
+  top: var(--obj-y, 24px);
+  width: var(--obj-w, 36%);
+  pointer-events: none;
+}
+.kq-obj[data-wrap="front"] { z-index: 4; }
+.kq-obj[data-wrap="behind"] { z-index: 0; }
+.kq-obj.kq-sticker-node {
+  width: auto;
+  max-width: 46%;
+  margin: 0;
+  background: transparent;
+  white-space: pre;
+}
+.kq-flow-tools {
+  display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0;
+}
+.kq-flow-tools select, .kq-flow-tools input {
+  border: 1px solid rgba(255,255,255,.4);
+  background: rgba(255,255,255,.28);
+  border-radius: 999px;
+  padding: 4px 8px;
+  color: #3a2030;
+  font: inherit;
+}
+.post .kq-canvas.kq-flow,
+.post .kq-canvas.kq-flow .post-title,
+.post .kq-canvas.kq-flow .post-content,
+.post .kq-canvas.kq-flow .post-media {
+  position: relative !important;
+  left: auto !important;
+  top: auto !important;
+  width: auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-width: 100% !important;
+  overflow: visible !important;
+}
+.post .kq-canvas.kq-flow .kq-obj[data-wrap="front"],
+.post .kq-canvas.kq-flow .kq-obj[data-wrap="behind"] {
+  position: absolute !important;
+  left: var(--obj-x) !important;
+  top: var(--obj-y) !important;
+  width: var(--obj-w) !important;
+}
+
+  .kq-obj[data-wrap="square"],
+  .kq-obj[data-wrap="contour"] { width: min(46%, 160px); }
+}
