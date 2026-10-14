@@ -504,8 +504,17 @@ function kqWrapSpec(spec) {
 }
 
 function kqStyleObj(el, spec) {
+  spec = spec || {};
+  var hasWrap = !!spec.wrap;
   var s = kqWrapSpec(spec);
   el.classList.add("kq-obj");
+  if (!hasWrap) {
+    el.dataset.wrap = "behind";
+    el.style.setProperty("--obj-x", (spec.x != null ? spec.x : 8) + "%");
+    el.style.setProperty("--obj-y", Math.round((spec.y != null ? spec.y : 24) / 100 * 360) + "px");
+    el.style.setProperty("--obj-w", (spec.w || 32) + "%");
+    return;
+  }
   el.dataset.wrap = s.wrap === "contour" ? "contour" : s.wrap;
   el.dataset.align = s.align;
   el.style.setProperty("--obj-w", s.w + "%");
@@ -546,16 +555,17 @@ window.kqRenderFlow = function (host, opts) {
   title.className = "kq-flow-title";
   title.textContent = opts.title || "";
   if (opts.titleStyle) title.setAttribute("style", opts.titleStyle);
-  kqPlaceBlock(title, opts.titleSpec || (window.kqBoard && window.kqBoard.title));
+  kqPlaceBlock(title, opts.titleSpec);
+  if (opts.titleSpec && opts.titleSpec.size) title.style.fontSize = opts.titleSpec.size + "px";
   host.appendChild(title);
   var body = document.createElement("div");
   body.className = "kq-flow-body";
-  kqPlaceBlock(body, opts.bodySpec || (window.kqBoard && window.kqBoard.body));
+  kqPlaceBlock(body, opts.bodySpec);
   if (opts.mediaSrc) {
     var img = document.createElement("img");
     img.alt = "";
     img.src = opts.mediaSrc;
-    kqStyleObj(img, opts.media || window.kqBoard.media);
+    kqStyleObj(img, opts.media || { wrap: "square", align: "right", w: 36, gap: 10 });
     body.appendChild(img);
   }
   (opts.stickers || []).forEach(function (node) {
@@ -662,7 +672,7 @@ window.kqDecorPayload = function () {
 };
 
 window.kqMountDecor = function (host, decor) {
-  if (!host) return;
+  if (!host || !decor) return;
   var stickers = [];
   var board = null;
   if (Array.isArray(decor)) stickers = decor;
@@ -673,15 +683,19 @@ window.kqMountDecor = function (host, decor) {
   var titleEl = host.querySelector(".post-title");
   var bodyEl = host.querySelector(".post-content");
   var mediaEl = host.querySelector(".post-media img");
+  var titleStyle = titleEl ? (titleEl.getAttribute("style") || "") : "";
+  if (board && board.title && board.title.size && titleStyle.indexOf("font-size") < 0) {
+    titleStyle += ";font-size:" + board.title.size + "px";
+  }
   window.kqRenderFlow(host, {
     title: titleEl ? titleEl.textContent : "",
     body: bodyEl ? bodyEl.textContent : "",
     mediaSrc: mediaEl ? mediaEl.src : "",
-    media: (board && board.media) || { wrap: "square", align: "right", w: 36, gap: 10 },
+    media: (board && board.media) || null,
     titleSpec: board && board.title,
     bodySpec: board && board.body,
     stickers: stickers,
-    titleStyle: titleEl ? titleEl.getAttribute("style") : "",
+    titleStyle: titleStyle,
     bodyStyle: bodyEl ? bodyEl.getAttribute("style") : ""
   });
 };
