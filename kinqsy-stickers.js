@@ -526,6 +526,17 @@ window.kqReadWrap = function () {
   if (gap) window.kqBoard.media.gap = Number(gap.value) || 0;
 };
 
+function kqPlaceBlock(el, spec) {
+  if (!el || !spec) return;
+  var x = Math.max(0, Math.min(80, Number(spec.x) || 0));
+  var w = Math.max(20, Math.min(100 - x, Number(spec.w) || (100 - x)));
+  el.style.marginLeft = x + "%";
+  el.style.width = w + "%";
+  el.style.maxWidth = (100 - x) + "%";
+  el.style.boxSizing = "border-box";
+  if (spec.y != null) el.style.marginTop = Math.round(Number(spec.y) / 100 * 280) + "px";
+}
+
 window.kqRenderFlow = function (host, opts) {
   if (!host) return;
   opts = opts || {};
@@ -535,9 +546,11 @@ window.kqRenderFlow = function (host, opts) {
   title.className = "kq-flow-title";
   title.textContent = opts.title || "";
   if (opts.titleStyle) title.setAttribute("style", opts.titleStyle);
+  kqPlaceBlock(title, opts.titleSpec || (window.kqBoard && window.kqBoard.title));
   host.appendChild(title);
   var body = document.createElement("div");
   body.className = "kq-flow-body";
+  kqPlaceBlock(body, opts.bodySpec || (window.kqBoard && window.kqBoard.body));
   if (opts.mediaSrc) {
     var img = document.createElement("img");
     img.alt = "";
@@ -564,7 +577,51 @@ window.kqRenderFlow = function (host, opts) {
   if (opts.bodyStyle) text.setAttribute("style", opts.bodyStyle);
   body.appendChild(text);
   host.appendChild(body);
+  if (opts.interactive) {
+    kqDragBlock(title, window.kqBoard.title, host);
+    kqDragBlock(body, window.kqBoard.body, host);
+  }
 };
+
+function kqDragBlock(el, spec, host) {
+  if (!el || !spec) return;
+  el.style.cursor = "grab";
+  var dragging = false;
+  function pos(ev) {
+    var p = ev.touches ? ev.touches[0] : ev;
+    var box = host.getBoundingClientRect();
+    return {
+      x: ((p.clientX - box.left) / box.width) * 100,
+      y: ((p.clientY - box.top) / box.height) * 100
+    };
+  }
+  function move(ev) {
+    if (!dragging) return;
+    ev.preventDefault();
+    var p = pos(ev);
+    spec.x = Math.max(0, Math.min(70, p.x));
+    spec.y = Math.max(0, Math.min(80, p.y));
+    kqPlaceBlock(el, spec);
+  }
+  function up() {
+    dragging = false;
+    document.removeEventListener("mousemove", move);
+    document.removeEventListener("mouseup", up);
+    document.removeEventListener("touchmove", move);
+    document.removeEventListener("touchend", up);
+  }
+  el.addEventListener("mousedown", function (ev) {
+    if (ev.target.closest && ev.target.closest(".kq-obj")) return;
+    dragging = true;
+    document.addEventListener("mousemove", move, { passive: false });
+    document.addEventListener("mouseup", up);
+  });
+  el.addEventListener("touchstart", function (ev) {
+    dragging = true;
+    document.addEventListener("touchmove", move, { passive: false });
+    document.addEventListener("touchend", up);
+  }, { passive: false });
+}
 
 window.kqSyncBoard = function () {
   var box = document.querySelector("#compose-overlay .compose-preview-box");
@@ -585,6 +642,8 @@ window.kqSyncBoard = function () {
     body: body,
     mediaSrc: src,
     media: window.kqBoard.media,
+    titleSpec: window.kqBoard.title,
+    bodySpec: window.kqBoard.body,
     stickers: window.kqStickersOnPost || [],
     interactive: true,
     titleStyle: "font-family:"+fontT+";color:"+colT+";font-size:"+ts+"px",
@@ -605,11 +664,11 @@ window.kqDecorPayload = function () {
 window.kqMountDecor = function (host, decor) {
   if (!host) return;
   var stickers = [];
-  var media = null;
+  var board = null;
   if (Array.isArray(decor)) stickers = decor;
   else if (decor) {
     stickers = decor.stickers || [];
-    media = decor.board && decor.board.media;
+    board = decor.board || null;
   }
   var titleEl = host.querySelector(".post-title");
   var bodyEl = host.querySelector(".post-content");
@@ -618,7 +677,9 @@ window.kqMountDecor = function (host, decor) {
     title: titleEl ? titleEl.textContent : "",
     body: bodyEl ? bodyEl.textContent : "",
     mediaSrc: mediaEl ? mediaEl.src : "",
-    media: media || { wrap: "square", align: "right", w: 36, gap: 10 },
+    media: (board && board.media) || { wrap: "square", align: "right", w: 36, gap: 10 },
+    titleSpec: board && board.title,
+    bodySpec: board && board.body,
     stickers: stickers,
     titleStyle: titleEl ? titleEl.getAttribute("style") : "",
     bodyStyle: bodyEl ? bodyEl.getAttribute("style") : ""
