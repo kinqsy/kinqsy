@@ -1055,6 +1055,8 @@ document.getElementById("edit-body-font").value = post.body_font ? post.body_fon
 document.getElementById("edit-title-color").value = post.title_color ? post.title_color : "#1a0f14";
 document.getElementById("edit-body-color").value = post.body_color ? post.body_color : "#1a0f14";
     document.getElementById("edit-post-bg").value = post.post_bg ? post.post_bg : "glass";
+    if (post.decor && post.decor.board) window.kqBoard = post.decor.board;
+    if (post.decor && post.decor.stickers) window.kqStickersOnPost = post.decor.stickers;
 updateEditPreview();
     document.getElementById("edit-error").textContent = "";
     var ep = document.getElementById("edit-preview");
