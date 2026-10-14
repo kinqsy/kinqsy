@@ -3,6 +3,7 @@
   var openWins = {};
   var meId = null;
   var friends = [];
+  var unreadMap = {};
 
   function esc(s) {
     var d = document.createElement("div");
@@ -18,9 +19,32 @@
     return meId;
   }
 
+  function ensureCss() {
+    if (document.getElementById("kinqsy-chat-css")) return;
+    var l = document.createElement("link");
+    l.id = "kinqsy-chat-css";
+    l.rel = "stylesheet";
+    l.href = "kinqsy-chat.css";
+    document.head.appendChild(l);
+  }
+
+  function mountEnvelope() {
+    if (document.getElementById("kq-env")) return;
+    var star = document.getElementById("admin-star");
+    if (!star || !star.parentNode) return;
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.id = "kq-env";
+    btn.title = "сообщения";
+    btn.innerHTML = '✉<span class="kq-env-badge" id="kq-env-badge" hidden></span>';
+    star.parentNode.insertBefore(btn, star);
+    btn.onclick = toggleList;
+  }
+
   async function loadFriends() {
     var uid = await me();
-    if (!uid) { friends = []; return; }
+    friends = [];
+    if (!uid) return;
     var r1 = await sb().from("friendships").select("requester_id,addressee_id,status").eq("requester_id", uid).eq("status", "accepted");
     var r2 = await sb().from("friendships").select("requester_id,addressee_id,status").eq("addressee_id", uid).eq("status", "accepted");
     var ids = {};
@@ -29,7 +53,6 @@
       if (o) ids[o] = true;
     });
     var list = Object.keys(ids).slice(0, 5);
-    friends = [];
     if (!list.length) return;
     var { data } = await sb().from("profiles").select("id, display_name").in("id", list);
     friends = data || [];
@@ -48,44 +71,55 @@
     return count || 0;
   }
 
-  function mount() {
-    if (document.getElementById("kq-msgr")) return;
-    if (!document.getElementById("kinqsy-chat-css")) {
-      var l = document.createElement("link");
-      l.id = "kinqsy-chat-css";
-      l.rel = "stylesheet";
-      l.href = "kinqsy-chat.css";
-      document.head.appendChild(l);
+  async function refreshUnread() {
+    unreadMap = {};
+    var total = 0;
+    for (var i = 0; i < friends.length; i++) {
+      var n = await unreadFor(friends[i].id);
+      unreadMap[friends[i].id] = n;
+      total += n;
     }
-    var host = document.getElementById("profile-side") || document.body;
-    var box = document.createElement("section");
-    box.id = "kq-msgr";
-    box.className = "profile-module";
-    box.innerHTML = '<h3>messages <span id="kq-msgr-note"></span></h3><input type="search" id="kq-msgr-q" placeholder="поиск друга"><div id="kq-msgr-list"></div><p id="kq-msgr-empty"></p><p id="kq-msgr-err"></p>';
-    if (host.id === "profile-side") host.appendChild(box);
-    else { box.style.cssText = "position:fixed;right:16px;bottom:16px;width:240px;z-index:70"; document.body.appendChild(box); }
-    document.getElementById("kq-msgr-q").oninput = paint;
+    var badge = document.getElementById("kq-env-badge");
+    if (badge) {
+      if (total > 0) { badge.hidden = false; badge.textContent = total > 9 ? "9+" : String(total); }
+      else badge.hidden = true;
+    }
+    if (document.getElementById("kq-msgr")) paintList();
   }
 
-  async function paint() {
+  function toggleList() {
+    var box = document.getElementById("kq-msgr");
+    if (box) { box.remove(); return; }
+    openList();
+  }
+
+  function openList() {
+    ensureCss();
+    if (document.getElementById("kq-msgr")) return;
+    var box = document.createElement("section");
+    box.id = "kq-msgr";
+    box.innerHTML = '<h3><span>messages</span><button type="button" data-close title="закрыть">×</button></h3><div id="kq-msgr-list"></div><p id="kq-msgr-empty"></p><p id="kq-msgr-err"></p>';
+    document.body.appendChild(box);
+    box.querySelector("[data-close]").onclick = function () { box.remove(); };
+    paintList();
+  }
+
+  function paintList() {
     var list = document.getElementById("kq-msgr-list");
     var empty = document.getElementById("kq-msgr-empty");
     if (!list) return;
-    var q = (document.getElementById("kq-msgr-q").value || "").toLowerCase();
     list.innerHTML = "";
-    var shown = friends.filter(function (f) { return !q || String(f.display_name || "").toLowerCase().indexOf(q) >= 0; });
-    if (!shown.length) { empty.textContent = friends.length ? "нет совпадений" : "нет друзей"; return; }
+    if (!friends.length) { empty.textContent = "нет друзей"; return; }
     empty.textContent = "";
-    for (var i = 0; i < shown.length; i++) {
-      var f = shown[i];
-      var n = await unreadFor(f.id);
+    friends.forEach(function (f) {
+      var n = unreadMap[f.id] || 0;
       var b = document.createElement("button");
       b.type = "button";
       b.className = "kq-msgr-row";
       b.innerHTML = "<b>" + esc(f.display_name || "друг") + "</b>" + (n ? '<span class="kq-msgr-badge">' + n + "</span>" : "");
-      b.onclick = (function (id, name) { return function () { window.kqOpenChat(id, name); }; })(f.id, f.display_name || "друг");
+      b.onclick = function () { window.kqOpenChat(f.id, f.display_name || "друг"); };
       list.appendChild(b);
-    }
+    });
   }
 
   window.kqOpenChat = async function (otherId, name) {
@@ -109,8 +143,9 @@
     drawWin(sid, otherId, name || "друг");
     listen(sid, otherId);
     await sb().rpc("mark_chat_seen", { sid: sid });
-    await sb().from("notifications").update({ read: true }).eq("user_id", uid).eq("kind", "chat").eq("read", false);
-    noteCount();
+    await sb().from("notifications").update({ read: true }).eq("user_id", uid).eq("kind", "chat").filter("payload->>session_id", "eq", sid);
+    unreadMap[otherId] = 0;
+    refreshUnread();
   };
 
   function drawWin(sid, otherId, name) {
@@ -122,13 +157,15 @@
     w.innerHTML =
       '<header data-drag><span>' + esc(name) + '</span>' +
       '<button type="button" data-min title="свернуть">–</button>' +
-      '<button type="button" data-end title="завершить для обоих">✕</button></header>' +
+      '<button type="button" data-end title="завершить для обоих">✕</button>' +
+      '<button type="button" data-hide title="закрыть окно">×</button></header>' +
       '<div class="kq-chat-log"></div><p class="kq-chat-err"></p>' +
       '<form><textarea maxlength="2000" placeholder="сообщение"></textarea><button type="submit">→</button></form>';
     document.body.appendChild(w);
     openWins[sid] = w;
     drag(w);
     w.querySelector("[data-min]").onclick = function () { w.classList.toggle("min"); };
+    w.querySelector("[data-hide]").onclick = function () { w.remove(); delete openWins[sid]; };
     w.querySelector("[data-end]").onclick = async function () {
       if (!confirm("Завершить переписку для обоих? Сообщения исчезнут.")) return;
       var r = await sb().rpc("close_chat", { sid: sid });
@@ -186,6 +223,7 @@
         .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: "session_id=eq." + sid }, function (row) {
           var w = openWins[sid];
           if (w && row.new) addLine(w.querySelector(".kq-chat-log"), row.new, otherId);
+          refreshUnread();
         })
         .on("postgres_changes", { event: "UPDATE", schema: "public", table: "chat_sessions", filter: "id=eq." + sid }, function (row) {
           if (row.new && row.new.status === "ended") {
@@ -208,7 +246,7 @@
       var r = w.getBoundingClientRect();
       var ox = e.clientX - r.left, oy = e.clientY - r.top;
       function move(ev) {
-        var x = Math.max(8, Math.min(window.innerWidth - w.offsetWidth - 8, ev.clientX - ox));
+        var x = Math.max(8, Math.min(window.innerWidth - 80, ev.clientX - ox));
         var y = Math.max(8, Math.min(window.innerHeight - 48, ev.clientY - oy));
         w.style.left = x + "px"; w.style.top = y + "px"; w.style.right = "auto"; w.style.bottom = "auto";
       }
@@ -218,22 +256,14 @@
     });
   }
 
-  async function noteCount() {
-    var uid = await me();
-    var el = document.getElementById("kq-msgr-note");
-    if (!uid || !el) return;
-    var { count } = await sb().from("notifications").select("id", { count: "exact", head: true }).eq("user_id", uid).eq("kind", "chat").eq("read", false);
-    el.textContent = count ? "(" + count + ")" : "";
-  }
-
   async function boot() {
     var uid = await me();
     if (!uid) return;
-    mount();
+    ensureCss();
+    mountEnvelope();
     await loadFriends();
-    await paint();
-    await noteCount();
-    setInterval(function () { paint(); noteCount(); }, 15000);
+    await refreshUnread();
+    setInterval(refreshUnread, 15000);
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
