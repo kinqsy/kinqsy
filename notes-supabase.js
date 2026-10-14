@@ -189,7 +189,8 @@ else if (bgKey === "clear") article.style.background = "rgba(255, 255, 255, 0.08
     const canDel = await canEditPost(post);
     const commentsHtml = await renderComments(comments, canDel);
 
-    var titleHtml = '<h2 class="post-title" style="font-family:' + escapeHtml(post.title_font ? post.title_font : "Georgia, serif") + ';color:' + escapeHtml(post.title_color ? post.title_color : "#1a0f14") + '">' + escapeHtml(post.title || "") + '</h2>';
+    var titleSize = (post.decor && post.decor.board && post.decor.board.title && post.decor.board.title.size) || post.title_size;
+    var titleHtml = '<h2 class="post-title" style="font-family:' + escapeHtml(post.title_font ? post.title_font : "Georgia, serif") + ';color:' + escapeHtml(post.title_color ? post.title_color : "#1a0f14") + (titleSize ? ';font-size:' + Number(titleSize) + 'px' : '') + '">' + escapeHtml(post.title || "") + '</h2>';
     var contentHtml = '<div class="post-content" style="font-family:' + escapeHtml(post.body_font ? post.body_font : "Georgia, serif") + ';color:' + escapeHtml(post.body_color ? post.body_color : "#1a0f14") + '">' + escapeHtml(post.content || "") + '</div>';
     var hasBoard = !!(post.decor && (post.decor.board || (post.decor.stickers && post.decor.stickers.length) || (Array.isArray(post.decor) && post.decor.length)));
     var mid = hasBoard
@@ -213,7 +214,7 @@ else if (bgKey === "clear") article.style.background = "rgba(255, 255, 255, 0.08
             '</form>' +
         '</div>';
 
-    if (window.kqMountDecor) window.kqMountDecor(article.querySelector(".kq-canvas") || article, post.decor);
+    if (hasBoard && window.kqMountDecor) window.kqMountDecor(article.querySelector(".kq-canvas"), post.decor);
     const form = article.querySelector(".comment-form");
     const list = article.querySelector(".comments-list");
     const footer = article.querySelector(".post-footer");
