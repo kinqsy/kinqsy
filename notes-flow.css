@@ -1,6 +1,11 @@
 .kq-flow { position: relative; display: flow-root; min-height: 0; }
 .kq-flow-title { display: block; margin: 0 0 8px; max-width: 100%; }
-.kq-flow-body { display: flow-root; position: relative; }
+.kq-flow-title, .kq-flow-body {
+  position: relative;
+  box-sizing: border-box;
+  text-align: left;
+}
+.kq-flow-body { display: flow-root; }
 .kq-flow-body .kq-body {
   position: relative;
   z-index: 1;
@@ -69,27 +74,15 @@
   color: #3a2030;
   font: inherit;
 }
-.post .kq-canvas.kq-flow,
-.post .kq-canvas.kq-flow .post-title,
-.post .kq-canvas.kq-flow .post-content,
-.post .kq-canvas.kq-flow .post-media {
+.post .kq-canvas.kq-flow .kq-flow-title,
+.post .kq-canvas.kq-flow .kq-flow-body {
   position: relative !important;
   left: auto !important;
   top: auto !important;
-  width: auto !important;
-  height: auto !important;
-  min-height: 0 !important;
   max-width: 100% !important;
-  overflow: visible !important;
 }
-.post .kq-canvas.kq-flow .kq-obj[data-wrap="front"],
-.post .kq-canvas.kq-flow .kq-obj[data-wrap="behind"] {
-  position: absolute !important;
-  left: var(--obj-x) !important;
-  top: var(--obj-y) !important;
-  width: var(--obj-w) !important;
-}
-
+@media (max-width: 700px) {
   .kq-obj[data-wrap="square"],
   .kq-obj[data-wrap="contour"] { width: min(46%, 160px); }
 }
+
