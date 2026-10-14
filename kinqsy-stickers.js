@@ -135,9 +135,14 @@ window.kqAddSticker = function (id, text) {
     text: text,
     x: 12,
     y: 40,
+    w: 32,
+    wrap: "square",
+    align: "left",
+    gap: 8,
     rot: 0,
     flipX: 1,
-    flipY: 1
+    flipY: 1,
+    scale: 1
   });
   window.kqPaintStickers();
 };
@@ -478,3 +483,145 @@ window.kqMountDecor = function (host, decor) {
     host.appendChild(el);
   });
 };
+
+/* Flow layout: objects belong to the card, not to the text height. */
+window.kqBoard = window.kqBoard || {
+  title: { x: 6, y: 6, w: 88, size: 28 },
+  body: { x: 6, y: 22, w: 100, size: 16 },
+  media: { x: 64, y: 22, w: 36, wrap: "square", align: "right", gap: 10 }
+};
+
+function kqWrapSpec(spec) {
+  spec = spec || {};
+  return {
+    wrap: spec.wrap || "square",
+    align: spec.align || ((spec.x || 0) > 50 ? "right" : "left"),
+    w: spec.w || 36,
+    gap: spec.gap != null ? spec.gap : 10,
+    x: spec.x != null ? spec.x : 8,
+    y: spec.y != null ? spec.y : 24
+  };
+}
+
+function kqStyleObj(el, spec) {
+  var s = kqWrapSpec(spec);
+  el.classList.add("kq-obj");
+  el.dataset.wrap = s.wrap === "contour" ? "contour" : s.wrap;
+  el.dataset.align = s.align;
+  el.style.setProperty("--obj-w", s.w + "%");
+  el.style.setProperty("--obj-gap", s.gap + "px");
+  if (s.wrap === "front" || s.wrap === "behind") {
+    el.style.setProperty("--obj-x", s.x + "%");
+    el.style.setProperty("--obj-y", Math.round(s.y / 100 * 360) + "px");
+  }
+}
+
+window.kqReadWrap = function () {
+  var wrap = document.getElementById("compose-wrap");
+  var align = document.getElementById("compose-align");
+  var gap = document.getElementById("compose-gap");
+  if (!window.kqBoard.media) window.kqBoard.media = {};
+  if (wrap) window.kqBoard.media.wrap = wrap.value;
+  if (align) window.kqBoard.media.align = align.value;
+  if (gap) window.kqBoard.media.gap = Number(gap.value) || 0;
+};
+
+window.kqRenderFlow = function (host, opts) {
+  if (!host) return;
+  opts = opts || {};
+  host.classList.add("kq-flow");
+  host.innerHTML = "";
+  var title = document.createElement("div");
+  title.className = "kq-flow-title";
+  title.textContent = opts.title || "";
+  if (opts.titleStyle) title.setAttribute("style", opts.titleStyle);
+  host.appendChild(title);
+  var body = document.createElement("div");
+  body.className = "kq-flow-body";
+  if (opts.mediaSrc) {
+    var img = document.createElement("img");
+    img.alt = "";
+    img.src = opts.mediaSrc;
+    kqStyleObj(img, opts.media || window.kqBoard.media);
+    body.appendChild(img);
+  }
+  (opts.stickers || []).forEach(function (node) {
+    var el = document.createElement("pre");
+    el.className = "kq-sticker-node";
+    el.textContent = node.text || "";
+    var sc = node.scale || 1;
+    el.style.transform = "rotate("+(node.rot||0)+"deg) scale("+(sc*(node.flipX||1))+","+(sc*(node.flipY||1))+")";
+    kqStyleObj(el, node);
+    body.appendChild(el);
+    if (opts.interactive) {
+      kqDrag(el, node, host);
+      el.onclick = function (ev) { ev.stopPropagation(); window.kqSelectSticker(node.uid); };
+    }
+  });
+  var text = document.createElement("div");
+  text.className = "kq-body";
+  text.textContent = opts.body || "";
+  if (opts.bodyStyle) text.setAttribute("style", opts.bodyStyle);
+  body.appendChild(text);
+  host.appendChild(body);
+};
+
+window.kqSyncBoard = function () {
+  var box = document.querySelector("#compose-overlay .compose-preview-box");
+  if (!box) return;
+  window.kqReadWrap && window.kqReadWrap();
+  var title = (document.getElementById("compose-title") || {}).value || "заголовок…";
+  var body = (document.getElementById("compose-content") || {}).value || "текст…";
+  var img = document.getElementById("compose-preview");
+  var src = img && img.style.display !== "none" ? img.src : ((document.getElementById("compose-media-url") || {}).value || "");
+  var fontT = (document.getElementById("compose-title-font") || {}).value || "Georgia, serif";
+  var fontB = (document.getElementById("compose-body-font") || {}).value || "Georgia, serif";
+  var colT = (document.getElementById("compose-title-color") || {}).value || "#1a0f14";
+  var colB = (document.getElementById("compose-body-color") || {}).value || "#1a0f14";
+  var ts = window.kqBoard.title.size || 28;
+  var bs = window.kqBoard.body.size || 16;
+  window.kqRenderFlow(box, {
+    title: title,
+    body: body,
+    mediaSrc: src,
+    media: window.kqBoard.media,
+    stickers: window.kqStickersOnPost || [],
+    interactive: true,
+    titleStyle: "font-family:"+fontT+";color:"+colT+";font-size:"+ts+"px",
+    bodyStyle: "font-family:"+fontB+";color:"+colB+";font-size:"+bs+"px;white-space:pre-wrap"
+  });
+};
+
+window.kqInitBoard = function () { window.kqSyncBoard(); };
+window.kqUpdateBoardText = function () { window.kqSyncBoard(); };
+window.kqPaintStickers = function () { window.kqSyncBoard(); };
+window.kqPaintStickersOnBoard = function () { window.kqSyncBoard(); };
+
+window.kqDecorPayload = function () {
+  window.kqReadWrap && window.kqReadWrap();
+  return { board: window.kqBoard, stickers: window.kqStickersOnPost || [] };
+};
+
+window.kqMountDecor = function (host, decor) {
+  if (!host) return;
+  var stickers = [];
+  var media = null;
+  if (Array.isArray(decor)) stickers = decor;
+  else if (decor) {
+    stickers = decor.stickers || [];
+    media = decor.board && decor.board.media;
+  }
+  var titleEl = host.querySelector(".post-title");
+  var bodyEl = host.querySelector(".post-content");
+  var mediaEl = host.querySelector(".post-media img");
+  window.kqRenderFlow(host, {
+    title: titleEl ? titleEl.textContent : "",
+    body: bodyEl ? bodyEl.textContent : "",
+    mediaSrc: mediaEl ? mediaEl.src : "",
+    media: media || { wrap: "square", align: "right", w: 36, gap: 10 },
+    stickers: stickers,
+    titleStyle: titleEl ? titleEl.getAttribute("style") : "",
+    bodyStyle: bodyEl ? bodyEl.getAttribute("style") : ""
+  });
+};
+
