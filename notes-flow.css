@@ -56,12 +56,14 @@
 }
 .kq-obj[data-wrap="front"] { z-index: 4; }
 .kq-obj[data-wrap="behind"] { z-index: 0; }
-.kq-obj.kq-sticker-node {
+.kq-obj.kq-sticker-node[data-wrap="behind"],
+.kq-obj.kq-sticker-node[data-wrap="front"] {
+  position: absolute;
+  left: var(--obj-x, 8%);
+  top: var(--obj-y, 24px);
   width: auto;
   max-width: 46%;
   margin: 0;
-  background: transparent;
-  white-space: pre;
 }
 .kq-flow-tools {
   display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0;
