@@ -157,22 +157,14 @@
     w.innerHTML =
       '<header data-drag><span>' + esc(name) + '</span>' +
       '<button type="button" data-min title="свернуть">–</button>' +
-      '<button type="button" data-end title="завершить для обоих">✕</button>' +
-      '<button type="button" data-hide title="закрыть окно">×</button></header>' +
+      '<button type="button" data-end title="завершить">×</button></header>' +
       '<div class="kq-chat-log"></div><p class="kq-chat-err"></p>' +
       '<form><textarea maxlength="2000" placeholder="сообщение"></textarea><button type="submit">→</button></form>';
     document.body.appendChild(w);
     openWins[sid] = w;
     drag(w);
     w.querySelector("[data-min]").onclick = function () { w.classList.toggle("min"); };
-    w.querySelector("[data-hide]").onclick = function () { w.remove(); delete openWins[sid]; };
-    w.querySelector("[data-end]").onclick = async function () {
-      if (!confirm("Завершить переписку для обоих? Сообщения исчезнут.")) return;
-      var r = await sb().rpc("close_chat", { sid: sid });
-      if (r.error) { w.querySelector(".kq-chat-err").textContent = r.error.message; return; }
-      w.remove();
-      delete openWins[sid];
-    };
+    w.querySelector("[data-end]").onclick = function () { askEnd(sid, w); };
     var ta = w.querySelector("textarea");
     ta.onkeydown = function (e) {
       if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); w.querySelector("form").requestSubmit(); }
@@ -189,6 +181,34 @@
       addLine(w.querySelector(".kq-chat-log"), { sender_id: uid, body: body, created_at: new Date().toISOString() }, otherId);
     };
     loadLog(sid, otherId);
+  }
+
+  function askEnd(sid, w) {
+    var overlay = document.createElement("div");
+    overlay.className = "kq-end-overlay";
+    overlay.innerHTML =
+      '<div class="kq-end-card" role="dialog" aria-modal="true">' +
+      '<h3>Завершить переписку?</h3>' +
+      '<p>Переписка закроется для вас обоих. Сообщения этой переписки будут удалены и станут недоступны обоим участникам.</p>' +
+      '<div class="row"><button type="button" data-stay>Остаться</button><button type="button" data-end>Завершить</button></div>' +
+      '</div>';
+    document.body.appendChild(overlay);
+    function close() { overlay.remove(); document.removeEventListener("keydown", onKey); }
+    function onKey(e) { if (e.key === "Escape") close(); }
+    document.addEventListener("keydown", onKey);
+    overlay.addEventListener("click", function (e) { if (e.target === overlay) close(); });
+    overlay.querySelector("[data-stay]").onclick = close;
+    overlay.querySelector("[data-end]").onclick = async function () {
+      var r = await sb().rpc("close_chat", { sid: sid });
+      if (r.error) {
+        if (w.querySelector(".kq-chat-err")) w.querySelector(".kq-chat-err").textContent = r.error.message;
+        close();
+        return;
+      }
+      close();
+      w.remove();
+      delete openWins[sid];
+    };
   }
 
   async function loadLog(sid, otherId) {
