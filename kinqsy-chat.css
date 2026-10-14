@@ -94,6 +94,29 @@
   border: 0; border-radius: 999px; padding: 0 12px; background: #6e4057; color: #fff; font-weight: 700;
 }
 .kq-chat-err { font-size: 11px; color: #8a2040; padding: 0 10px 4px; }
+.kq-end-overlay {
+  position: fixed; inset: 0; z-index: 90;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(26,15,20,.28);
+}
+.kq-end-card {
+  width: min(360px, 90vw);
+  padding: 18px 18px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.6);
+  background: rgba(240,201,214,.72);
+  color: #3a2030;
+  backdrop-filter: blur(18px);
+  box-shadow: 0 16px 40px rgba(58,32,48,.22);
+}
+.kq-end-card h3 { margin: 0 0 8px; font-size: 16px; }
+.kq-end-card p { margin: 0 0 14px; font-size: 13px; line-height: 1.4; }
+.kq-end-card .row { display: flex; gap: 8px; justify-content: flex-end; }
+.kq-end-card button {
+  border: 0; border-radius: 999px; padding: 8px 14px; font: inherit; cursor: pointer;
+}
+.kq-end-card [data-stay] { background: rgba(255,255,255,.7); color: #3a2030; }
+.kq-end-card [data-end] { background: #6e4057; color: #fff; font-weight: 700; }
 @media (max-width: 700px) {
   #kq-msgr { left: 8px; right: 8px; width: auto; top: 52px; }
   .kq-chat-win { width: calc(100vw - 16px); left: 8px !important; right: 8px; height: 70vh; }
