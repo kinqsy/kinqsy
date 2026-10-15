@@ -770,6 +770,9 @@
       '<div id="acc-page-wrap" class="auth-actions" style="display:none">',
       '<button type="button" id="acc-page">действие на странице</button>',
       "</div>",
+      '<div class="auth-actions">',
+      '<button type="button" id="acc-admin" style="display:none">кабинет</button>',
+      "</div>",
       '<p class="auth-hint">устройства, где ты входила. «завершить» помечает устройство — при следующем заходе оно выйдет. «выйти везде» гасит все сессии сразу.</p>',
       '<div id="acc-devices"></div>',
       '<div class="auth-actions">',
@@ -816,6 +819,21 @@
       };
     } else {
       pageWrap.style.display = "none";
+    }
+
+    var adminBtn = document.getElementById("acc-admin");
+    if (adminBtn) {
+      adminBtn.style.display = "none";
+      try {
+        var who = await getClient().rpc("admin_whoami");
+        if (who.data && who.data.ok) {
+          adminBtn.style.display = "inline-block";
+          adminBtn.onclick = function () {
+            getClient().rpc("admin_cabinet_open");
+            location.href = "admin.html";
+          };
+        }
+      } catch (e) {}
     }
 
     document.getElementById("acc-copy").onclick = async function () {
