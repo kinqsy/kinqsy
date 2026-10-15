@@ -128,11 +128,17 @@
         return '<div class="row"><span>' + esc(x.action) + ' · ' + esc(x.target || "") + '</span><span class="muted">' + esc(x.created_at || "") + '</span></div>';
       }).join("") || '<div class="empty">журнал пуст</div>';
     }
+    var assigned = "—";
+    if (can("reports.read")) {
+      var mine = await sb.from("gossip_reports").select("id", { count: "exact", head: true }).eq("assignee_id", (await sb.auth.getUser()).data.user.id);
+      assigned = mine.error ? "—" : (mine.count || 0);
+    }
     box.innerHTML =
       '<div class="queue">' +
       '<div class="glass">новые жалобы: ' + reportsN + '</div>' +
       '<div class="glass">обращения: ' + ideasN + '</div>' +
       '<div class="glass">цитаты: ' + quotesN + '</div>' +
+      '<div class="glass">мои задачи: ' + assigned + '</div>' +
       '</div><h3>последние действия</h3>' + auditHtml;
   }
 
@@ -170,6 +176,7 @@
       '<p>контекст: ' + esc(c.title || "") + '<br>' + esc(c.excerpt || "") + '</p>' +
       '<p class="muted">автор не раскрывается для anon/alias</p>' +
       '<select id="rs"><option>new</option><option>in_progress</option><option>escalated</option><option>resolved</option><option>rejected</option></select>' +
+      '<input id="ra" placeholder="uuid ответственного, можно пусто">' +
       '<textarea id="rn" placeholder="внутренняя заметка">' + esc(item.staff_note || "") + '</textarea>' +
       '<button id="rsave">сохранить</button></div>';
     document.getElementById("rs").value = item.status || "new";
@@ -178,7 +185,7 @@
         p_id: id,
         p_status: document.getElementById("rs").value,
         p_note: document.getElementById("rn").value,
-        p_assignee: null
+        p_assignee: document.getElementById("ra").value || null
       });
       setMsg(r.error ? r.error.message : "сохранено", !!r.error);
       if (!r.error) open("reports");
@@ -246,22 +253,52 @@
 
   async function team(box) {
     if (!can("staff.manage")) { box.innerHTML = '<div class="empty">нет доступа</div>'; return; }
-    var res = await sb.from("staff_members").select("user_id,role,status").order("created_at", { ascending: false });
-    box.innerHTML = '<div class="glass"><input id="uid" placeholder="uuid сотрудника"><select id="role"><option>admin</option><option>moderator</option><option>curator</option></select><button id="add">назначить</button></div><div id="list" class="queue"></div>';
-    document.getElementById("list").innerHTML = (res.data || []).map(function (x) {
-      return '<div class="row"><span>' + esc(x.role) + ' · ' + esc(x.status) + '<br><span class="muted">' + esc(x.user_id) + '</span></span><button data-id="' + esc(x.user_id) + '">отозвать</button></div>';
-    }).join("") || '<div class="empty">сотрудников нет</div>';
+    var perms = ["reports.read","reports.update","reports.escalate","feedback.read","feedback.update","quotes.read","quotes.update","users.read","content.hide","content.delete","staff.manage","staff.manage_moderators","audit.read","settings.read"];
+    var res = await sb.from("staff_members").select("user_id,role,status,created_at").order("created_at", { ascending: false });
+    var sp = await sb.from("staff_permissions").select("user_id,permission");
+    var by = {};
+    (sp.data || []).forEach(function (x) { (by[x.user_id] = by[x.user_id] || []).push(x.permission); });
+    box.innerHTML = '<div class="glass"><input id="uname" placeholder="имя существующего аккаунта"><button id="find">найти</button><div id="found" class="queue"></div><select id="role"><option>admin</option><option>moderator</option><option>curator</option></select><button id="add">назначить выбранного</button></div><div id="list" class="queue"></div>';
+    var picked = null;
+    document.getElementById("find").onclick = async function () {
+      var r = await sb.rpc("users_lookup", { p_q: document.getElementById("uname").value });
+      if (r.error) { document.getElementById("found").innerHTML = '<div class="err">' + esc(r.error.message) + '</div>'; return; }
+      document.getElementById("found").innerHTML = (r.data || []).map(function (x) {
+        return '<button class="row" data-id="' + esc(x.id) + '" data-name="' + esc(x.display_name || "") + '"><span>' + esc(x.display_name || "без имени") + '</span><span class="muted">выбрать</span></button>';
+      }).join("") || '<div class="empty">аккаунт не найден</div>';
+      document.querySelectorAll("#found [data-id]").forEach(function (el) {
+        el.onclick = function () {
+          picked = { id: el.getAttribute("data-id"), name: el.getAttribute("data-name") };
+          setMsg("выбран " + picked.name);
+        };
+      });
+    };
     document.getElementById("add").onclick = async function () {
-      var r = await sb.rpc("staff_assign", { p_user: document.getElementById("uid").value, p_role: document.getElementById("role").value });
+      if (!picked) { setMsg("сначала найди существующий аккаунт", true); return; }
+      if (!(await ask("Назначить " + picked.name + "?", "Роль и базовые разрешения сохранятся на сервере."))) return;
+      var r = await sb.rpc("staff_assign", { p_user: picked.id, p_role: document.getElementById("role").value });
       setMsg(r.error ? r.error.message : "назначено", !!r.error);
       if (!r.error) open("team");
     };
+    document.getElementById("list").innerHTML = (res.data || []).map(function (x) {
+      var have = by[x.user_id] || [];
+      var toggles = perms.map(function (p) {
+        return '<label class="muted"><input type="checkbox" data-user="' + esc(x.user_id) + '" data-perm="' + esc(p) + '"' + (have.indexOf(p) >= 0 ? " checked" : "") + '> ' + esc(p) + '</label>';
+      }).join(" ");
+      return '<div class="glass"><div class="row"><span>' + esc(x.role) + ' · ' + esc(x.status) + '<br><span class="muted">' + esc(x.user_id) + '</span></span><button data-id="' + esc(x.user_id) + '">отозвать</button></div><div>' + toggles + '</div></div>';
+    }).join("") || '<div class="empty">сотрудников нет</div>';
     document.querySelectorAll("#list button[data-id]").forEach(function (b) {
       b.onclick = async function () {
-        if (!(await ask("Отозвать доступ?", "Сотрудник потеряет кабинет."))) return;
+        if (!(await ask("Отозвать доступ?", "Сотрудник потеряет кабинет сразу, не только кнопку."))) return;
         var r = await sb.rpc("staff_revoke", { p_user: b.getAttribute("data-id") });
         setMsg(r.error ? r.error.message : "отозвано", !!r.error);
         if (!r.error) open("team");
+      };
+    });
+    document.querySelectorAll("#list input[data-perm]").forEach(function (c) {
+      c.onchange = async function () {
+        var r = await sb.rpc("staff_set_perm", { p_user: c.getAttribute("data-user"), p_perm: c.getAttribute("data-perm"), p_on: c.checked });
+        setMsg(r.error ? r.error.message : "разрешение обновлено", !!r.error);
       };
     });
   }
