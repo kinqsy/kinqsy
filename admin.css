@@ -1,0 +1,31 @@
+.admin-app { min-height: 100vh; background: #1a0f14; color: #f6dce8; font-family: Georgia, serif; }
+.admin-shell { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+.admin-side { padding: 18px 12px; background: rgba(255,255,255,.06); border-right: 1px solid rgba(255,255,255,.12); }
+.admin-side h1 { font-size: 18px; font-weight: normal; margin: 0 0 14px; letter-spacing: .08em; }
+.admin-side button, .admin-top button, .admin-main button {
+  border: 1px solid rgba(240,201,214,.35); background: rgba(255,255,255,.08);
+  color: #f6dce8; border-radius: 999px; padding: 6px 10px; cursor: pointer; font: inherit;
+}
+.nav-btn { display: block; width: 100%; text-align: left; margin: 4px 0; border-radius: 10px; }
+.nav-btn.active { background: rgba(240,201,214,.22); }
+.admin-main { padding: 18px; }
+.admin-top { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 14px; }
+.glass { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.16); border-radius: 16px; padding: 12px; }
+.queue { display: grid; gap: 8px; }
+.row { display: flex; justify-content: space-between; gap: 10px; align-items: center; padding: 8px; border-radius: 12px; background: rgba(0,0,0,.18); }
+.muted { opacity: .72; font-size: 13px; }
+.status { font-size: 12px; padding: 2px 8px; border-radius: 999px; background: rgba(240,201,214,.18); }
+.filters { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0 12px; }
+.filters input, .filters select, .detail input, .detail textarea, .detail select {
+  background: rgba(255,255,255,.08); color: #f6dce8; border: 1px solid rgba(255,255,255,.2); border-radius: 10px; padding: 6px 8px; font: inherit;
+}
+.detail { margin-top: 12px; }
+.modal { position: fixed; inset: 0; background: rgba(12,5,8,.62); display: none; align-items: center; justify-content: center; z-index: 20; }
+.modal.open { display: flex; }
+.modal .box { width: min(420px, 92vw); }
+.empty, .err { padding: 16px; opacity: .8; }
+@media (max-width: 760px) {
+  .admin-shell { grid-template-columns: 1fr; }
+  .admin-side { border-right: 0; border-bottom: 1px solid rgba(255,255,255,.12); }
+  .nav-btn { display: inline-block; width: auto; margin: 4px; }
+}
