@@ -54,18 +54,15 @@
       return;
     }
     var who = await sb.rpc("admin_whoami");
-    if (who.error) {
-      setMsg("Кабинет ещё не подключён. Примени миграцию 20261015_admin_cabinet.sql. " + who.error.message, true);
-      me = { ok: String(user.id) === OWNER, role: String(user.id) === OWNER ? "owner" : null, permissions: [] };
-    } else {
-      me = who.data || { ok: false };
-    }
-    if (!me.ok) {
+    if (who.error || !who.data || !who.data.ok) {
       document.getElementById("gate").style.display = "block";
-      document.getElementById("gate").textContent = "Нет доступа к кабинету.";
+      document.getElementById("gate").textContent = who.error
+        ? "Кабинет не подключён или нет доступа. " + who.error.message
+        : "Нет доступа к кабинету.";
       document.getElementById("app").style.display = "none";
       return;
     }
+    me = who.data;
     document.getElementById("gate").style.display = "none";
     document.getElementById("app").style.display = "grid";
     document.getElementById("role").textContent = me.role || "";
