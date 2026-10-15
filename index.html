@@ -423,6 +423,20 @@
             arr.push({ type: "quote", text: text, author: author, at: new Date().toISOString() });
             localStorage.setItem("kinqsy_suggestions", JSON.stringify(arr));
         } catch (e) {}
+        try {
+            var client = window.__kinqsy_sb;
+            if (client) {
+                client.auth.getSession().then(function (s) {
+                    var uid = s.data && s.data.session && s.data.session.user && s.data.session.user.id;
+                    client.from("admin_feedback").insert({
+                        kind: "quote",
+                        user_id: uid || null,
+                        text: text,
+                        author: author || null
+                    });
+                });
+            }
+        } catch (e2) {}
         err.textContent = "сохранено";
         setTimeout(function () {
             document.getElementById("quote-modal").classList.remove("open");
