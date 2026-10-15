@@ -3,42 +3,30 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin — feedback</title>
+<title>Kinqsy Admin</title>
 <link rel="icon" href="favicon.png" type="image/png">
-<style>
-body { margin:0; font-family: Georgia, serif; background:#1a0f14; color:#f6dce8; min-height:100vh; padding:40px 20px; }
-.box { max-width:720px; margin:0 auto; padding:24px; border-radius:20px; background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.25); }
-h1 { font-weight:normal; margin-top:0; }
-li { margin:12px 0; padding:12px; border-radius:12px; background:rgba(0,0,0,.2); }
-a { color:#f0c9d6; }
-.empty { opacity:.7; font-style:italic; }
-</style>
+<link rel="stylesheet" href="admin.css">
 </head>
-<body>
-<div class="box">
-  <h1>жалобы и предложения</h1>
-  <p>Публикация постов отсюда отключена. Посты — через ★ на notes / dreams / quotes.</p>
-  <p><a href="index.html">← на сайт</a></p>
-  <ul id="list" class="empty">загрузка…</ul>
+<body class="admin-app">
+<div id="gate" class="glass" style="max-width:520px;margin:40px auto;">Нужен вход сотрудника. <a href="index.html" style="color:#f0c9d6">на сайт</a></div>
+<div id="app" class="admin-shell" style="display:none">
+  <aside class="admin-side">
+    <h1>KINQSY ADMIN</h1>
+    <div id="role" class="muted"></div>
+    <nav id="nav"></nav>
+    <p><a href="index.html" style="color:#f0c9d6">← на сайт</a></p>
+  </aside>
+  <main class="admin-main">
+    <div class="admin-top">
+      <div id="msg" class="muted"></div>
+      <button id="logout" type="button">выйти</button>
+    </div>
+    <section id="work"></section>
+  </main>
 </div>
-<script>
-(function () {
-  var list = document.getElementById("list");
-  try {
-    var arr = JSON.parse(localStorage.getItem("kinqsy_suggestions") || "[]");
-    if (!arr.length) {
-      list.textContent = "пока пусто (предложения с home → цитата попадают сюда на этом устройстве)";
-      return;
-    }
-    list.className = "";
-    list.innerHTML = arr.slice().reverse().map(function (x) {
-      return "<li><strong>" + (x.type || "item") + "</strong> · " + (x.at || "") +
-        "<br>" + (x.text || "") + (x.author ? "<br>— " + x.author : "") + "</li>";
-    }).join("");
-  } catch (e) {
-    list.textContent = "ошибка чтения";
-  }
-})();
-</script>
+<div id="confirm" class="modal"><div class="box glass"><h3 id="c-title"></h3><p id="c-text"></p><button id="c-no" type="button">остаться</button> <button id="c-yes" type="button">подтвердить</button></div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="kinqsy-core.js"></script>
+<script src="admin.js"></script>
 </body>
 </html>
