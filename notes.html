@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="kinqsy-theme.css">
     <link rel="stylesheet" href="kinqsy-skins.css">
     <link rel="stylesheet" href="kinqsy-finish.css">
+    <link rel="stylesheet" href="kinqsy-layout.css">
     <link rel="icon" href="favicon.png" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1152,14 +1153,70 @@ document.getElementById("edit-save").onclick = async function () {
     function closeAuth() {
         authOverlay.classList.remove("open");
     }
-    function openCompose() {
+    function openCompose(post) {
+        // post = optional existing post for edit (v3 layout)
+        editingPostId = post && post.id ? post.id : null;
+        if (post) {
+            var t = document.getElementById("compose-title");
+            var c = document.getElementById("compose-content");
+            var m = document.getElementById("compose-media-url");
+            if (t) t.value = post.title || "";
+            if (c) c.value = post.content || "";
+            if (m) m.value = post.media_url || "";
+            var tf = document.getElementById("compose-title-font");
+            var bf = document.getElementById("compose-body-font");
+            var tc = document.getElementById("compose-title-color");
+            var bc = document.getElementById("compose-body-color");
+            var bg = document.getElementById("compose-post-bg");
+            if (tf && post.title_font) tf.value = post.title_font;
+            if (bf && post.body_font) bf.value = post.body_font;
+            if (tc && post.title_color) tc.value = post.title_color;
+            if (bc && post.body_color) bc.value = post.body_color;
+            if (bg && post.post_bg) bg.value = post.post_bg;
+            var ts = document.getElementById("compose-title-size");
+            var bs = document.getElementById("compose-body-size");
+            if (ts) ts.value = (post.decor && post.decor.v === 3 && post.decor.titleSize) || post.title_size || 28;
+            if (bs) bs.value = (post.decor && post.decor.v === 3 && post.decor.bodySize) || post.body_size || 16;
+            if (window.KQL && window.KQL.compose && window.KQL.compose.load) {
+                window.KQL.compose.load(post.decor || null);
+            }
+            var h2 = composeOverlay.querySelector("h2");
+            if (h2) h2.textContent = "редактировать notes";
+            var pub = document.getElementById("compose-publish");
+            if (pub) pub.textContent = "сохранить";
+        } else {
+            var t2 = document.getElementById("compose-title");
+            var c2 = document.getElementById("compose-content");
+            var m2 = document.getElementById("compose-media-url");
+            if (t2) t2.value = "";
+            if (c2) c2.value = "";
+            if (m2) m2.value = "";
+            if (window.KQL && window.KQL.compose && window.KQL.compose.reset) window.KQL.compose.reset();
+            else if (window.kqStickersOnPost) window.kqStickersOnPost = [];
+            var h22 = composeOverlay.querySelector("h2");
+            if (h22) h22.textContent = "новый notes";
+            var pub2 = document.getElementById("compose-publish");
+            if (pub2) pub2.textContent = "опубликовать";
+        }
+        var ce = document.getElementById("compose-error");
+        if (ce) ce.textContent = "";
         composeOverlay.classList.add("open");
         if (window.kqOpenStickerTray) window.kqOpenStickerTray();
         if (window.kqInitBoard) window.kqInitBoard();
+        if (window.KQL && window.KQL.compose && window.KQL.compose.refresh) window.KQL.compose.refresh();
     }
     window.openNotesCompose = openCompose;
+    window.openNotesEdit = function (post) {
+        // v3 → full layout editor; legacy → old edit overlay
+        if (post && post.decor && post.decor.v === 3 && window.KQL) {
+            openCompose(post);
+            return;
+        }
+        openEdit(post);
+    };
 function closeCompose() {
         composeOverlay.classList.remove("open");
+        editingPostId = null;
     }
 
     /* star -> core */
@@ -1240,33 +1297,58 @@ if (mediaFileInput && mediaUrlInput && preview) {
         if (!title && !content) { err.textContent = "пустой пост"; return; }
 
         var media_url = (document.getElementById("compose-media-url").value || "").trim();
-    var payload = {
-    title: title,
-    content: content,
-    category: "notes",
-    user_id: session.user.id,
-    visibility: "public",
-    title_font: document.getElementById("compose-title-font").value,
-    body_font: document.getElementById("compose-body-font").value,
-    title_color: document.getElementById("compose-title-color").value,
-    body_color: document.getElementById("compose-body-color").value
-};
-    if (media_url) {
-        payload.media_url = media_url;
-        payload.media_type = /\.gif(\?|$)/i.test(media_url) ? "gif" : "image";
-    }
-    if (window.kqDecorPayload) payload.decor = window.kqDecorPayload();
-    var { error } = await sb.from("posts").insert(payload);
-    if (error && /decor/i.test(error.message)) {
-        delete payload.decor;
-        var again = await sb.from("posts").insert(payload);
-        error = again.error;
-    }
-
-        if (error) { err.textContent = error.message; return; }
-        window.kqStickersOnPost = [];
+        var bgEl = document.getElementById("compose-post-bg");
+        var payload = {
+            title: title,
+            content: content,
+            category: "notes",
+            title_font: document.getElementById("compose-title-font").value,
+            body_font: document.getElementById("compose-body-font").value,
+            title_color: document.getElementById("compose-title-color").value,
+            body_color: document.getElementById("compose-body-color").value
+        };
+        if (bgEl) payload.post_bg = bgEl.value;
+        if (media_url) {
+            payload.media_url = media_url;
+            payload.media_type = /\.gif(\?|$)/i.test(media_url) ? "gif" : "image";
+        } else {
+            payload.media_url = null;
+        }
+        // v3 layout from shared editor
+        if (window.KQL && window.KQL.compose && window.KQL.compose.decor) {
+            payload.decor = window.KQL.compose.decor();
+        } else if (window.kqDecorPayload) {
+            payload.decor = window.kqDecorPayload();
+        }
+        var error = null;
+        if (editingPostId) {
+            var res = await sb.from("posts").update(payload).eq("id", editingPostId).select("id");
+            error = res.error;
+            if (!error && (!res.data || !res.data.length)) {
+                err.textContent = "RLS: пост не обновился";
+                return;
+            }
+        } else {
+            payload.user_id = session.user.id;
+            payload.visibility = "public";
+            var ins = await sb.from("posts").insert(payload);
+            error = ins.error;
+            if (error && /decor/i.test(error.message)) {
+                delete payload.decor;
+                var again = await sb.from("posts").insert(payload);
+                error = again.error;
+            }
+        }
+        if (error) {
+            err.textContent = error.message || "ошибка сохранения";
+            // keep form content so user can retry
+            return;
+        }
+        if (window.kqStickersOnPost) window.kqStickersOnPost = [];
+        if (window.KQL && window.KQL.compose && window.KQL.compose.reset) window.KQL.compose.reset();
         closeCompose();
-        location.reload();
+        if (typeof window.loadNotes === "function") window.loadNotes();
+        else location.reload();
     };
     if (window.kqSyncBoard) {
   ["compose-title","compose-content","compose-media-url","compose-wrap","compose-align","compose-gap"].forEach(function(id){
@@ -1438,9 +1520,10 @@ document.addEventListener("dragstart", function (e) {
   </div>
 </div>
 
+<script src="kinqsy-stickers.js"></script>
+<script src="kinqsy-layout.js"></script>
 <script src="./notes-supabase.js"></script>
 <link rel="stylesheet" href="notes-flow.css">
-<script src="kinqsy-stickers.js"></script>
 <script src="kinqsy-player.js"></script>
 <script src="kinqsy-chat.js"></script>
 </body>

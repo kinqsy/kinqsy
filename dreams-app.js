@@ -201,11 +201,16 @@
         "</div>";
     }).join("");
 
+    var kqLayout = (window.KQL && window.KQL.fromPost) ? window.KQL.fromPost(post) : null;
+    if (kqLayout) article.classList.add("has-layout");
+    var mid = kqLayout
+      ? '<div class="kq-layout-host"></div>'
+      : ((post.title ? '<h2 class="post-title" style="' + titleStyle + '">' + escapeHtml(post.title) + "</h2>" : "") +
+         media +
+         (post.content ? '<div class="post-content" style="' + bodyStyle + '">' + escapeHtml(post.content) + "</div>" : ""));
     article.innerHTML =
       '<div class="post-date">' + new Date(post.created_at).toLocaleDateString("en-GB") + "</div>" +
-      (post.title ? '<h2 class="post-title" style="' + titleStyle + '">' + escapeHtml(post.title) + "</h2>" : "") +
-      media +
-      (post.content ? '<div class="post-content" style="' + bodyStyle + '">' + escapeHtml(post.content) + "</div>" : "") +
+      mid +
       reactionsHtml(rcounts, post.id) +
       '<div class="post-footer">comments · ' + comments.length + '</div>' +
       (can ? '<div class="post-footer-row"><button type="button" class="post-owner-btn" aria-label="меню">⋯</button></div>' : "") +
@@ -248,6 +253,7 @@
       };
     });
 
+    if (kqLayout) window.KQL.render(article.querySelector(".kq-layout-host"), kqLayout, {});
     var form = article.querySelector(".comment-form");
     form.addEventListener("submit", async function (e) {
       e.preventDefault();
@@ -363,13 +369,24 @@
       payload.media_url = media_url;
       payload.media_type = /\.gif(\?|$)/i.test(media_url) ? "gif" : "image";
     }
+    if (window.KQL && window.KQL.compose && window.KQL.compose.decor) {
+      payload.decor = window.KQL.compose.decor();
+    } else if (window.kqDecorPayload) {
+      payload.decor = window.kqDecorPayload();
+    }
     var { error } = await sb.from("posts").insert(payload);
+    if (error && /decor/i.test(error.message || "")) {
+      delete payload.decor;
+      var again = await sb.from("posts").insert(payload);
+      error = again.error;
+    }
     if (error) {
       var basic = { title: title, content: content, category: "dreams", user_id: uid };
       if (media_url) basic.media_url = media_url;
       var r2 = await sb.from("posts").insert(basic);
       if (r2.error) { err.textContent = r2.error.message; return; }
     }
+    if (window.KQL && window.KQL.compose && window.KQL.compose.reset) window.KQL.compose.reset();
     document.getElementById("compose-overlay").classList.remove("open");
     loadDreams();
   };
@@ -516,8 +533,15 @@
 
   window.__openDreamCompose = function () {
     document.getElementById("compose-error").textContent = "";
+    ["compose-title", "compose-content", "compose-media-url"].forEach(function (id) {
+      var e = document.getElementById(id);
+      if (e) e.value = "";
+    });
+    if (window.KQL && window.KQL.compose && window.KQL.compose.reset) window.KQL.compose.reset();
     document.getElementById("compose-overlay").classList.add("open");
-    updateComposePreview();
+    if (window.kqOpenStickerTray) window.kqOpenStickerTray();
+    if (window.KQL && window.KQL.compose && window.KQL.compose.refresh) window.KQL.compose.refresh();
+    else updateComposePreview();
   };
 
   if (window.Kinqsy) {

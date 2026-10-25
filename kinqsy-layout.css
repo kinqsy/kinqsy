@@ -1,0 +1,57 @@
+/* Kinqsy · Notes · общая раскладка поста (используется и в предпросмотре, и в опубликованном посте).
+   Все размеры — в cqw (доли ширины карточки), поэтому макет одинаков в редакторе, предпросмотре и посте на любой ширине. */
+.kql { container-type: inline-size; width: 100%; }
+.kql-card { position: relative; box-sizing: border-box; padding: calc(var(--kp, 3) * 1cqw); }
+.kql-title { position: relative; z-index: 2; margin: 0 0 calc(var(--tm, 1.2) * 1cqw); line-height: 1.12; font-weight: normal;
+  font-size: max(calc(var(--ts, 3.3) * 1cqw), 18px); word-break: break-word; overflow-wrap: anywhere; }
+.kql-body { position: relative; z-index: 2; display: flow-root; line-height: 1.5; font-size: max(calc(var(--bs, 1.9) * 1cqw), 14px); }
+.kql-p { margin: 0 0 .5em; white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; min-height: 1.5em; }
+.kql-o { position: relative; box-sizing: border-box; max-width: 100%; }
+.kql-o.media, .kql-o.image { width: calc(var(--w, 30) * 1cqw); }
+.kql-o img { display: block; width: 100%; height: auto; aspect-ratio: var(--ar, auto); border-radius: 8px; -webkit-user-drag: none; user-select: none; }
+.kql-o .kql-miss { aspect-ratio: var(--ar, 1.5); border: 1px dashed currentColor; border-radius: 8px; opacity: .4; }
+.kql-o.sticker pre { margin: 0; background: transparent; font-family: ui-monospace, Menlo, Consolas, monospace; line-height: 1.15; white-space: pre;
+  font-size: calc(var(--fs, 3) * 1cqw); transform: rotate(var(--rot, 0deg)) scale(var(--fx, 1), var(--fy, 1)); }
+.kql-o.plate { width: calc(var(--w, 40) * 1cqw); padding: calc(var(--pp, 1.4) * 1cqw); border-radius: 14px; font-size: max(calc(var(--bs, 1.9) * 1cqw), 13px);
+  line-height: 1.4; white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; border: 1px solid rgba(255,255,255,.35); box-shadow: 0 6px 18px rgba(0,0,0,.18); }
+.kql-o.plate.solid { background: var(--pbg, #f0c9d6); }
+.kql-o.plate.glass { background: rgba(255,255,255,.28); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.kql-o.plate.gradient { background: linear-gradient(135deg, var(--pbg, #f0c9d6), rgba(120,40,70,.55)); color: #fff; }
+
+/* обтекание */
+.kql-m-square, .kql-m-contour { shape-outside: margin-box; }
+.kql-m-square.kql-s-left, .kql-m-contour.kql-s-left { float: left; margin: 0 calc(var(--pad, 2) * 1cqw) calc(var(--pad, 2) * 1cqw) 0; }
+.kql-m-square.kql-s-right, .kql-m-contour.kql-s-right, .kql-m-square.kql-s-center, .kql-m-contour.kql-s-center { float: right; margin: 0 0 calc(var(--pad, 2) * 1cqw) calc(var(--pad, 2) * 1cqw); }
+.kql-m-tb { display: block; clear: both; margin: calc(var(--pad, 2) * 1cqw) 0; }
+.kql-m-inline { display: block; margin: calc(var(--pad, 2) * 1cqw) 0; }
+.kql-m-tb.kql-s-left, .kql-m-inline.kql-s-left { margin-right: auto; }
+.kql-m-tb.kql-s-center, .kql-m-inline.kql-s-center { margin-left: auto; margin-right: auto; }
+.kql-m-tb.kql-s-right, .kql-m-inline.kql-s-right { margin-left: auto; }
+.kql-o.sticker.kql-m-tb, .kql-o.sticker.kql-m-inline { width: max-content; }
+.kql-free { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.kql-free.back { z-index: 1; }
+.kql-free.front { z-index: 4; }
+.kql-m-front, .kql-m-behind { position: absolute; left: calc(var(--x, 5) * 1cqw); top: calc(var(--y, 5) * 1cqw); margin: 0; }
+
+/* редактор (только в предпросмотре) */
+.kql-edit .kql-o { cursor: grab; pointer-events: auto; }
+.kql-edit .kql-o.sel { outline: 2px solid #a8324f; outline-offset: 2px; }
+.kql-edit .kql-h { display: none; position: absolute; right: -6px; top: -6px; width: 22px; height: 22px; border-radius: 50%; background: #a8324f; color: #fff; font: 12px/22px Arial, sans-serif; text-align: center; touch-action: none; cursor: grab; z-index: 9; user-select: none; }
+.kql-edit .kql-o.sel .kql-h { display: block; }
+.kql-mark { position: absolute; left: 0; right: 0; height: 0; border-top: 2px dashed #a8324f; z-index: 8; pointer-events: none; }
+.compose-preview-box.kql-box { height: auto !important; min-height: 240px; padding: 0 !important; overflow: hidden; }
+.kql-tools { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 10px 0 0; font: 12px Georgia, serif; }
+.kql-tools select, .kql-tools input[type="text"] { padding: 4px 8px; border-radius: 10px; border: 1px solid rgba(26,15,20,.25); background: rgba(255,255,255,.4); font: 12px Georgia, serif; max-width: 150px; }
+.kql-tools input[type="range"] { width: 90px; }
+.kql-tools button { border: 1px solid rgba(26,15,20,.25); background: rgba(255,255,255,.4); border-radius: 999px; padding: 3px 10px; cursor: pointer; font: 12px Georgia, serif; }
+.kql-tools button.on { background: #a8324f; color: #fff; }
+.kql-tools button[disabled], .kql-tools select[disabled], .kql-tools input[disabled] { opacity: .4; cursor: default; }
+.kql-tools .lab { opacity: .7; margin-left: 4px; }
+.kql-tools-sel { display: none; width: 100%; gap: 6px; flex-wrap: wrap; align-items: center; }
+.kql-tools-sel.on { display: flex; }
+.kql-note { font: 12px Arial, sans-serif; color: #a8324f; min-height: 1.2em; }
+
+/* host inside feed cards */
+.kq-layout-host { width: 100%; container-type: inline-size; container-name: kql; }
+article.has-layout .post-media { display: none; } /* media lives inside layout objs */
+article.has-layout .kq-layout-host .kql-card { background: transparent; box-shadow: none; }

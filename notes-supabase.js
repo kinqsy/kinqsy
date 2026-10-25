@@ -189,12 +189,14 @@ else if (bgKey === "clear") article.style.background = "rgba(255, 255, 255, 0.08
     const canDel = await canEditPost(post);
     const commentsHtml = await renderComments(comments, canDel);
 
-    var titleSize = (post.decor && post.decor.board && post.decor.board.title && post.decor.board.title.size) || post.title_size;
-    var titleHtml = '<h2 class="post-title" style="font-family:' + escapeHtml(post.title_font ? post.title_font : "Georgia, serif") + ';color:' + escapeHtml(post.title_color ? post.title_color : "#1a0f14") + (titleSize ? ';font-size:' + Number(titleSize) + 'px' : '') + '">' + escapeHtml(post.title || "") + '</h2>';
+    var titleHtml = '<h2 class="post-title" style="font-family:' + escapeHtml(post.title_font ? post.title_font : "Georgia, serif") + ';color:' + escapeHtml(post.title_color ? post.title_color : "#1a0f14") + '">' + escapeHtml(post.title || "") + '</h2>';
     var contentHtml = '<div class="post-content" style="font-family:' + escapeHtml(post.body_font ? post.body_font : "Georgia, serif") + ';color:' + escapeHtml(post.body_color ? post.body_color : "#1a0f14") + '">' + escapeHtml(post.content || "") + '</div>';
-    var hasBoard = !!(post.decor && (post.decor.board || (post.decor.stickers && post.decor.stickers.length) || (Array.isArray(post.decor) && post.decor.length)));
-    var mid = hasBoard
-        ? ('<div class="kq-canvas kq-flow">' + titleHtml + mediaHtml + contentHtml + '</div>')
+    var kqLayout = (window.KQL && window.KQL.fromPost) ? window.KQL.fromPost(post) : null;
+    var hasBoard = !kqLayout && !!(post.decor && (post.decor.board || (post.decor.stickers && post.decor.stickers.length) || (Array.isArray(post.decor) && post.decor.length)));
+    if (hasBoard) article.classList.add("has-board");
+    if (kqLayout) article.classList.add("has-layout");
+    var mid = kqLayout ? '<div class="kq-layout-host"></div>' : hasBoard
+        ? ('<div class="kq-canvas">' + titleHtml + mediaHtml + contentHtml + '</div>')
         : (titleHtml + mediaHtml + contentHtml);
     article.innerHTML =
         '<div class="post-date">' +
@@ -214,7 +216,8 @@ else if (bgKey === "clear") article.style.background = "rgba(255, 255, 255, 0.08
             '</form>' +
         '</div>';
 
-    if (hasBoard && window.kqMountDecor) window.kqMountDecor(article.querySelector(".kq-canvas"), post.decor);
+    if (kqLayout) window.KQL.render(article.querySelector(".kq-layout-host"), kqLayout, {});
+    else if (hasBoard && window.kqMountDecor) window.kqMountDecor(article.querySelector(".kq-canvas") || article, post.decor);
     const form = article.querySelector(".comment-form");
     const list = article.querySelector(".comments-list");
     const footer = article.querySelector(".post-footer");
