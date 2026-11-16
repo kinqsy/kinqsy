@@ -447,6 +447,7 @@ btn.style.zIndex = "6";
 btn.addEventListener("click", async function (e) {
     e.preventDefault();
     e.stopPropagation();
+    if (!(await canEditPost(post))) return;
     showPostMenuNearFooter(article, post);
 });
 }
