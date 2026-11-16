@@ -1124,20 +1124,8 @@ document.getElementById("edit-save").onclick = async function () {
     // 1) full update
     var res = await sb.from("posts").update(payload).eq("id", editingPostId).select("id");
     if (res.error) {
-        console.error("edit full", res.error);
-        // 2) minimal
-        var basic = { title: payload.title, content: payload.content };
-        if (payload.media_url) basic.media_url = payload.media_url;
-        var r2 = await sb.from("posts").update(basic).eq("id", editingPostId).select("id");
-        if (r2.error) {
-            if (err) err.textContent = r2.error.message;
-            console.error("edit basic", r2.error);
-            return;
-        }
-        if (!r2.data || !r2.data.length) {
-            if (err) err.textContent = "RLS: пост не обновился (нет прав или чужой user_id)";
-            return;
-        }
+        if (err) err.textContent = res.error.message || "Ошибка сохранения";
+        return;
     } else if (!res.data || !res.data.length) {
         if (err) err.textContent = "RLS: 0 строк обновлено. Войди своим аккаунтом автора поста.";
         return;
@@ -1333,11 +1321,7 @@ if (mediaFileInput && mediaUrlInput && preview) {
             payload.visibility = "public";
             var ins = await sb.from("posts").insert(payload);
             error = ins.error;
-            if (error && /decor/i.test(error.message)) {
-                delete payload.decor;
-                var again = await sb.from("posts").insert(payload);
-                error = again.error;
-            }
+
         }
         if (error) {
             err.textContent = error.message || "ошибка сохранения";

@@ -71,13 +71,48 @@
     }
     var s = e.target.closest && e.target.closest(".g-send");
     if (s && sb) {
-      var session = await sb.auth.getSession();
-      var uid = session.data && session.data.session && session.data.session.user.id;
-      if (!uid) return;
-      var a1 = await sb.from("friendships").select("addressee_id").eq("requester_id", uid).eq("status", "accepted");
-      var friend = (a1.data && a1.data[0] && a1.data[0].addressee_id) || null;
-      if (!friend) return;
-      await sb.from("messages").insert({ sender_id: uid, recipient_id: friend, body: "gossip:" + s.getAttribute("data-id") });
+      if (s.disabled) return;
+      s.disabled = true;
+      try {
+        var session = await sb.auth.getSession();
+        if (session.error) throw session.error;
+        var uid = session.data && session.data.session && session.data.session.user.id;
+        if (!uid) throw new Error("Сначала войди в аккаунт");
+        var outgoing = await sb.from("friendships").select("addressee_id").eq("requester_id", uid).eq("status", "accepted");
+        var incoming = await sb.from("friendships").select("requester_id").eq("addressee_id", uid).eq("status", "accepted");
+        if (outgoing.error || incoming.error) throw outgoing.error || incoming.error;
+        var ids = Array.from(new Set((outgoing.data || []).map(function (r) { return r.addressee_id; }).concat((incoming.data || []).map(function (r) { return r.requester_id; }))));
+        if (!ids.length) throw new Error("Нет друзей для пересылки");
+        var profiles = await sb.from("profiles").select("id,display_name").in("id", ids);
+        if (profiles.error) throw profiles.error;
+        var choices = ids.map(function (id) {
+          var profile = (profiles.data || []).find(function (p) { return p.id === id; });
+          return { id: id, name: profile && profile.display_name || id };
+        });
+        var answer = window.prompt("Кому отправить? Введи номер:\n" + choices.map(function (f, i) { return (i + 1) + ". " + f.name; }).join("\n"));
+        if (answer === null) return;
+        if (!/^\d+$/.test(answer.trim()) || !choices[Number(answer) - 1]) throw new Error("Выбери номер друга из списка");
+        var friend = choices[Number(answer) - 1].id;
+        var pair = [uid, friend].sort();
+        async function findSession() {
+          return sb.from("chat_sessions").select("id").eq("user_a", pair[0]).eq("user_b", pair[1]).eq("status", "open").maybeSingle();
+        }
+        var chat = await findSession();
+        if (chat.error) throw chat.error;
+        if (!chat.data) {
+          chat = await sb.from("chat_sessions").insert({ user_a: pair[0], user_b: pair[1], a_present: pair[0] === uid, b_present: pair[1] === uid }).select("id").single();
+          if (chat.error && chat.error.code === "23505") chat = await findSession();
+          if (chat.error) throw chat.error;
+        }
+        if (!chat.data) throw new Error("Не удалось открыть диалог");
+        var sent = await sb.from("messages").insert({ session_id: chat.data.id, sender_id: uid, body: "gossip:" + s.getAttribute("data-id") });
+        if (sent.error) throw sent.error;
+        window.alert("Отправлено другу");
+      } catch (error) {
+        window.alert("Не удалось переслать: " + (error.message || "ошибка соединения"));
+      } finally {
+        s.disabled = false;
+      }
     }
     var del = e.target.closest && e.target.closest(".g-topic-del");
     if (del && sb) {

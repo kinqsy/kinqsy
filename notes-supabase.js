@@ -181,7 +181,7 @@ else if (bgKey === "clear") article.style.background = "rgba(255, 255, 255, 0.08
 
     let mediaHtml = "";
     if (post.media_url) {
-        mediaHtml = '<div class="post-media"><img src="' + post.media_url + '" alt=""></div>';
+        mediaHtml = '<div class="post-media"><img src="' + escapeHtml(post.media_url) + '" alt=""></div>';
     }
 
     const comments = await loadComments(post.id);
@@ -447,6 +447,7 @@ btn.style.zIndex = "6";
 btn.addEventListener("click", async function (e) {
     e.preventDefault();
     e.stopPropagation();
+    if (!(await canEditPost(post))) return;
     showPostMenuNearFooter(article, post);
 });
 }

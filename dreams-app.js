@@ -80,6 +80,18 @@
 
   function openEdit(post) {
     editingPostId = post.id;
+    if (post.decor && post.decor.v === 3 && window.KQL && window.KQL.compose) {
+      ["title", "content", "media-url", "title-font", "body-font", "title-color", "body-color", "title-size", "body-size"].forEach(function (key) {
+        var field = document.getElementById("compose-" + key);
+        var property = key.replace(/-/g, "_");
+        if (field) field.value = post[property] == null ? "" : post[property];
+      });
+      window.KQL.compose.load(post.decor);
+      document.getElementById("compose-error").textContent = "";
+      document.getElementById("compose-overlay").classList.add("open");
+      window.KQL.compose.refresh();
+      return;
+    }
     document.getElementById("edit-title").value = post.title || "";
     document.getElementById("edit-content").value = post.content || "";
     document.getElementById("edit-media-url").value = post.media_url || "";
@@ -342,6 +354,7 @@
   }
 
   document.getElementById("compose-close").onclick = function () {
+    editingPostId = null;
     document.getElementById("compose-overlay").classList.remove("open");
   };
   document.getElementById("compose-publish").onclick = async function () {
@@ -374,20 +387,23 @@
     } else if (window.kqDecorPayload) {
       payload.decor = window.kqDecorPayload();
     }
-    var { error } = await sb.from("posts").insert(payload);
-    if (error && /decor/i.test(error.message || "")) {
-      delete payload.decor;
-      var again = await sb.from("posts").insert(payload);
-      error = again.error;
+    var result;
+    if (editingPostId) {
+      payload.media_url = media_url || null;
+      if (!media_url) payload.media_type = null;
+      result = await sb.from("posts").update(payload).eq("id", editingPostId).select("id");
+      if (!result.error && (!result.data || !result.data.length)) {
+        err.textContent = "Пост не обновился: проверь права доступа";
+        return;
+      }
+    } else {
+      result = await sb.from("posts").insert(payload);
     }
-    if (error) {
-      var basic = { title: title, content: content, category: "dreams", user_id: uid };
-      if (media_url) basic.media_url = media_url;
-      var r2 = await sb.from("posts").insert(basic);
-      if (r2.error) { err.textContent = r2.error.message; return; }
-    }
+    var error = result.error;
+    if (error) { err.textContent = error.message || "Ошибка сохранения"; return; }
     if (window.KQL && window.KQL.compose && window.KQL.compose.reset) window.KQL.compose.reset();
     document.getElementById("compose-overlay").classList.remove("open");
+    editingPostId = null;
     loadDreams();
   };
 
@@ -412,21 +428,15 @@
       body_size: Number(document.getElementById("edit-body-size").value || 17)
     };
     var mu = document.getElementById("edit-media-url").value.trim();
+    payload.media_url = mu || null;
+    payload.media_type = mu ? "image" : null;
     if (mu) {
       payload.media_url = mu;
       payload.media_type = /\.gif(\?|$)/i.test(mu) ? "gif" : "image";
     }
     var res = await sb.from("posts").update(payload).eq("id", editingPostId).select("id");
-    if (res.error || !res.data || !res.data.length) {
-      var basic = { title: payload.title, content: payload.content };
-      if (mu) basic.media_url = mu;
-      var r2 = await sb.from("posts").update(basic).eq("id", editingPostId).select("id");
-      if (r2.error) { err.textContent = r2.error.message; return; }
-      if (!r2.data || !r2.data.length) {
-        err.textContent = "не сохранилось (RLS / чужой пост)";
-        return;
-      }
-    }
+    if (res.error) { err.textContent = res.error.message; return; }
+    if (!res.data || !res.data.length) { err.textContent = "Пост не обновился: нет доступа"; return; }
     document.getElementById("edit-overlay").classList.remove("open");
     editingPostId = null;
     loadDreams();
@@ -532,6 +542,7 @@
   };
 
   window.__openDreamCompose = function () {
+    editingPostId = null;
     document.getElementById("compose-error").textContent = "";
     ["compose-title", "compose-content", "compose-media-url"].forEach(function (id) {
       var e = document.getElementById(id);
@@ -561,3 +572,4 @@
 
   loadDreams();
 })();
+

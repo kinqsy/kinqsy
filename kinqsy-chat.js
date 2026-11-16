@@ -1,6 +1,30 @@
 (function () {
   var sb = function () { return window.__kinqsy_sb; };
   var openWins = {};
+  var liveChats = {};
+  var unreadTimer = null;
+
+  function disposeChat(sid) {
+    var live = liveChats[sid];
+    delete liveChats[sid];
+    if (live) {
+      clearInterval(live.timer);
+      if (live.channel) Promise.resolve(sb().removeChannel(live.channel)).catch(function () {});
+    }
+    if (openWins[sid]) openWins[sid].remove();
+    delete openWins[sid];
+  }
+  function disposeAll() {
+    Object.keys(openWins).forEach(disposeChat);
+    clearInterval(unreadTimer);
+    unreadTimer = null;
+    friends = [];
+    unreadMap = {};
+    var list = document.getElementById("kq-msgr");
+    if (list) list.remove();
+    var badge = document.getElementById("kq-env-badge");
+    if (badge) badge.hidden = true;
+  }
   var meId = null;
   var friends = [];
   var unreadMap = {};
@@ -206,8 +230,7 @@
         return;
       }
       close();
-      w.remove();
-      delete openWins[sid];
+      disposeChat(sid);
     };
   }
 
@@ -217,12 +240,17 @@
     var { data, error } = await sb().from("messages").select("sender_id,body,created_at").eq("session_id", sid).order("created_at");
     if (error) { w.querySelector(".kq-chat-err").textContent = error.message; return; }
     var log = w.querySelector(".kq-chat-log");
+    if (openWins[sid] !== w) return;
+    var top = log.scrollTop;
+    var atBottom = log.scrollHeight - log.clientHeight - top < 40;
     log.innerHTML = "";
     (data || []).forEach(function (m) { addLine(log, m, otherId); });
+    if (!atBottom) log.scrollTop = top;
   }
 
   function addLine(log, m, otherId) {
     if (log.querySelector('[data-t="' + m.created_at + '"][data-s="' + m.sender_id + '"]')) return;
+    var atBottom = log.scrollHeight - log.clientHeight - log.scrollTop < 40;
     var p = document.createElement("p");
     p.className = m.sender_id === otherId ? "them" : "me";
     p.dataset.t = m.created_at;
@@ -232,14 +260,14 @@
     t.textContent = new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
     p.appendChild(t);
     log.appendChild(p);
-    log.scrollTop = log.scrollHeight;
+    if (atBottom) log.scrollTop = log.scrollHeight;
   }
 
   function listen(sid, otherId) {
-    if (openWins[sid] && openWins[sid].dataset.live) return;
-    if (openWins[sid]) openWins[sid].dataset.live = "1";
+    if (liveChats[sid] || !openWins[sid]) return;
+    var live = liveChats[sid] = { channel: null, timer: null, loading: false };
     try {
-      sb().channel("chat-" + sid)
+      live.channel = sb().channel("chat-" + sid)
         .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: "session_id=eq." + sid }, function (row) {
           var w = openWins[sid];
           if (w && row.new) addLine(w.querySelector(".kq-chat-log"), row.new, otherId);
@@ -248,13 +276,20 @@
         .on("postgres_changes", { event: "UPDATE", schema: "public", table: "chat_sessions", filter: "id=eq." + sid }, function (row) {
           if (row.new && row.new.status === "ended") {
             var w = openWins[sid];
-            if (w) { w.remove(); delete openWins[sid]; }
+            if (w) disposeChat(sid);
           }
         })
         .subscribe();
     } catch (e) {}
-    setInterval(function () {
-      if (openWins[sid]) loadLog(sid, otherId);
+    live.timer = setInterval(async function () {
+      if (!openWins[sid] || live.loading) return;
+      live.loading = true;
+      try {
+        var state = await sb().from("chat_sessions").select("status").eq("id", sid).maybeSingle();
+        if (!openWins[sid] || liveChats[sid] !== live) return;
+        if (!state.error && (!state.data || state.data.status === "ended")) { disposeChat(sid); return; }
+        await loadLog(sid, otherId);
+      } finally { live.loading = false; }
     }, 4000);
   }
 
@@ -283,9 +318,20 @@
     mountEnvelope();
     await loadFriends();
     await refreshUnread();
-    setInterval(refreshUnread, 15000);
+    clearInterval(unreadTimer);
+    unreadTimer = setInterval(refreshUnread, 15000);
   }
 
+  window.addEventListener("pagehide", disposeAll);
+  window.addEventListener("pageshow", function (event) { if (event.persisted) boot(); });
+  if (sb()) sb().auth.onAuthStateChange(function (event, session) {
+    var uid = session && session.user && session.user.id;
+    if (uid !== meId) {
+      disposeAll();
+      meId = uid || null;
+      if (uid) setTimeout(boot, 0);
+    }
+  });
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
   else boot();
 })();
