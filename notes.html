@@ -1333,11 +1333,7 @@ if (mediaFileInput && mediaUrlInput && preview) {
             payload.visibility = "public";
             var ins = await sb.from("posts").insert(payload);
             error = ins.error;
-            if (error && /decor/i.test(error.message)) {
-                delete payload.decor;
-                var again = await sb.from("posts").insert(payload);
-                error = again.error;
-            }
+
         }
         if (error) {
             err.textContent = error.message || "ошибка сохранения";
