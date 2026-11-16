@@ -375,17 +375,7 @@
       payload.decor = window.kqDecorPayload();
     }
     var { error } = await sb.from("posts").insert(payload);
-    if (error && /decor/i.test(error.message || "")) {
-      delete payload.decor;
-      var again = await sb.from("posts").insert(payload);
-      error = again.error;
-    }
-    if (error) {
-      var basic = { title: title, content: content, category: "dreams", user_id: uid };
-      if (media_url) basic.media_url = media_url;
-      var r2 = await sb.from("posts").insert(basic);
-      if (r2.error) { err.textContent = r2.error.message; return; }
-    }
+    if (error) { err.textContent = error.message || "Ошибка сохранения"; return; }
     if (window.KQL && window.KQL.compose && window.KQL.compose.reset) window.KQL.compose.reset();
     document.getElementById("compose-overlay").classList.remove("open");
     loadDreams();
@@ -412,6 +402,8 @@
       body_size: Number(document.getElementById("edit-body-size").value || 17)
     };
     var mu = document.getElementById("edit-media-url").value.trim();
+    payload.media_url = mu || null;
+    payload.media_type = mu ? "image" : null;
     if (mu) {
       payload.media_url = mu;
       payload.media_type = /\.gif(\?|$)/i.test(mu) ? "gif" : "image";
