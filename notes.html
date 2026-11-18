@@ -711,6 +711,14 @@ a, button, .star, .top-menu .star, input, textarea, .react-btn, .post-menu butto
         word-break: break-word;
         white-space: pre-wrap;
     }
+
+    /* Legacy edit preview must grow with long text instead of covering controls. */
+    #edit-overlay #edit-preview-box {
+        height: auto;
+        min-height: 0;
+        display: flow-root;
+        overflow-wrap: anywhere;
+    }
     .compose-style-row {
         display: flex;
         gap: 10px;
