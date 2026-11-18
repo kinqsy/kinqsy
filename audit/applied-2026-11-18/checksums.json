@@ -1,0 +1,11 @@
+{
+  "01-chat-guard.sql": "1093abeafb7749482d9d32107e346013395d9292512b8a69d8a01727d45929bd",
+  "02-gossip-layouts-readonly.sql": "72fdd9dc8f21c558b5c12c6b1becfbc784d29ccbbf02bc7930ab1e9f1d676aa3",
+  "03-can-view.sql": "07cbd1d0f390c923232a1db758ec8f60fdf366d717a524dcb79bf54140ae3d14",
+  "04-friendship-guard.sql": "7bcd31ea16cdbc628439e7bc5d9ff510ac21d69f021ae51256ff057731f53b42",
+  "05-private-media.sql": "ac6e1c6707f41007b3f21117a2d3d9ed414ade81aa1c7d11c67d0352ae3f06c5",
+  "06-moderation.sql": "604877aee4b9dae54d345a9e7713c120f744ec7b14df5ba6f5e1f94395eda266",
+  "07-gossip-media.sql": "7873b41858f8752eab385625a4abb1c90a6100cf7966911c54d8d675741b215e",
+  "08-reaction-toggle.sql": "a0592d266d62be3c7379e27afa37eabaaddfffbc53515627fd13cf7db1be1ce7",
+  "09-chat-realtime.sql": "8b1115f9bfb25e690cf0b8238d8495dae79e24d5f880c13cf25cf1dbb6fc3bbc"
+}
