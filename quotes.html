@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
 <script src="kinqsy-boot.js"></script>
+<script src="kinqsy-media.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QUOTATION / DEFINITION — KINQSY.LOL</title>
@@ -716,7 +717,7 @@
                     body_color: post.body_color || null,
                     author_name: post.author_name || "saved"
                 };
-                var { error } = await sb.from("posts").insert(payload);
+                var { error } = await sb.from("posts").insert(window.KQMedia ? window.KQMedia.canonicalize(payload) : payload);
                 if (error) alert(error.message);
                 else alert("сохранено на твою доску");
             });
@@ -967,7 +968,7 @@
             payload.media_type = /\.gif(\?|$)/i.test(media_url) ? "gif" : "image";
         }
 
-        var { error } = await sb.from("posts").insert(payload);
+        var { error } = await sb.from("posts").insert(window.KQMedia ? window.KQMedia.canonicalize(payload) : payload);
         if (error) {
             // если новых колонок нет — упрощённый insert
             if (/is_public|attribution|title_font|body_font|title_color|body_color|title_size|body_size|author_name/i.test(error.message)) {
