@@ -3,6 +3,7 @@
 <html lang="en">
 <head>
 <script src="kinqsy-boot.js"></script>
+<script src="kinqsy-media.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NOTES — KINQSY.LOL</title>
@@ -1122,7 +1123,7 @@ document.getElementById("edit-save").onclick = async function () {
     if (bg) payload.post_bg = bg.value;
 
     // 1) full update
-    var res = await sb.from("posts").update(payload).eq("id", editingPostId).select("id");
+    var res = await sb.from("posts").update(window.KQMedia ? window.KQMedia.canonicalize(payload) : payload).eq("id", editingPostId).select("id");
     if (res.error) {
         if (err) err.textContent = res.error.message || "Ошибка сохранения";
         return;
@@ -1310,7 +1311,7 @@ if (mediaFileInput && mediaUrlInput && preview) {
         }
         var error = null;
         if (editingPostId) {
-            var res = await sb.from("posts").update(payload).eq("id", editingPostId).select("id");
+            var res = await sb.from("posts").update(window.KQMedia ? window.KQMedia.canonicalize(payload) : payload).eq("id", editingPostId).select("id");
             error = res.error;
             if (!error && (!res.data || !res.data.length)) {
                 err.textContent = "RLS: пост не обновился";
@@ -1319,7 +1320,7 @@ if (mediaFileInput && mediaUrlInput && preview) {
         } else {
             payload.user_id = session.user.id;
             payload.visibility = "public";
-            var ins = await sb.from("posts").insert(payload);
+            var ins = await sb.from("posts").insert(window.KQMedia ? window.KQMedia.canonicalize(payload) : payload);
             error = ins.error;
 
         }
