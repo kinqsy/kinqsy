@@ -428,7 +428,7 @@
     function decor() {
       var s = sizes();
       ensureMedia();
-      return { v: 3, titleSize: s.titleSize, bodySize: s.bodySize, titleAlign: prefs.titleAlign, bodyAlign: prefs.bodyAlign, pad: prefs.pad, objs: currentLayout().objs };
+      return g.KQMedia ? g.KQMedia.canonicalize({ v: 3, titleSize: s.titleSize, bodySize: s.bodySize, titleAlign: prefs.titleAlign, bodyAlign: prefs.bodyAlign, pad: prefs.pad, objs: currentLayout().objs }) : { v: 3, titleSize: s.titleSize, bodySize: s.bodySize, titleAlign: prefs.titleAlign, bodyAlign: prefs.bodyAlign, pad: prefs.pad, objs: currentLayout().objs };
     }
     function reset() { objs = []; sel = null; prefs = { titleAlign: "left", bodyAlign: "left", pad: 3 }; if (ta) ta.value = "left"; if (ba) ba.value = "left"; if (pr) pr.value = "3"; refresh(); }
     function load(d) {
