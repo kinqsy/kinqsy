@@ -291,7 +291,8 @@
     function measureImage(url, o) {
       var im = new Image();
       im.onload = function () { if (im.naturalWidth && im.naturalHeight) { o.ar = r2(Math.max(0.1, Math.min(10, im.naturalWidth / im.naturalHeight))); refresh(); } };
-      im.src = url;
+      if (g.KQMedia) g.KQMedia.resolve(url).then(function (resolved) { if (resolved) im.src = resolved; });
+      else im.src = url;
     }
 
     function refresh() {
@@ -484,3 +485,4 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
   else boot();
 })(window);
+
