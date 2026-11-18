@@ -391,13 +391,13 @@
     if (editingPostId) {
       payload.media_url = media_url || null;
       if (!media_url) payload.media_type = null;
-      result = await sb.from("posts").update(payload).eq("id", editingPostId).select("id");
+      result = await sb.from("posts").update(window.KQMedia ? window.KQMedia.canonicalize(payload) : payload).eq("id", editingPostId).select("id");
       if (!result.error && (!result.data || !result.data.length)) {
         err.textContent = "Пост не обновился: проверь права доступа";
         return;
       }
     } else {
-      result = await sb.from("posts").insert(payload);
+      result = await sb.from("posts").insert(window.KQMedia ? window.KQMedia.canonicalize(payload) : payload);
     }
     var error = result.error;
     if (error) { err.textContent = error.message || "Ошибка сохранения"; return; }
@@ -434,7 +434,7 @@
       payload.media_url = mu;
       payload.media_type = /\.gif(\?|$)/i.test(mu) ? "gif" : "image";
     }
-    var res = await sb.from("posts").update(payload).eq("id", editingPostId).select("id");
+    var res = await sb.from("posts").update(window.KQMedia ? window.KQMedia.canonicalize(payload) : payload).eq("id", editingPostId).select("id");
     if (res.error) { err.textContent = res.error.message; return; }
     if (!res.data || !res.data.length) { err.textContent = "Пост не обновился: нет доступа"; return; }
     document.getElementById("edit-overlay").classList.remove("open");
