@@ -17,6 +17,7 @@
     return global.__kinqsy_sb;
   }
 
+  var recoveryFlow = new URLSearchParams((location.hash || "").replace(/^#/, "")).get("type") === "recovery";
   var sb = getClient();
 
   function getU() {
@@ -271,10 +272,10 @@
       forgot.textContent = isSignup ? "уже есть аккаунт? войди" : "забыла пароль?";
     }
     if (hint) {
-      if (isForgot) hint.textContent = "Пришлём письмо. Потом введи код с письма здесь — ссылку можно не открывать.";
+      if (isForgot) hint.textContent = "Пришлём письмо со ссылкой для сброса. Если в письме есть код, его можно ввести здесь.";
       else if (isCode) hint.textContent = "Код из письма KINQSY. Обычно 6 цифр.";
       else if (isNewPass) hint.textContent = "Придумай новый пароль (минимум 6 символов).";
-      else if (isSignup) hint.textContent = "Почта + пароль. Юз можно не заполнять. Потом придёт код.";
+      else if (isSignup) hint.textContent = "Почта + пароль. Юз можно не заполнять. Подтверди почту по письму.";
       else hint.textContent = "";
     }
     var ml = document.getElementById("mode-login");
@@ -327,6 +328,9 @@
     if (!submit) return;
     submit.onclick = async function (e) {
       e.preventDefault();
+      if (submit.disabled) return;
+      submit.disabled = true;
+      try {
       var err = document.getElementById("auth-error");
       if (!err) return;
       err.textContent = "";
@@ -347,7 +351,7 @@
         pendingEmail = email;
         pendingOtpType = "recovery";
         setAuthMode("code");
-        err.textContent = "письмо отправлено. введи код (проверь спам).";
+        err.textContent = "Письмо отправлено. Открой ссылку для сброса или введи код, если он есть в письме. Проверь спам.";
         return;
       }
 
@@ -381,6 +385,7 @@
         err.textContent = "сохраняем…";
         var up = await sb.auth.updateUser({ password: password });
         if (up.error) { err.textContent = up.error.message; return; }
+        recoveryFlow = false;
         err.textContent = "пароль обновлён — можно пользоваться сайтом";
         setTimeout(function () {
           closeAuth();
@@ -437,6 +442,13 @@
         else err.textContent = em;
         return;
       }
+      if (!signed.data || !signed.data.session) {
+        pendingEmail = email;
+        pendingOtpType = "signup";
+        setAuthMode("code");
+        err.textContent = "Проверь почту: открой ссылку подтверждения. Если в письме есть код, его можно ввести здесь.";
+        return;
+      }
       var user = signed.data && signed.data.user;
       if (user) {
         var code = makeFriendCode();
@@ -469,6 +481,12 @@
         setAuthMode("code");
         err.textContent = "проверь почту и введи код";
         return;
+      }
+      } catch (error) {
+        var failure = document.getElementById("auth-error");
+        if (failure) failure.textContent = "Не удалось выполнить запрос. Проверь соединение и повтори.";
+      } finally {
+        submit.disabled = false;
       }
     };
   }
@@ -897,7 +915,15 @@
     refreshChip();
     refreshMeNav();
     if (sb && sb.auth && sb.auth.onAuthStateChange) {
-      sb.auth.onAuthStateChange(function () { refreshChip(); refreshMeNav(); });
+      sb.auth.onAuthStateChange(function (event) {
+        if (event === "SIGNED_OUT") recoveryFlow = false;
+        if (event === "PASSWORD_RECOVERY") {
+          recoveryFlow = true;
+          kqReadyAuth();
+          openAuth("newpass");
+        }
+        refreshChip(); refreshMeNav();
+      });
     }
     wireAuthOnce();
     accountExtra = options.onStarLoggedIn || null;
@@ -907,6 +933,7 @@
         var session = res && res.data && res.data.session;
         if (session) {
           kqReadyAuth();
+          if (recoveryFlow) openAuth("newpass");
         } else {
           openAuth("login");
         }
