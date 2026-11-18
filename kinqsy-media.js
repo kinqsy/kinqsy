@@ -33,12 +33,14 @@
     var sb = g.__kinqsy_sb;
     if (!sb) return "";
     var version = generation;
-    var session = await sb.auth.getSession();
+    var session;
+    try { session = await sb.auth.getSession(); } catch (_) { return ""; }
     if (version !== generation || session.error || !session.data.session) return "";
     var uid = session.data.session.user.id, key = uid + ":" + path;
     var found = cache.get(key);
     if (found && found.expires > Date.now()) return found.url;
-    var signed = await sb.storage.from("media").createSignedUrl(path, 300);
+    var signed;
+    try { signed = await sb.storage.from("media").createSignedUrl(path, 300); } catch (_) { return ""; }
     if (version !== generation || signed.error || !signed.data) return "";
     var url = signed.data.signedUrl || "";
     if (url) cache.set(key, { url: url, expires: Date.now() + 240000 });
