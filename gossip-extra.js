@@ -224,7 +224,10 @@
       inp.onchange = async function () {
         var f = inp.files && inp.files[0];
         if (!f || !sb) return;
-        var path = "gossip/" + Date.now() + "-" + Math.random().toString(36).slice(2) + (/\.gif$/i.test(f.name) ? ".gif" : ".img");
+        var session = await sb.auth.getSession();
+        var uid = session.data && session.data.session && session.data.session.user.id;
+        if (!uid) return;
+        var path = uid + "/gossip-" + Date.now() + "-" + Math.random().toString(36).slice(2) + (/\.gif$/i.test(f.name) ? ".gif" : ".img");
         var up = await sb.storage.from("media").upload(path, f, { contentType: f.type || "image/jpeg" });
         var err = document.getElementById("g-err");
         if (up.error) { if (err) err.textContent = "файл не загрузился"; return; }
