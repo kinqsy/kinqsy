@@ -193,16 +193,28 @@
     ta.onkeydown = function (e) {
       if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); w.querySelector("form").requestSubmit(); }
     };
+    var sending = false;
     w.querySelector("form").onsubmit = async function (e) {
       e.preventDefault();
-      var body = (ta.value || "").trim();
+      if (sending) return;
+      var original = ta.value || "";
+      var body = original.trim();
       if (!body) return;
-      var uid = await me();
-      var r = await sb().from("messages").insert({ session_id: sid, sender_id: uid, body: body });
-      if (r.error) { w.querySelector(".kq-chat-err").textContent = r.error.message; return; }
-      w.querySelector(".kq-chat-err").textContent = "";
-      ta.value = "";
-      addLine(w.querySelector(".kq-chat-log"), { sender_id: uid, body: body, created_at: new Date().toISOString() }, otherId);
+      sending = true;
+      try {
+        var uid = await me();
+        if (!uid) throw new Error("Для отправки нужен вход.");
+        var r = await sb().from("messages").insert({ session_id: sid, sender_id: uid, body: body });
+        if (r.error) throw r.error;
+        if (openWins[sid] !== w) return;
+        w.querySelector(".kq-chat-err").textContent = "";
+        if (ta.value === original) ta.value = "";
+        await loadLog(sid, otherId);
+      } catch (error) {
+        if (openWins[sid] === w) w.querySelector(".kq-chat-err").textContent = "Не удалось отправить сообщение. Проверь соединение перед повторной отправкой.";
+      } finally {
+        sending = false;
+      }
     };
     loadLog(sid, otherId);
   }
@@ -237,7 +249,7 @@
   async function loadLog(sid, otherId) {
     var w = openWins[sid];
     if (!w) return;
-    var { data, error } = await sb().from("messages").select("sender_id,body,created_at").eq("session_id", sid).order("created_at");
+    var { data, error } = await sb().from("messages").select("id,sender_id,body,created_at").eq("session_id", sid).order("created_at");
     if (error) { w.querySelector(".kq-chat-err").textContent = error.message; return; }
     var log = w.querySelector(".kq-chat-log");
     if (openWins[sid] !== w) return;
@@ -249,10 +261,11 @@
   }
 
   function addLine(log, m, otherId) {
-    if (log.querySelector('[data-t="' + m.created_at + '"][data-s="' + m.sender_id + '"]')) return;
+    if (m.id != null && Array.prototype.some.call(log.children, function (row) { return row.dataset.id === String(m.id); })) return;
     var atBottom = log.scrollHeight - log.clientHeight - log.scrollTop < 40;
     var p = document.createElement("p");
     p.className = m.sender_id === otherId ? "them" : "me";
+    if (m.id != null) p.dataset.id = String(m.id);
     p.dataset.t = m.created_at;
     p.dataset.s = m.sender_id;
     p.textContent = m.body;
