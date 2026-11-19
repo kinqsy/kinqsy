@@ -447,16 +447,45 @@
     };
 
     (function rotateQuotes() {
-        var q = QUOTES[Math.floor(Math.random() * QUOTES.length)];
-        document.getElementById("home-quote-text").textContent = q.t;
-        document.getElementById("home-quote-author").textContent = q.a;
-        setInterval(function () {
-            var q2 = QUOTES[Math.floor(Math.random() * QUOTES.length)];
-            document.getElementById("home-quote-text").textContent = q2.t;
-            document.getElementById("home-quote-author").textContent = q2.a;
-        }, 60 * 60 * 1000);
+        var current = null;
+        var published = [];
+        var loading = false;
+        function pool() {
+            return published.length ? published : QUOTES.map(function (q, i) { return { id: "builtin-" + i, t: q.t, a: q.a }; });
+        }
+        function paint(rotate) {
+            var quotes = pool();
+            var keep = current && quotes.filter(function (q) { return q.id === current.id; })[0];
+            current = !rotate && keep ? keep : quotes[Math.floor(Math.random() * quotes.length)];
+            document.getElementById("home-quote-text").textContent = current.t;
+            document.getElementById("home-quote-author").textContent = current.a;
+        }
+        async function refresh() {
+            if (loading) return;
+            loading = true;
+            try {
+                var client = window.__kinqsy_sb;
+                if (!client) throw new Error("No client");
+                var result = await client.rpc("get_home_quotes");
+                if (result.error || !Array.isArray(result.data)) throw new Error("Quote list unavailable");
+                published = result.data.filter(function (q) {
+                    return q && typeof q.id === "string" && typeof q.quote_text === "string" && q.quote_text.trim();
+                }).map(function (q) {
+                    return { id: q.id, t: q.quote_text, a: q.quote_author ? "— " + q.quote_author : "" };
+                });
+            } catch (error) {
+                published = [];
+            } finally {
+                loading = false;
+                paint(false);
+            }
+        }
+        paint(true);
+        refresh();
+        setInterval(function () { if (!document.hidden) return refresh(); }, 60 * 1000);
+        setInterval(function () { paint(true); }, 60 * 60 * 1000);
+        document.addEventListener("visibilitychange", function () { if (!document.hidden) refresh(); });
     })();
-
     Kinqsy.init({
         onLoginSuccess: async function () {
             var prof = await Kinqsy.currentProfile();
