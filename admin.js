@@ -165,11 +165,13 @@
   async function showReport(id, rows) {
     var item = rows.filter(function (x) { return x.id === id; })[0];
     var ctx = await sb.rpc("report_context", { p_id: id });
+    if (ctx.error) { setMsg(ctx.error.message || "Не удалось загрузить контекст жалобы", true); return; }
     var c = ctx.data || {};
     document.getElementById("detail").innerHTML =
       '<div class="glass"><div class="muted">' + esc(item.id) + '</div>' +
       '<p>' + esc(item.reason) + ' · ' + esc(item.created_at) + '</p>' +
       '<p>' + esc(item.note || "без пояснения") + '</p>' +
+      '<p>пост: ' + esc(item.post_id) + ' · ' + esc(c.category || "недоступен") + '</p>' +
       '<p>контекст: ' + esc(c.title || "") + '<br>' + esc(c.excerpt || "") + '</p>' +
       '<p class="muted">автор не раскрывается для anon/alias</p>' +
       '<select id="rs"><option>new</option><option>in_progress</option><option>escalated</option><option>resolved</option><option>rejected</option></select>' +
@@ -334,3 +336,5 @@
   document.getElementById("logout").onclick = function () { sb.auth.signOut().then(function () { location.reload(); }); };
   boot();
 })();
+
+
