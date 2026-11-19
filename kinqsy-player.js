@@ -17,6 +17,7 @@
     return;
   }
   var MAX = 15 * 1024 * 1024;
+  var libraryBusy = false;
   var OK = /\.(mp3|m4a|ogg|wav|aac)$/i;
   var SKINS = ["standard", "mini", "vinyl", "cassette"];
   function sb() { return window.__kinqsy_sb; }
@@ -240,7 +241,7 @@
         return '<button type="button" data-skin="'+s+'" class="'+(skin()===s?"on":"")+'">'+s+'</button>';
       }).join("") + "</div>" +
       '<input type="file" id="kq-music-file" accept="audio/mpeg,audio/mp4,audio/ogg,audio/wav,audio/aac,.mp3,.m4a,.ogg,.wav">' +
-      '<p class="hint">mp3 / m4a / ogg / wav · до 15 МБ</p>' +
+      '<p class="hint">mp3 / m4a / ogg / wav / aac · до 15 МБ</p>' +
       '<div class="kq-lib-list"></div>' +
       '<button type="button" id="kq-lib-x">закрыть</button></div>';
     host.style.display = "flex";
@@ -263,31 +264,83 @@
         input.maxLength = 80;
         row.replaceChild(input, row.children[2]);
         input.onblur = async function () {
+          if (libraryBusy) return;
           var name = input.value.trim();
-          if (name && name !== t.title) await sb().from("tracks").update({ title: name }).eq("id", t.id);
-          openLib();
+          if (!name || Array.from(name).length > 80) { input.value = t.title; return; }
+          if (name === t.title) return;
+          libraryBusy = true;
+          input.disabled = true;
+          try {
+            var id = await uid();
+            if (!id) throw new Error("Для изменения нужен вход");
+            var result = await sb().from("tracks").update({ title: name }).eq("id", t.id).eq("user_id", id).select("id");
+            if (result.error) throw result.error;
+            if (!result.data || result.data.length !== 1) throw new Error("Трек не обновился: обнови библиотеку");
+            t.title = name;
+            await openLib();
+          } catch (error) {
+            input.value = t.title;
+            alert("Не удалось переименовать трек: " + (error.message || "ошибка соединения"));
+          } finally {
+            input.disabled = false;
+            libraryBusy = false;
+          }
         };
       row.children[3].onclick = async function () {
-        await sb().storage.from("user-audio").remove([t.path]);
-        await sb().from("tracks").delete().eq("id", t.id);
-        if (audio) audio.pause();
-        localStorage.removeItem("kq-music-state");
-        openLib();
+        if (libraryBusy) return;
+        libraryBusy = true;
+        var button = this;
+        button.disabled = true;
+        var fileRemoved = false;
+        try {
+          var id = await uid();
+          if (!id || typeof t.path !== "string" || t.path.split("/")[0] !== id) throw new Error("Нет доступа к файлу трека");
+          var removed = await sb().storage.from("user-audio").remove([t.path]);
+          if (removed.error) throw removed.error;
+          fileRemoved = true;
+          var deleted = await sb().from("tracks").delete().eq("id", t.id).eq("user_id", id).select("id");
+          if (deleted.error) throw deleted.error;
+          if (!deleted.data || deleted.data.length !== 1) throw new Error("Запись трека не удалена");
+          if (audio) audio.pause();
+          localStorage.removeItem("kq-music-state");
+          await openLib();
+        } catch (error) {
+          alert((fileRemoved ? "Файл удалён, но завершить удаление из библиотеки не удалось. Обнови библиотеку перед повторной попыткой. " : "Не удалось удалить трек. ") + (error.message || "ошибка соединения"));
+        } finally {
+          button.disabled = false;
+          libraryBusy = false;
+        }
       };
       box.appendChild(row);
     });
     host.querySelector("#kq-music-file").onchange = async function () {
+      if (libraryBusy) return;
       var f = this.files && this.files[0];
       if (!f) return;
-      if (f.size > MAX) { alert("файл больше 15 МБ"); return; }
-      if (!OK.test(f.name)) { alert("только mp3 m4a ogg wav"); return; }
-      var id = await uid();
-      var path = id + "/" + Date.now() + "-" + f.name.replace(/[^\w.\-]+/g, "_");
-      var up = await sb().storage.from("user-audio").upload(path, f, { contentType: f.type || "audio/mpeg" });
-      if (up.error) { alert(up.error.message); return; }
-      await sb().from("tracks").insert({ user_id: id, title: f.name.replace(/\.[^.]+$/, ""), path: path, bytes: f.size });
-      openLib();
-      await loadTracks();
+      if (!f.size || f.size > MAX) { alert("нужен непустой файл не больше 15 МБ"); return; }
+      if (!OK.test(f.name)) { alert("только mp3 m4a ogg wav aac"); return; }
+      libraryBusy = true;
+      var input = this;
+      input.disabled = true;
+      var fileUploaded = false;
+      try {
+        var id = await uid();
+        if (!id) throw new Error("Для загрузки нужен вход");
+        var path = id + "/" + Date.now() + "-" + Math.random().toString(36).slice(2) + "-" + f.name.replace(/[^\\w.\\-]+/g, "_");
+        var up = await sb().storage.from("user-audio").upload(path, f, { contentType: f.type || "audio/mpeg", upsert: false });
+        if (up.error) throw up.error;
+        fileUploaded = true;
+        var saved = await sb().from("tracks").insert({ user_id: id, title: f.name.replace(/\\.[^.]+$/, "").slice(0, 80) || "трек", path: path, bytes: f.size }).select("id").single();
+        if (saved.error) throw saved.error;
+        if (!saved.data || !saved.data.id) throw new Error("Запись трека не подтверждена");
+        await openLib();
+      } catch (error) {
+        alert((fileUploaded ? "Файл загружен, но сохранение в библиотеке не подтверждено. Обнови библиотеку перед повторной загрузкой. " : "Не удалось загрузить трек. ") + (error.message || "ошибка соединения"));
+      } finally {
+        input.disabled = false;
+        input.value = "";
+        libraryBusy = false;
+      }
     };
   }
 
