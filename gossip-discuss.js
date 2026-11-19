@@ -68,6 +68,8 @@
       if (!overlay) return;
       overlay.style.display = "flex";
       overlay.setAttribute("data-id", r.getAttribute("data-id"));
+      document.getElementById("g-rep-error").textContent = "";
+      document.getElementById("g-rep-note").value = "";
     }
     var s = e.target.closest && e.target.closest(".g-send");
     if (s && sb) {
@@ -128,16 +130,32 @@
     d.innerHTML = '<div style="background:#1a0f14;color:#f6dce8;padding:16px;border-radius:16px;width:min(360px,92vw)"><p>жалоба</p><select id="g-rep-reason"><option value="spam">спам</option><option value="abuse">травля</option><option value="danger">опасный контент</option><option value="privacy">приватность</option><option value="other">другое</option></select><input id="g-rep-note" placeholder="пояснение"><div><button type="button" id="g-rep-ok">отправить</button> <button type="button" id="g-rep-no">отмена</button></div></div>';
     document.body.appendChild(d);
     document.getElementById("g-rep-no").onclick = function () { d.style.display = "none"; };
+    var reportError = document.createElement("p");
+    reportError.id = "g-rep-error"; reportError.setAttribute("role", "status");
+    d.firstElementChild.appendChild(reportError);
     document.getElementById("g-rep-ok").onclick = async function () {
-      var session = await sb.auth.getSession();
-      var uid = session.data && session.data.session && session.data.session.user.id;
-      await sb.from("gossip_reports").insert({
-        post_id: Number(d.getAttribute("data-id")),
-        user_id: uid,
-        reason: document.getElementById("g-rep-reason").value,
-        note: document.getElementById("g-rep-note").value || null
-      });
-      d.style.display = "none";
+      var button = this;
+      if (button.disabled) return;
+      button.disabled = true; reportError.textContent = "";
+      try {
+        var session = await sb.auth.getSession();
+        if (session.error) throw session.error;
+        var uid = session.data && session.data.session && session.data.session.user.id;
+        if (!uid) { reportError.textContent = "Для отправки жалобы войди в аккаунт"; return; }
+        var postId = d.getAttribute("data-id");
+        var note = document.getElementById("g-rep-note").value.trim();
+        if (!/^[1-9][0-9]*$/.test(postId) || !Number.isSafeInteger(Number(postId)) || Array.from(note).length > 1000) {
+          reportError.textContent = "Проверь пост и пояснение (до 1000 символов)"; return;
+        }
+        var result = await sb.from("gossip_reports").insert({
+          post_id: Number(postId), user_id: uid,
+          reason: document.getElementById("g-rep-reason").value, note: note || null
+        });
+        if (result.error && result.error.code !== "23505") throw result.error;
+        reportError.textContent = result.error ? "Жалоба на этот пост уже отправлена" : "Жалоба отправлена в админку";
+      } catch (error) {
+        reportError.textContent = "Отправка не подтверждена. Проверь соединение перед повторной попыткой.";
+      } finally { button.disabled = false; }
     };
   }
   var orig = window.loadFeed;
@@ -160,3 +178,5 @@
     }
   });
 })();
+
+
