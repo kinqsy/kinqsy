@@ -219,7 +219,7 @@
     var res = await sb.from("admin_feedback").select("*").in("kind", kinds).order("created_at", { ascending: false }).limit(100);
     if (res.error) throw res.error;
     var rows = res.data || [];
-    box.innerHTML = '<div class="filters"><input id="q" placeholder="поиск"><select id="st"><option value="">все</option><option>new</option><option>review</option><option>accepted</option><option>rejected</option><option>published</option></select></div><div id="list" class="queue"></div><div id="detail" class="detail"></div>';
+    box.innerHTML = '<div class="filters"><input id="q" placeholder="поиск"><select id="st"><option value="">все</option><option value="new">Новая</option><option value="review">На рассмотрении</option><option value="accepted">Принята</option><option value="rejected">Отклонена</option><option value="published">Опубликована</option></select></div><div id="list" class="queue"></div><div id="detail" class="detail"></div>';
     function draw() {
       var q = document.getElementById("q").value.toLowerCase();
       var st = document.getElementById("st").value;
@@ -237,13 +237,36 @@
             '<p class="muted">автор: ' + esc(item.author || "не указан") + ' · источник: ' + esc(item.source || "не указан") + '</p>' +
             '<p class="muted">' + esc(item.url || "") + '</p>' +
             '<select id="fs"><option>new</option><option>review</option><option>accepted</option><option>rejected</option><option>published</option></select>' +
-            '<textarea id="fn">' + esc(item.note || "") + '</textarea><button id="fsave">сохранить</button></div>';
+            '<textarea id="fn">' + esc(item.note || "") + '</textarea><button id="fsave">сохранить</button>' +
+            (item.kind === "quote" ? '<p class="muted">«Принята» — одобрена, но ещё не видна на Home. «Опубликована» — текст и имя автора доступны в подборке Home. Автор предложения и внутренние заметки не публикуются.</p><button id="fpublish">Опубликовать на Home</button> <button id="funpublish">Снять с Home</button>' : '') + '</div>';
           document.getElementById("fs").value = item.status;
-          document.getElementById("fsave").onclick = async function () {
-            var r = await sb.rpc("feedback_set", { p_id: item.id, p_status: document.getElementById("fs").value, p_note: document.getElementById("fn").value });
-            setMsg(r.error ? r.error.message : "сохранено", !!r.error);
-            if (!r.error) open(section);
-          };
+          var saving = false;
+          async function updateFeedback(status) {
+            if (saving) return;
+            saving = true;
+            var buttons = ["fsave", "fpublish", "funpublish"].map(function (id) { return document.getElementById(id); }).filter(Boolean);
+            var disabledBefore = buttons.map(function (button) { return button.disabled; });
+            buttons.forEach(function (button) { button.disabled = true; });
+            try {
+              if (item.kind === "quote" && status === "published" &&
+                  !(await ask("Опубликовать цитату на Home?", "Текст цитаты и указанное имя автора станут доступны посетителям сайта."))) return;
+              var result = await sb.rpc("feedback_set", { p_id: item.id, p_status: status, p_note: document.getElementById("fn").value });
+              if (result.error) throw result.error;
+              setMsg(status === "published" ? "Цитата опубликована. Home обновляет подборку в течение минуты." : "Статус сохранён", false);
+              await open(section);
+            } catch (error) {
+              setMsg(error.message || "Не удалось сохранить статус", true);
+            } finally {
+              saving = false;
+              buttons.forEach(function (button, i) { button.disabled = disabledBefore[i]; });
+            }
+          }
+          document.getElementById("fsave").onclick = function () { return updateFeedback(document.getElementById("fs").value); };
+          if (item.kind === "quote") {
+            document.getElementById("fpublish").onclick = function () { return updateFeedback("published"); };
+            document.getElementById("funpublish").onclick = function () { return updateFeedback("accepted"); };
+            document.getElementById("funpublish").disabled = item.status !== "published";
+          }
         };
       });
     }
