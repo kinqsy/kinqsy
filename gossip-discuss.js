@@ -166,6 +166,10 @@
   document.addEventListener("DOMContentLoaded", function () {
     dock();
     modal();
+    menu();
+    ensureMore();
+    var feed = document.getElementById("feed");
+    if (feed) new MutationObserver(ensureMore).observe(feed, { childList: true });
     var filters = document.getElementById("filters");
     if (filters && !document.getElementById("g-hot")) {
       var b = document.createElement("button");
