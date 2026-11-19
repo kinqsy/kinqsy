@@ -4,6 +4,8 @@
   var me = { ok: false, role: null, permissions: [] };
   var section = "overview";
   var selected = null;
+  var reportFilter = "active";
+  var REPORT_STATUS = { new: "Новая", in_progress: "В работе", escalated: "Передана старшему", resolved: "Рассмотрена", rejected: "Отклонена" };
 
   var NAV = [
     ["overview", "Обзор", null],
@@ -144,25 +146,29 @@
   }
 
   async function reports(box) {
-    var res = await sb.from("gossip_reports").select("*").order("created_at", { ascending: false }).limit(100);
+    var query = sb.from("gossip_reports").select("*");
+    if (reportFilter === "active") query = query.in("status", ["new", "in_progress", "escalated"]);
+    else if (reportFilter === "closed") query = query.in("status", ["resolved", "rejected"]);
+    else if (reportFilter !== "all") query = query.eq("status", reportFilter);
+    var res = await query.order("created_at", { ascending: false }).limit(100);
     if (res.error) throw res.error;
     var rows = res.data || [];
-    box.innerHTML = '<div class="filters"><input id="q" placeholder="поиск"><select id="st"><option value="">все статусы</option><option>new</option><option>in_progress</option><option>escalated</option><option>resolved</option><option>rejected</option></select></div><div id="list" class="queue"></div><div id="detail" class="detail"></div>';
+    box.innerHTML = '<div class="filters"><input id="q" placeholder="поиск"><select id="st"><option value="active">Незавершённые</option><option value="closed">Рассмотренные</option><option value="all">Все статусы</option><option value="new">Новые</option><option value="in_progress">В работе</option><option value="escalated">Переданные старшему</option><option value="resolved">Рассмотрены</option><option value="rejected">Отклонены</option></select></div><div id="list" class="queue"></div><div id="detail" class="detail"></div>';
+    document.getElementById("st").value = reportFilter;
     function draw() {
       var q = document.getElementById("q").value.toLowerCase();
-      var st = document.getElementById("st").value;
       var list = rows.filter(function (x) {
-        return (!st || x.status === st) && (!q || String(x.reason || "").toLowerCase().indexOf(q) >= 0 || String(x.note || "").toLowerCase().indexOf(q) >= 0);
+        return (!q || String(x.reason || "").toLowerCase().indexOf(q) >= 0 || String(x.note || "").toLowerCase().indexOf(q) >= 0);
       });
       document.getElementById("list").innerHTML = list.map(function (x) {
-        return '<button class="row" data-id="' + esc(x.id) + '"><span>' + esc(x.reason) + ' · ' + esc(x.target_type || "post") + '</span><span class="status">' + esc(x.status || "new") + '</span></button>';
+        return '<button class="row" data-id="' + esc(x.id) + '"><span>' + esc(x.reason) + ' · ' + esc(x.target_type || "post") + '</span><span class="status">' + esc(REPORT_STATUS[x.status] || x.status || "Новая") + '</span></button>';
       }).join("") || '<div class="empty">очередь пуста</div>';
       document.querySelectorAll("#list [data-id]").forEach(function (el) {
         el.onclick = function () { showReport(el.getAttribute("data-id"), rows); };
       });
     }
     document.getElementById("q").oninput = draw;
-    document.getElementById("st").onchange = draw;
+    document.getElementById("st").onchange = function () { reportFilter = this.value; open("reports"); };
     draw();
   }
 
@@ -343,7 +349,7 @@
     var r = await sb.from("admin_audit").select("*").order("created_at", { ascending: false }).limit(80);
     if (r.error) throw r.error;
     box.innerHTML = (r.data || []).map(function (x) {
-      return '<div class="row"><span>' + esc(x.action) + ' · ' + esc(x.target || "") + (x.detail && typeof x.detail.reason === "string" ? ' · ' + esc(x.detail.reason) : '') + '</span><span class="muted">' + esc(x.created_at) + '</span></div>';
+      return '<div class="row"><span>' + esc(x.action === "report.set" ? "Жалоба" : x.action) + ' · ' + esc(x.target || "") + (x.action === "report.set" && x.detail && typeof x.detail.status === "string" ? ' · ' + esc(REPORT_STATUS[x.detail.status] || x.detail.status) : '') + (x.detail && typeof x.detail.reason === "string" ? ' · ' + esc(x.detail.reason) : '') + '</span><span class="muted">' + esc(x.created_at) + '</span></div>';
     }).join("") || '<div class="empty">журнал пуст</div>';
   }
 
