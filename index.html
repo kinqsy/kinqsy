@@ -409,39 +409,42 @@
         document.getElementById("quote-error").textContent = "";
         document.getElementById("quote-text").value = "";
         document.getElementById("quote-author").value = "";
+        document.getElementById("quote-send").disabled = false;
         document.getElementById("quote-modal").classList.add("open");
     };
     document.getElementById("quote-close").onclick = function () {
         document.getElementById("quote-modal").classList.remove("open");
     };
-    document.getElementById("quote-send").onclick = function () {
+    document.getElementById("quote-send").onclick = async function () {
+        var button = this;
+        if (button.disabled) return;
         var text = document.getElementById("quote-text").value.trim();
         var author = document.getElementById("quote-author").value.trim();
         var err = document.getElementById("quote-error");
-        if (!text) { err.textContent = "введи текст"; return; }
-        try {
-            var arr = JSON.parse(localStorage.getItem("kinqsy_suggestions") || "[]");
-            arr.push({ type: "quote", text: text, author: author, at: new Date().toISOString() });
-            localStorage.setItem("kinqsy_suggestions", JSON.stringify(arr));
-        } catch (e) {}
+        err.textContent = "";
+        if (!text || Array.from(text).length > 10000 || Array.from(author).length > 300) {
+            err.textContent = "Укажи текст до 10000 символов и автора до 300 символов"; return;
+        }
+        button.disabled = true;
+        var delivered = false;
         try {
             var client = window.__kinqsy_sb;
-            if (client) {
-                client.auth.getSession().then(function (s) {
-                    var uid = s.data && s.data.session && s.data.session.user && s.data.session.user.id;
-                    client.from("admin_feedback").insert({
-                        kind: "quote",
-                        user_id: uid || null,
-                        text: text,
-                        author: author || null
-                    });
-                });
-            }
-        } catch (e2) {}
-        err.textContent = "сохранено";
-        setTimeout(function () {
-            document.getElementById("quote-modal").classList.remove("open");
-        }, 600);
+            if (!client) throw new Error("Нет подключения");
+            var session = await client.auth.getSession();
+            if (session.error) throw session.error;
+            var uid = session.data && session.data.session && session.data.session.user.id;
+            if (!uid) { err.textContent = "Для отправки войди в аккаунт"; return; }
+            var result = await client.from("admin_feedback").insert({
+                kind: "quote", user_id: uid, text: text, author: author || null, source: "home"
+            });
+            if (result.error) throw result.error;
+            err.textContent = "Отправлено в админку";
+            delivered = true;
+        } catch (error) {
+            err.textContent = "Отправка не подтверждена. Проверь соединение перед повторной попыткой.";
+        } finally {
+            button.disabled = delivered;
+        }
     };
 
     (function rotateQuotes() {
@@ -475,5 +478,8 @@
     </script>
 <script src="kinqsy-chat.js"></script>
 <script src="kinqsy-player.js"></script>
+<script src="kinqsy-reports.js"></script>
 </body>
 </html>
+
+
