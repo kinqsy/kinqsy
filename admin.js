@@ -73,6 +73,10 @@
   function renderNav() {
     var nav = document.getElementById("nav");
     nav.innerHTML = "";
+    var refresh = document.createElement("button");
+    refresh.className = "nav-btn"; refresh.textContent = "Обновить";
+    refresh.onclick = function () { open(section); };
+    nav.appendChild(refresh);
     NAV.forEach(function (item) {
       if (item[2] && !can(item[2])) return;
       var b = document.createElement("button");
@@ -174,21 +178,35 @@
       '<p>пост: ' + esc(item.post_id) + ' · ' + esc(c.category || "недоступен") + '</p>' +
       '<p>контекст: ' + esc(c.title || "") + '<br>' + esc(c.excerpt || "") + '</p>' +
       '<p class="muted">автор не раскрывается для anon/alias</p>' +
-      '<select id="rs"><option>new</option><option>in_progress</option><option>escalated</option><option>resolved</option><option>rejected</option></select>' +
+      '<select id="rs"><option value="new">Новая</option><option value="in_progress">В работе</option><option value="escalated">Передана старшему</option><option value="resolved">Рассмотрена</option><option value="rejected">Отклонена</option></select>' +
       '<input id="ra" placeholder="uuid ответственного, можно пусто">' +
       '<textarea id="rn" placeholder="внутренняя заметка">' + esc(item.staff_note || "") + '</textarea>' +
-      '<button id="rsave">сохранить</button></div>';
+      '<button id="rsave">сохранить</button> <button id="rreject">Отклонить жалобу</button><p class="muted">Тестовую, случайную или неподтверждённую жалобу можно отклонить. Сам пост при этом не удаляется.</p></div>';
     document.getElementById("rs").value = item.status || "new";
-    document.getElementById("rsave").onclick = async function () {
-      var r = await sb.rpc("report_set", {
-        p_id: id,
-        p_status: document.getElementById("rs").value,
-        p_note: document.getElementById("rn").value,
-        p_assignee: document.getElementById("ra").value || null
-      });
-      setMsg(r.error ? r.error.message : "сохранено", !!r.error);
-      if (!r.error) open("reports");
-    };
+    var saving = false;
+    async function saveReport(status) {
+      if (saving) return;
+      saving = true;
+      var save = document.getElementById("rsave"), reject = document.getElementById("rreject");
+      save.disabled = reject.disabled = true;
+      try {
+        var note = document.getElementById("rn").value;
+        if (status === "rejected" && !note.trim()) note = "Нарушение не подтверждено / тестовая или случайная жалоба";
+        var r = await sb.rpc("report_set", {
+          p_id: id, p_status: status, p_note: note,
+          p_assignee: document.getElementById("ra").value || null
+        });
+        if (r.error) throw r.error;
+        setMsg(status === "rejected" ? "Жалоба отклонена. Пост сохранён." : "сохранено", false);
+        await open("reports");
+      } catch (error) {
+        setMsg(error.message || "Не удалось изменить жалобу", true);
+      } finally {
+        saving = false; save.disabled = reject.disabled = false;
+      }
+    }
+    document.getElementById("rsave").onclick = function () { return saveReport(document.getElementById("rs").value); };
+    document.getElementById("rreject").onclick = function () { return saveReport("rejected"); };
   }
 
   async function feedback(box, kinds) {
