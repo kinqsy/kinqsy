@@ -222,7 +222,7 @@
       mid +
       reactionsHtml(rcounts, post.id) +
       '<div class="post-footer">comments · ' + comments.length + '</div>' +
-      (can ? '<div class="post-footer-row"><button type="button" class="post-owner-btn" aria-label="меню">⋯</button></div>' : "") +
+      '<div class="post-footer-row"><button type="button" class="post-owner-btn" aria-label="меню">⋯</button></div>' +
       '<div class="comments">' + commentsHtml +
       '<form class="comment-form"><textarea name="content" placeholder="оставить комментарий" maxlength="500" required></textarea>' +
       '<button type="submit">отправить</button></form></div>';
@@ -232,7 +232,8 @@
       menuBtn.onclick = function (e) {
         e.stopPropagation();
         var menu = document.getElementById("post-menu");
-        window.__menuPost = post;
+        window.__menuPost = can ? post : null;
+        if (window.KQReports) window.KQReports.configureMenu(menu, post.id, can);
         menu.classList.add("open");
         var r = menuBtn.getBoundingClientRect();
         menu.style.left = Math.min(r.left, window.innerWidth - 160) + "px";

@@ -51,21 +51,53 @@
     overlay.classList.add("open");
     document.getElementById("kq-report-reason").focus();
   }
+  function configureMenu(menu, postId, editable) {
+    if (!menu || !validId(postId)) return;
+    ["post-menu-edit", "post-menu-delete"].forEach(function (id) {
+      var item = document.getElementById(id);
+      if (item) { item.hidden = !editable; item.style.display = editable ? "" : "none"; }
+    });
+    var report = menu.querySelector(".kq-report-post");
+    if (!report) {
+      report = document.createElement("button"); report.type = "button";
+      report.className = "kq-report-post"; report.textContent = "пожаловаться";
+      menu.appendChild(report);
+    }
+    report.onclick = function () { menu.classList.remove("open"); open(postId); };
+  }
   function attach(root) {
     var match = /^post-([1-9][0-9]*)$/.exec(root.id || "");
     var postId = match && match[1];
-    if (!postId && root.matches && root.matches("a.home-card")) {
+    var home = root.matches && root.matches("a.home-card");
+    if (!postId && home) {
       match = /#post-([1-9][0-9]*)$/.exec(root.getAttribute("href") || "");
       if (match) postId = match[1];
     }
     if (!validId(postId) || root.dataset.kqReportAttached) return;
     root.dataset.kqReportAttached = "1";
+    if (!home && root.querySelector(".post-owner-btn,.pin-menu-btn")) return;
     var button = document.createElement("button"); button.type = "button";
-    button.className = "ghost-btn kq-report-post"; button.textContent = "жалоба";
-    button.setAttribute("aria-label", "Пожаловаться на пост " + postId);
-    button.onclick = function (event) { event.preventDefault(); event.stopPropagation(); open(postId); };
-    if (root.matches && root.matches("a.home-card")) {
-      // Keep interactive controls outside the link while preserving the card container.
+    button.className = "kq-report-more"; button.textContent = "⋯";
+    button.style.cssText = "border:0;background:transparent;color:inherit;cursor:pointer;font-size:20px;padding:4px 10px";
+    button.setAttribute("aria-label", "Меню поста"); button.setAttribute("aria-expanded", "false");
+    button.onclick = function (event) {
+      event.preventDefault(); event.stopPropagation();
+      var menu = document.getElementById("kq-post-report-menu");
+      if (!menu) {
+        menu = document.createElement("div"); menu.id = "kq-post-report-menu";
+        menu.className = "post-menu";
+        menu.style.cssText = "position:fixed;z-index:100002;min-width:150px;padding:6px;border-radius:12px;background:rgba(255,245,250,.97);color:#2a1822;box-shadow:0 8px 24px #0003";
+        var item = document.createElement("button"); item.type = "button"; item.textContent = "пожаловаться";
+        item.style.cssText = "border:0;background:transparent;color:inherit;padding:10px 12px;cursor:pointer";
+        menu.appendChild(item); document.body.appendChild(menu);
+      }
+      menu.firstElementChild.onclick = function () { menu.style.display = "none"; button.setAttribute("aria-expanded", "false"); open(postId); };
+      var rect = button.getBoundingClientRect();
+      menu.style.left = Math.max(8, Math.min(rect.left, global.innerWidth - 170)) + "px";
+      menu.style.top = Math.max(8, Math.min(rect.bottom + 4, global.innerHeight - 60)) + "px";
+      menu.style.display = "block"; button.setAttribute("aria-expanded", "true");
+    };
+    if (home) {
       var wrapper = document.createElement("div"); wrapper.className = "home-card";
       root.classList.remove("home-card"); root.style.color = "inherit"; root.style.textDecoration = "none";
       root.parentNode.insertBefore(wrapper, root); wrapper.appendChild(root); wrapper.appendChild(button);
@@ -76,12 +108,16 @@
   }
   function boot() {
     scan();
+    document.addEventListener("click", function (event) {
+      var menu = document.getElementById("kq-post-report-menu");
+      if (menu && !menu.contains(event.target)) menu.style.display = "none";
+    });
     var observer = new MutationObserver(function (changes) {
       if (changes.some(function (change) { return change.addedNodes.length; })) scan();
     });
     observer.observe(document.body, { childList: true, subtree: true });
   }
-  global.KQReports = { send: send, open: open };
+  global.KQReports = { send: send, open: open, configureMenu: configureMenu };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
 })(window);
 

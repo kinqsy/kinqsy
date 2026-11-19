@@ -434,11 +434,10 @@
             if (session.error) throw session.error;
             var uid = session.data && session.data.session && session.data.session.user.id;
             if (!uid) { err.textContent = "Для отправки войди в аккаунт"; return; }
-            var result = await client.from("admin_feedback").insert({
-                kind: "quote", user_id: uid, text: text, author: author || null, source: "home"
-            });
+            var result = await client.rpc("submit_quote_suggestion", { p_text: text, p_author: author || null });
             if (result.error) throw result.error;
-            err.textContent = "Отправлено в админку";
+            if (!result.data || !/^[0-9a-f-]{36}$/i.test(String(result.data))) throw new Error("Нет подтверждения сохранения");
+            err.textContent = "Цитата сохранена. Номер: " + result.data + ". Обнови раздел «Цитаты» в админке.";
             delivered = true;
         } catch (error) {
             err.textContent = "Отправка не подтверждена. Проверь соединение перед повторной попыткой.";
@@ -478,7 +477,7 @@
     </script>
 <script src="kinqsy-chat.js"></script>
 <script src="kinqsy-player.js"></script>
-<script src="kinqsy-reports.js"></script>
+<script src="kinqsy-reports.js?v=reports-2"></script>
 </body>
 </html>
 
