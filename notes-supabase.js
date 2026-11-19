@@ -447,8 +447,9 @@ btn.style.zIndex = "6";
 btn.addEventListener("click", async function (e) {
     e.preventDefault();
     e.stopPropagation();
-    if (!(await canEditPost(post))) return;
-    showPostMenuNearFooter(article, post);
+    var editable = await canEditPost(post);
+    if (window.KQReports) window.KQReports.configureMenu(document.getElementById("post-menu"), post.id, editable);
+    showPostMenuNearFooter(article, editable ? post : null);
 });
 }
 
