@@ -1,5 +1,40 @@
 (function () {
   var sb = window.__kinqsy_sb;
+  var sharing = false;
+  function shareDialog(title, choices, message) {
+    return new Promise(function (resolve) {
+      var overlay = document.createElement("div");
+      overlay.className = "auth-overlay open";
+      overlay.id = "g-share-dialog";
+      var card = document.createElement("div"); card.className = "auth-modal";
+      card.setAttribute("role", "dialog"); card.setAttribute("aria-modal", "true");
+      card.setAttribute("aria-labelledby", "g-share-title");
+      var heading = document.createElement("h2"); heading.id = "g-share-title"; heading.textContent = title;
+      card.appendChild(heading);
+      if (message) { var text = document.createElement("p"); text.textContent = message; card.appendChild(text); }
+      var previousFocus = document.activeElement;
+      function close(value) {
+        document.removeEventListener("keydown", onKey);
+        overlay.remove();
+        if (previousFocus && previousFocus.isConnected) previousFocus.focus();
+        resolve(value);
+      }
+      function onKey(event) { if (event.key === "Escape") { event.preventDefault(); close(null); } }
+      (choices || []).forEach(function (friend) {
+        var button = document.createElement("button"); button.type = "button"; button.className = "pill";
+        button.style.cssText = "display:block;width:100%;margin:8px 0;text-align:left";
+        button.textContent = friend.name || "друг";
+        button.onclick = function () { close(friend.id); };
+        card.appendChild(button);
+      });
+      var cancel = document.createElement("button"); cancel.type = "button"; cancel.className = "pill";
+      cancel.textContent = choices ? "отмена" : "закрыть"; cancel.onclick = function () { close(null); };
+      card.appendChild(cancel); overlay.appendChild(card); document.body.appendChild(overlay);
+      overlay.onclick = function (event) { if (event.target === overlay) close(null); };
+      document.addEventListener("keydown", onKey);
+      (card.querySelector("button") || cancel).focus();
+    });
+  }
   var STICK = ["✦", "♡", "⋆", "—", "✿", "✧", "· · ·", "♪"];
   function dock() {
     var b = document.getElementById("g-add-sticker");
@@ -62,8 +97,6 @@
   document.addEventListener("click", async function (e) {
     var r = e.target.closest && e.target.closest(".g-report");
     if (r && sb) {
-      var reason = window.prompt ? "spam" : "spam";
-      var note = "";
       var overlay = document.getElementById("g-report-modal");
       if (!overlay) return;
       overlay.style.display = "flex";
@@ -73,8 +106,9 @@
     }
     var s = e.target.closest && e.target.closest(".g-send");
     if (s && sb) {
-      if (s.disabled) return;
+      if (s.disabled || sharing) return;
       s.disabled = true;
+      sharing = true;
       try {
         var session = await sb.auth.getSession();
         if (session.error) throw session.error;
@@ -91,10 +125,9 @@
           var profile = (profiles.data || []).find(function (p) { return p.id === id; });
           return { id: id, name: profile && profile.display_name || id };
         });
-        var answer = window.prompt("Кому отправить? Введи номер:\n" + choices.map(function (f, i) { return (i + 1) + ". " + f.name; }).join("\n"));
-        if (answer === null) return;
-        if (!/^\d+$/.test(answer.trim()) || !choices[Number(answer) - 1]) throw new Error("Выбери номер друга из списка");
-        var friend = choices[Number(answer) - 1].id;
+        var friend = await shareDialog("Кому отправить?", choices);
+        if (friend === null) return;
+        if (!choices.some(function (choice) { return choice.id === friend; })) throw new Error("Выбери друга из списка");
         var pair = [uid, friend].sort();
         async function findSession() {
           return sb.from("chat_sessions").select("id").eq("user_a", pair[0]).eq("user_b", pair[1]).eq("status", "open").maybeSingle();
@@ -109,11 +142,12 @@
         if (!chat.data) throw new Error("Не удалось открыть диалог");
         var sent = await sb.from("messages").insert({ session_id: chat.data.id, sender_id: uid, body: "gossip:" + s.getAttribute("data-id") });
         if (sent.error) throw sent.error;
-        window.alert("Отправлено другу");
+        await shareDialog("Отправлено", null, "Пост отправлен другу в переписку.");
       } catch (error) {
-        window.alert("Не удалось переслать: " + (error.message || "ошибка соединения"));
+        await shareDialog("Не удалось переслать", null, error.message || "Проверь соединение перед повторной попыткой.");
       } finally {
         s.disabled = false;
+        sharing = false;
       }
     }
     var del = e.target.closest && e.target.closest(".g-topic-del");
