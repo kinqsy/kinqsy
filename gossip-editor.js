@@ -531,13 +531,16 @@
       register(o, rootEl, { img: img, local: local || null });
     }
     async function addImageFile(f) {
+      if (busy) return;
       if (!f) return;
       say("");
       if (!EXT[f.type]) { say("допустимы JPG, PNG, GIF и WebP"); return; }
+      if (!f.size) { say("файл пуст"); return; }
       if (f.size > MAX_BYTES) { say("файл больше 5 МБ"); return; }
       if (objs.length >= MAX_OBJ || imgCount() >= MAX_IMG) { say("достигнут лимит элементов"); return; }
       if (!sb || !sb.storage) { say("хранилище недоступно"); return; }
       busy = true; syncTools(); say("загрузка…");
+      try {
       var local = URL.createObjectURL(f), dims;
       try { dims = await loadDims(local); } catch (e) { URL.revokeObjectURL(local); busy = false; syncTools(); say("не удалось прочитать изображение"); return; }
       var path = newPath(f.type);
@@ -556,6 +559,13 @@
       dropIn(o, 4, bottomOf(objs) + GAP);
       place(o); applyH(); flagAll(); select(o.id);
       say("");
+      } catch (error) {
+        if (local) URL.revokeObjectURL(local);
+        say("Не удалось загрузить изображение. Проверь соединение и повтори.");
+      } finally {
+        busy = false;
+        syncTools();
+      }
     }
     function buildSticker(o) {
       var rootEl = h("div", "ge-obj");

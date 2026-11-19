@@ -153,36 +153,33 @@
     else { img.style.display = "none"; }
   };
   document.getElementById("compose-media-file").onchange = async function () {
+    if (this.disabled) return;
     var file = this.files && this.files[0];
     if (!file) return;
-    var uid = await currentUserId();
-    if (!uid) {
-      document.getElementById("compose-error").textContent = "нужен вход";
-      return;
+    var input = this;
+    var err = document.getElementById("compose-error");
+    err.textContent = "";
+    var types = { "image/jpeg": "jpg", "image/png": "png", "image/gif": "gif", "image/webp": "webp" };
+    if (!types[file.type]) { err.textContent = "допустимы JPG, PNG, GIF и WebP"; return; }
+    if (!file.size || file.size > 8 * 1024 * 1024) { err.textContent = "нужен непустой файл не больше 8 МБ"; return; }
+    input.disabled = true;
+    try {
+      var uid = await currentUserId();
+      if (!uid) { err.textContent = "нужен вход"; return; }
+      var path = uid + "/" + Date.now() + "-" + Math.random().toString(36).slice(2) + "." + types[file.type];
+      var up = await sb.storage.from("media").upload(path, file, { upsert: false, contentType: file.type });
+      if (up.error) throw up.error;
+      var pub = sb.storage.from("media").getPublicUrl(path);
+      document.getElementById("compose-media-url").value = pub.data.publicUrl;
+      var img = document.getElementById("compose-preview");
+      img.style.display = "block";
+      img.src = pub.data.publicUrl;
+    } catch (error) {
+      err.textContent = "Не удалось загрузить изображение. Проверь соединение и повтори.";
+    } finally {
+      input.disabled = false;
+      input.value = "";
     }
-    var ext = (file.name.split(".").pop() || "jpg").toLowerCase();
-    var path = uid + "/" + Date.now() + "." + ext;
-    var up = await sb.storage.from("media").upload(path, file, { upsert: true });
-    if (up.error) {
-      if (file.size < 1.2 * 1024 * 1024) {
-        var reader = new FileReader();
-        reader.onload = function () {
-          document.getElementById("compose-media-url").value = reader.result;
-          var img = document.getElementById("compose-preview");
-          img.style.display = "block";
-          img.src = reader.result;
-        };
-        reader.readAsDataURL(file);
-      } else {
-        document.getElementById("compose-error").textContent = up.error.message;
-      }
-      return;
-    }
-    var pub = sb.storage.from("media").getPublicUrl(path);
-    document.getElementById("compose-media-url").value = pub.data.publicUrl;
-    var img = document.getElementById("compose-preview");
-    img.style.display = "block";
-    img.src = pub.data.publicUrl;
   };
 
   async function makePost(post) {

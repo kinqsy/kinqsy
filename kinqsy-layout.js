@@ -404,11 +404,15 @@
     };
     bImg.onclick = function () { file.click(); };
     file.onchange = async function () {
+      if (file.disabled) return;
       var f = file.files && file.files[0]; file.value = ""; say("");
       if (!f) return;
       if (!EXT[f.type]) { say("допустимы JPG, PNG, GIF и WebP"); return; }
+      if (!f.size) { say("файл пуст"); return; }
       if (f.size > MAX_BYTES) { say("файл больше 8 МБ"); return; }
       if (imgCount() >= MAX_IMG || objs.length >= MAX_OBJS) { say("достигнут лимит объектов"); return; }
+      file.disabled = true;
+      try {
       var sb = sbc(); if (!sb) { say("нет подключения"); return; }
       var s = await sb.auth.getSession(); var sess = s && s.data && s.data.session;
       if (!sess) { say("нужен вход"); return; }
@@ -419,6 +423,11 @@
       var url = sb.storage.from("media").getPublicUrl(path).data.publicUrl;
       var o = { id: nid(), type: "image", mode: "square", side: "left", anchor: 0, x: 8, y: 8, w: 34, pad: 2, src: url, ar: 1.5 };
       objs.push(o); sel = o.id; say(""); measureImage(url, o); refresh();
+      } catch (error) {
+        say("Не удалось загрузить изображение. Проверь соединение и повтори.");
+      } finally {
+        file.disabled = false;
+      }
     };
 
     function addSticker(id, text) {
