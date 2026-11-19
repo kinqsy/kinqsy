@@ -680,12 +680,10 @@
         var menuBtn = pin.querySelector(".pin-menu-btn");
         menuBtn.addEventListener("click", async function (e) {
             e.stopPropagation();
-            if (!(await canEditPost(post))) {
-                alert("Только автор");
-                return;
-            }
-            activePostMenu = post;
+            var editable = await canEditPost(post);
+            activePostMenu = editable ? post : null;
             var menu = document.getElementById("post-menu");
+            if (window.KQReports) window.KQReports.configureMenu(menu, post.id, editable);
             menu.classList.add("open");
             var r = e.currentTarget.getBoundingClientRect();
             menu.style.left = Math.min(r.left, window.innerWidth - 160) + "px";
@@ -1087,7 +1085,7 @@
 </script>
 <script src="kinqsy-player.js"></script>
 <script src="kinqsy-chat.js"></script>
-<script src="kinqsy-reports.js"></script>
+<script src="kinqsy-reports.js?v=reports-2"></script>
 </body>
 </html>
 
