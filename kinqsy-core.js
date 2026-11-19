@@ -134,7 +134,8 @@
     if (btn && !btn._wired) {
       btn._wired = true;
       btn.onclick = async function () {
-        await getClient().auth.signOut();
+        var result = await getClient().auth.signOut({ scope: "local" });
+        if (result.error) { alert("Не удалось выйти. Повтори попытку."); return; }
         await refreshChip();
       };
     }
@@ -756,14 +757,20 @@
 
   async function revokeDevice(uid, did) {
     sb = getClient();
-    var { data } = await sb.from("profiles").select("devices").eq("id", uid).maybeSingle();
+    if (did === deviceId()) {
+      var signedOut = await sb.auth.signOut({ scope: "local" });
+      if (signedOut.error) throw signedOut.error;
+      return;
+    }
+    var { data, error } = await sb.from("profiles").select("devices").eq("id", uid).maybeSingle();
+    if (error) throw error;
     var list = Array.isArray(data && data.devices) ? data.devices.slice() : [];
     list = list.map(function (d) {
       if (d && d.id === did) d.revoked = true;
       return d;
     });
-    await sb.from("profiles").update({ devices: list, updated_at: new Date().toISOString() }).eq("id", uid);
-    if (did === deviceId()) await getClient().auth.signOut({ scope: "local" });
+    var saved = await sb.from("profiles").update({ devices: list, updated_at: new Date().toISOString() }).eq("id", uid);
+    if (saved.error) throw saved.error;
   }
 
   var accountExtra = null;
@@ -791,7 +798,7 @@
       '<div class="auth-actions">',
       '<button type="button" id="acc-admin" style="display:none">кабинет</button>',
       "</div>",
-      '<p class="auth-hint">устройства, где ты входила. «завершить» помечает устройство — при следующем заходе оно выйдет. «выйти везде» гасит все сессии сразу.</p>',
+      '<p class="auth-hint">Устройства, где ты входила. «Запросить выход» проверяется сайтом при следующем открытии и не отзывает серверную сессию. Для отзыва всех сессий используй «выйти везде». Уже выданный доступ может действовать до истечения срока токена.</p>',
       '<div id="acc-devices"></div>',
       '<div class="auth-actions">',
       '<button type="button" id="acc-out">выйти здесь</button>',
@@ -864,15 +871,27 @@
       if (up.error) err.textContent = up.error.message;
       else document.getElementById("acc-code").textContent = n;
     };
-    document.getElementById("acc-out").onclick = async function () {
-      await getClient().auth.signOut({ scope: "local" });
-      ov.classList.remove("open");
-      location.reload();
+    async function signOutAccount(scope, button) {
+      if (button.disabled) return;
+      button.disabled = true;
+      var err = document.getElementById("acc-err");
+      err.textContent = "";
+      try {
+        var result = await getClient().auth.signOut({ scope: scope });
+        if (result.error) throw result.error;
+        ov.classList.remove("open");
+        location.reload();
+      } catch (e) {
+        err.textContent = "Не удалось выйти. Проверь соединение и повтори.";
+      } finally {
+        button.disabled = false;
+      }
+    }
+    document.getElementById("acc-out").onclick = function () {
+      return signOutAccount("local", this);
     };
-    document.getElementById("acc-out-all").onclick = async function () {
-      await getClient().auth.signOut({ scope: "global" });
-      ov.classList.remove("open");
-      location.reload();
+    document.getElementById("acc-out-all").onclick = function () {
+      return signOutAccount("global", this);
     };
 
     var list = await heartbeatDevice(uid);
@@ -884,15 +903,29 @@
       var row = document.createElement("div");
       row.className = "acc-dev";
       var when = d.last_seen ? new Date(d.last_seen).toLocaleString("ru-RU") : "";
-      row.innerHTML = "<div>" + (d.id === did ? "это устройство · " : "") + (d.name || "устройство") + "</div><div class='auth-hint'>" + when + "</div>";
+      var label = document.createElement("div");
+      label.textContent = (d.id === did ? "это устройство · " : "") + (d.name || "устройство");
+      var seen = document.createElement("div");
+      seen.className = "auth-hint";
+      seen.textContent = when;
+      row.appendChild(label);
+      row.appendChild(seen);
       var b = document.createElement("button");
       b.type = "button";
       b.className = "secondary";
-      b.textContent = "завершить";
+      b.textContent = d.id === did ? "выйти здесь" : "запросить выход";
       b.onclick = async function () {
-        await revokeDevice(uid, d.id);
-        if (d.id === did) location.reload();
-        else openAccount(extraFn);
+        if (b.disabled) return;
+        b.disabled = true;
+        try {
+          await revokeDevice(uid, d.id);
+          if (d.id === did) location.reload();
+          else await openAccount(extraFn);
+        } catch (e) {
+          document.getElementById("acc-err").textContent = "Не удалось выполнить выход. Повтори попытку.";
+        } finally {
+          b.disabled = false;
+        }
       };
       row.appendChild(b);
       box.appendChild(row);
