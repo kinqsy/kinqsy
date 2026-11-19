@@ -154,14 +154,19 @@
     if (!ok.data) { if (err) err.textContent = "писать можно только другу"; return; }
     if (err) err.textContent = "";
     var ids = pair(uid, otherId);
-    var found = await sb().from("chat_sessions").select("id").eq("user_a", ids[0]).eq("user_b", ids[1]).eq("status", "open").maybeSingle();
+    async function findSession() {
+      return sb().from("chat_sessions").select("id").eq("user_a", ids[0]).eq("user_b", ids[1]).eq("status", "open").maybeSingle();
+    }
+    var found = await findSession();
+    if (found.error) { if (err) err.textContent = "Не удалось открыть переписку. Повтори попытку."; return; }
     var sid = found.data && found.data.id;
     if (!sid) {
       var ins = await sb().from("chat_sessions").insert({
         user_a: ids[0], user_b: ids[1],
         a_present: ids[0] === uid, b_present: ids[1] === uid
       }).select("id").single();
-      if (ins.error) { if (err) err.textContent = ins.error.message; return; }
+      if (ins.error && ins.error.code === "23505") ins = await findSession();
+      if (ins.error || !ins.data) { if (err) err.textContent = "Не удалось открыть переписку. Повтори попытку."; return; }
       sid = ins.data.id;
     }
     drawWin(sid, otherId, name || "друг");
