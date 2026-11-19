@@ -240,11 +240,30 @@
   }
 
   async function content(box) {
-    box.innerHTML = '<div class="glass"><p>Удаление поста по id. Только при разрешении content.delete. Приватные сообщения отсюда не открываются.</p><input id="pid" placeholder="id поста"><button id="del">удалить</button></div>';
-    document.getElementById("del").onclick = async function () {
-      if (!(await ask("Удалить пост?", "Это действие запишется в журнал и не отменяется из кабинета."))) return;
-      var r = await sb.rpc("content_delete_post", { p_id: Number(document.getElementById("pid").value) });
-      setMsg(r.error ? r.error.message : "удалено", !!r.error);
+    box.innerHTML = '<div class="glass"><p>Удаление поста по id. Только при разрешении content.delete. Приватные сообщения отсюда не открываются.</p><input id="pid" placeholder="id поста"><label for="delete-reason">Причина удаления (5–1000 символов)</label><textarea id="delete-reason" maxlength="1000" placeholder="Какое правило нарушено"></textarea><button id="del">удалить</button></div>';
+    var button = document.getElementById("del");
+    button.onclick = async function () {
+      if (button.disabled) return;
+      var rawId = document.getElementById("pid").value.trim();
+      var reason = document.getElementById("delete-reason").value.trim();
+      if (!/^[1-9][0-9]*$/.test(rawId) || !Number.isSafeInteger(Number(rawId))) {
+        setMsg("Укажи корректный положительный id поста", true); return;
+      }
+      var reasonLength = Array.from(reason).length;
+      if (reasonLength < 5 || reasonLength > 1000) {
+        setMsg("Укажи причину удаления: от 5 до 1000 символов", true); return;
+      }
+      button.disabled = true;
+      try {
+        if (!(await ask("Удалить пост?", "Пост " + rawId + ". Причина: " + reason + ". Действие запишется в журнал и не отменяется из кабинета."))) return;
+        var r = await sb.rpc("content_delete_post", { p_id: Number(rawId), p_reason: reason });
+        if (r.error) throw r.error;
+        setMsg("удалено", false);
+      } catch (error) {
+        setMsg(error.message || "Не удалось удалить. Проверь соединение и журнал перед повторной попыткой.", true);
+      } finally {
+        button.disabled = false;
+      }
     };
   }
 
@@ -304,7 +323,7 @@
     var r = await sb.from("admin_audit").select("*").order("created_at", { ascending: false }).limit(80);
     if (r.error) throw r.error;
     box.innerHTML = (r.data || []).map(function (x) {
-      return '<div class="row"><span>' + esc(x.action) + ' · ' + esc(x.target || "") + '</span><span class="muted">' + esc(x.created_at) + '</span></div>';
+      return '<div class="row"><span>' + esc(x.action) + ' · ' + esc(x.target || "") + (x.detail && typeof x.detail.reason === "string" ? ' · ' + esc(x.detail.reason) : '') + '</span><span class="muted">' + esc(x.created_at) + '</span></div>';
     }).join("") || '<div class="empty">журнал пуст</div>';
   }
 
