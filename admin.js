@@ -5,6 +5,9 @@
   var section = "overview";
   var selected = null;
   var reportFilter = "active";
+  var reportPage = 0;
+  var feedbackPage = { quotes: 0, feedback: 0 };
+  var feedbackFilter = { quotes: "", feedback: "" };
   var REPORT_STATUS = { new: "Новая", in_progress: "В работе", escalated: "Передана старшему", resolved: "Рассмотрена", rejected: "Отклонена" };
 
   var NAV = [
@@ -145,15 +148,27 @@
       '</div><h3>последние действия</h3>' + auditHtml;
   }
 
+  function pagination(box, page, more, go) {
+    var controls = document.createElement("div"); controls.className = "filters";
+    var previous = document.createElement("button"); previous.type = "button"; previous.textContent = "назад"; previous.disabled = page === 0;
+    var label = document.createElement("span"); label.textContent = "страница " + (page + 1);
+    var next = document.createElement("button"); next.type = "button"; next.textContent = "дальше"; next.disabled = !more;
+    previous.onclick = function () { go(Math.max(0, page - 1)); };
+    next.onclick = function () { go(page + 1); };
+    controls.appendChild(previous); controls.appendChild(label); controls.appendChild(next); box.appendChild(controls);
+  }
+
   async function reports(box) {
     var query = sb.from("gossip_reports").select("*");
     if (reportFilter === "active") query = query.in("status", ["new", "in_progress", "escalated"]);
     else if (reportFilter === "closed") query = query.in("status", ["resolved", "rejected"]);
     else if (reportFilter !== "all") query = query.eq("status", reportFilter);
-    var res = await query.order("created_at", { ascending: false }).limit(100);
+    var res = await query.order("created_at", { ascending: false }).order("id", { ascending: false }).range(reportPage * 50, reportPage * 50 + 50);
     if (res.error) throw res.error;
-    var rows = res.data || [];
-    box.innerHTML = '<div class="filters"><input id="q" placeholder="поиск"><select id="st"><option value="active">Незавершённые</option><option value="closed">Рассмотренные</option><option value="all">Все статусы</option><option value="new">Новые</option><option value="in_progress">В работе</option><option value="escalated">Переданные старшему</option><option value="resolved">Рассмотрены</option><option value="rejected">Отклонены</option></select></div><div id="list" class="queue"></div><div id="detail" class="detail"></div>';
+    var more = (res.data || []).length > 50;
+    var rows = (res.data || []).slice(0, 50);
+    if (!rows.length && reportPage > 0) { reportPage--; return reports(box); }
+    box.innerHTML = '<div class="filters"><input id="q" placeholder="поиск на странице"><select id="st"><option value="active">Незавершённые</option><option value="closed">Рассмотренные</option><option value="all">Все статусы</option><option value="new">Новые</option><option value="in_progress">В работе</option><option value="escalated">Переданные старшему</option><option value="resolved">Рассмотрены</option><option value="rejected">Отклонены</option></select></div><div id="list" class="queue"></div><div id="detail" class="detail"></div>';
     document.getElementById("st").value = reportFilter;
     function draw() {
       var q = document.getElementById("q").value.toLowerCase();
@@ -168,8 +183,9 @@
       });
     }
     document.getElementById("q").oninput = draw;
-    document.getElementById("st").onchange = function () { reportFilter = this.value; open("reports"); };
+    document.getElementById("st").onchange = function () { reportFilter = this.value; reportPage = 0; open("reports"); };
     draw();
+    pagination(box, reportPage, more, function (page) { reportPage = page; open("reports"); });
   }
 
   async function showReport(id, rows) {
@@ -216,10 +232,16 @@
   }
 
   async function feedback(box, kinds) {
-    var res = await sb.from("admin_feedback").select("*").in("kind", kinds).order("created_at", { ascending: false }).limit(100);
+    var key = kinds.indexOf("quote") >= 0 ? "quotes" : "feedback";
+    var query = sb.from("admin_feedback").select("*").in("kind", kinds);
+    if (feedbackFilter[key]) query = query.eq("status", feedbackFilter[key]);
+    var res = await query.order("created_at", { ascending: false }).order("id", { ascending: false }).range(feedbackPage[key] * 50, feedbackPage[key] * 50 + 50);
     if (res.error) throw res.error;
-    var rows = res.data || [];
-    box.innerHTML = '<div class="filters"><input id="q" placeholder="поиск"><select id="st"><option value="">все</option><option value="new">Новая</option><option value="review">На рассмотрении</option><option value="accepted">Принята</option><option value="rejected">Отклонена</option><option value="published">Опубликована</option></select></div><div id="list" class="queue"></div><div id="detail" class="detail"></div>';
+    var more = (res.data || []).length > 50;
+    var rows = (res.data || []).slice(0, 50);
+    if (!rows.length && feedbackPage[key] > 0) { feedbackPage[key]--; return feedback(box, kinds); }
+    box.innerHTML = '<div class="filters"><input id="q" placeholder="поиск на странице"><select id="st"><option value="">все</option><option value="new">Новая</option><option value="review">На рассмотрении</option><option value="accepted">Принята</option><option value="rejected">Отклонена</option><option value="published">Опубликована</option></select></div><div id="list" class="queue"></div><div id="detail" class="detail"></div>';
+    document.getElementById("st").value = feedbackFilter[key];
     function draw() {
       var q = document.getElementById("q").value.toLowerCase();
       var st = document.getElementById("st").value;
@@ -271,8 +293,9 @@
       });
     }
     document.getElementById("q").oninput = draw;
-    document.getElementById("st").onchange = draw;
+    document.getElementById("st").onchange = function () { feedbackFilter[key] = this.value; feedbackPage[key] = 0; open(key); };
     draw();
+    pagination(box, feedbackPage[key], more, function (page) { feedbackPage[key] = page; open(key); });
   }
 
   async function users(box) {
