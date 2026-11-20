@@ -34,7 +34,7 @@
         err.textContent = await send(overlay.dataset.postId, document.getElementById("kq-report-reason").value, document.getElementById("kq-report-note").value.trim());
         overlay.dataset.sent = "1";
       } catch (error) {
-        err.textContent = error.message && /войд|данные|подключения/.test(error.message) ? error.message : "Отправка не подтверждена. Проверь соединение перед повторной попыткой.";
+        err.textContent = (window.Kinqsy && window.Kinqsy.rateLimitMessage && window.Kinqsy.rateLimitMessage(error)) || (error.message && /войд|данные|подключения/.test(error.message) ? error.message : "Отправка не подтверждена. Проверь соединение перед повторной попыткой.");
       } finally {
         sending = false; this.disabled = overlay.dataset.sent === "1";
       }

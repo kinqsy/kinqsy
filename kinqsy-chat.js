@@ -220,7 +220,7 @@
         if (ta.value === original) ta.value = "";
         await loadLog(sid, otherId);
       } catch (error) {
-        if (openWins[sid] === w) w.querySelector(".kq-chat-err").textContent = "Не удалось отправить сообщение. Проверь соединение перед повторной отправкой.";
+        if (openWins[sid] === w) w.querySelector(".kq-chat-err").textContent = (window.Kinqsy && window.Kinqsy.rateLimitMessage && window.Kinqsy.rateLimitMessage(error)) || "Не удалось отправить сообщение. Проверь соединение перед повторной отправкой.";
       } finally {
         sending = false;
       }

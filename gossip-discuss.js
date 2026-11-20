@@ -188,7 +188,7 @@
         if (result.error && result.error.code !== "23505") throw result.error;
         reportError.textContent = result.error ? "Жалоба на этот пост уже отправлена" : "Жалоба отправлена в админку";
       } catch (error) {
-        reportError.textContent = "Отправка не подтверждена. Проверь соединение перед повторной попыткой.";
+        reportError.textContent = (window.Kinqsy && window.Kinqsy.rateLimitMessage && window.Kinqsy.rateLimitMessage(error)) || "Отправка не подтверждена. Проверь соединение перед повторной попыткой.";
       } finally { button.disabled = false; }
     };
   }
