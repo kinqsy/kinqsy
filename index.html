@@ -440,7 +440,7 @@
             err.textContent = "Цитата сохранена. Номер: " + result.data + ". Обнови раздел «Цитаты» в админке.";
             delivered = true;
         } catch (error) {
-            err.textContent = "Отправка не подтверждена. Проверь соединение перед повторной попыткой.";
+            err.textContent = (window.Kinqsy && window.Kinqsy.rateLimitMessage && window.Kinqsy.rateLimitMessage(error)) || "Отправка не подтверждена. Проверь соединение перед повторной попыткой.";
         } finally {
             button.disabled = delivered;
         }
