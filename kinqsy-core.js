@@ -825,7 +825,12 @@
     var prof = await currentProfile();
     var name = (prof && prof.display_name) ? prof.display_name : "user";
     var tit = document.getElementById("acc-title");
-    tit.innerHTML = '<a href="about.html?u=' + encodeURIComponent(name) + '" style="color:inherit;text-decoration:underline;">@' + name + '</a>';
+    var profileLink = document.createElement("a");
+    profileLink.href = "about.html?u=" + encodeURIComponent(name);
+    profileLink.style.color = "inherit";
+    profileLink.style.textDecoration = "underline";
+    profileLink.textContent = "@" + name;
+    tit.replaceChildren(profileLink);
     document.getElementById("acc-hint").textContent = "этот код дают подруге в «добавить друга»";
     var code = await ensureFriendCode(uid);
     document.getElementById("acc-code").textContent = code || "—";
