@@ -1013,7 +1013,14 @@
     }
   }
 
+  function rateLimitMessage(error) {
+    if (!error || error.code !== "P0001" || error.details !== "KINQSY_RATE_LIMIT") return "";
+    var match = /^retry_after_seconds=([0-9]+)$/.exec(error.hint || "");
+    return match ? "Слишком часто. Повтори через " + Math.max(1, Number(match[1])) + " с." : "Слишком часто. Попробуй позже.";
+  }
+
   global.Kinqsy = {
+    rateLimitMessage: rateLimitMessage,
     sb: getClient,
     OWNER_ID: OWNER_ID,
     OWNER_SLUG: OWNER_SLUG,
