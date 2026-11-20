@@ -2,11 +2,14 @@
   var sb = function () { return window.__kinqsy_sb; };
   var openWins = {};
   var liveChats = {};
+  var logPages = {};
+  var LOG_PAGE_SIZE = 50;
   var unreadTimer = null;
 
   function disposeChat(sid) {
     var live = liveChats[sid];
     delete liveChats[sid];
+    delete logPages[sid];
     if (live) {
       clearInterval(live.timer);
       if (live.channel) Promise.resolve(sb().removeChannel(live.channel)).catch(function () {});
@@ -187,11 +190,12 @@
       '<header data-drag><span>' + esc(name) + '</span>' +
       '<button type="button" data-min title="свернуть">–</button>' +
       '<button type="button" data-end title="завершить">×</button></header>' +
-      '<div class="kq-chat-log"></div><p class="kq-chat-err"></p>' +
+      '<button type="button" data-older hidden>ранние сообщения</button><div class="kq-chat-log"></div><p class="kq-chat-err"></p>' +
       '<form><textarea maxlength="2000" placeholder="сообщение"></textarea><button type="submit">→</button></form>';
     document.body.appendChild(w);
     openWins[sid] = w;
     drag(w);
+    w.querySelector("[data-older]").onclick = function () { loadLog(sid, otherId, true); };
     w.querySelector("[data-min]").onclick = function () { w.classList.toggle("min"); };
     w.querySelector("[data-end]").onclick = function () { askEnd(sid, w); };
     var ta = w.querySelector("textarea");
@@ -251,18 +255,55 @@
     };
   }
 
-  async function loadLog(sid, otherId) {
+  async function loadLog(sid, otherId, older) {
     var w = openWins[sid];
     if (!w) return;
-    var { data, error } = await sb().from("messages").select("id,sender_id,body,created_at").eq("session_id", sid).order("created_at");
-    if (error) { w.querySelector(".kq-chat-err").textContent = error.message; return; }
-    var log = w.querySelector(".kq-chat-log");
-    if (openWins[sid] !== w) return;
-    var top = log.scrollTop;
-    var atBottom = log.scrollHeight - log.clientHeight - top < 40;
-    log.innerHTML = "";
-    (data || []).forEach(function (m) { addLine(log, m, otherId); });
-    if (!atBottom) log.scrollTop = top;
+    var page = logPages[sid] || (logPages[sid] = { rows: new Map(), cursor: null, more: false, loading: false });
+    if (page.loading || (older && (!page.more || !page.cursor))) return;
+    page.loading = true;
+    var wasEmpty = page.rows.size === 0;
+    var button = w.querySelector("[data-older]");
+    if (button) button.disabled = true;
+    try {
+      var query = sb().from("messages").select("id,sender_id,body,created_at").eq("session_id", sid);
+      if (older) {
+        if (page.cursor.created_at == null) query = query.is("created_at", null).lt("id", page.cursor.id);
+        else query = query.or("created_at.lt." + page.cursor.created_at + ",and(created_at.eq." + page.cursor.created_at + ",id.lt." + page.cursor.id + "),created_at.is.null");
+      }
+      var result = await query.order("created_at", { ascending: false, nullsFirst: false }).order("id", { ascending: false }).limit(LOG_PAGE_SIZE + 1);
+      if (result.error) throw result.error;
+      if (openWins[sid] !== w || logPages[sid] !== page) return;
+      var data = result.data || [], batch = data.slice(0, LOG_PAGE_SIZE);
+      var first = wasEmpty;
+      // If a disconnected interval created a gap, restart the contiguous latest window.
+      if (!older && !first && batch.length && !batch.some(function (m) { return page.rows.has(m.id); })) {
+        page.rows.clear(); first = true;
+      }
+      batch.forEach(function (m) { page.rows.set(m.id, m); });
+      if (first || older) {
+        page.more = data.length > LOG_PAGE_SIZE;
+        if (batch.length) page.cursor = batch[batch.length - 1];
+      }
+      var log = w.querySelector(".kq-chat-log");
+      var top = log.scrollTop, height = log.scrollHeight;
+      var atBottom = height - log.clientHeight - top < 40;
+      log.innerHTML = "";
+      Array.from(page.rows.values()).sort(function (a, b) {
+        if (a.created_at == null && b.created_at != null) return -1;
+        if (b.created_at == null && a.created_at != null) return 1;
+        var time = a.created_at == null ? 0 : Date.parse(a.created_at) - Date.parse(b.created_at);
+        return time || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+      }).forEach(function (m) { addLine(log, m, otherId); });
+      if (older) log.scrollTop = top + log.scrollHeight - height;
+      else if (!atBottom) log.scrollTop = top;
+      if (button) button.hidden = !page.more;
+      w.querySelector(".kq-chat-err").textContent = "";
+    } catch (error) {
+      if (openWins[sid] === w) w.querySelector(".kq-chat-err").textContent = "Не удалось загрузить сообщения. Повтори попытку.";
+    } finally {
+      page.loading = false;
+      if (button) button.disabled = false;
+    }
   }
 
   function addLine(log, m, otherId) {
@@ -288,7 +329,10 @@
       live.channel = sb().channel("chat-" + sid)
         .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: "session_id=eq." + sid }, function (row) {
           var w = openWins[sid];
-          if (w && row.new) addLine(w.querySelector(".kq-chat-log"), row.new, otherId);
+          if (w && row.new) {
+            if (logPages[sid] && row.new.id) logPages[sid].rows.set(row.new.id, row.new);
+            addLine(w.querySelector(".kq-chat-log"), row.new, otherId);
+          }
           refreshUnread();
         })
         .on("postgres_changes", { event: "UPDATE", schema: "public", table: "chat_sessions", filter: "id=eq." + sid }, function (row) {
