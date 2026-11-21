@@ -1,0 +1,40 @@
+/* Shared editor organization and local draft UI. All controls inherit the current theme. */
+.kqd-panel { border: 1px solid currentColor; border-color: color-mix(in srgb, currentColor 25%, transparent); border-radius: 15px; margin: 12px 0; padding: 0 12px; background: var(--kq-glass, rgba(255,255,255,.08)); }
+.kqd-panel > summary { cursor: pointer; padding: 12px 0; font: inherit; font-weight: 600; font-size: 14px; line-height: 1.4; }
+.kqd-panel-body { padding: 0 0 12px; }
+.kqd-content .kqd-panel-body { max-height: min(46dvh,440px); overflow: auto; scrollbar-width: thin; padding-right: 4px; }
+.auth-overlay.kqd-editor { width: 100vw; height: 100dvh; box-sizing: border-box; left: 0; top: 0; right: auto; padding: 12px; }
+.kqd-panel:not([open]) > .kqd-panel-body { display: none; }
+.kqd-panel input, .kqd-panel select, .kqd-panel textarea { color: inherit; }
+.kqd-content .kql-tools { margin-top: 10px; }
+.kqd-content .kql-tools-sel { margin: 10px 0; }
+.kqd-appearance .kqd-panel-body { display: grid; grid-template-columns: minmax(0,1fr); gap: 6px; }
+.kqd-editor .compose-preview-box { margin: 12px 0; }
+.kqd-editor .compose-preview-box[data-kqd-bg] { background: var(--kqd-post-background) !important; }
+.kqd-editor #compose-preview, .kqd-editor #kq-sticker-canvas, .kqd-editor .kq-flow-tools { display: none !important; }
+.kqd-editor .kqd-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.kqd-button, .kqd-editor #compose-restore-draft { font: inherit; color: inherit; border: 1px solid currentColor; border-color: color-mix(in srgb, currentColor 35%, transparent); background: var(--kq-glass, rgba(255,255,255,.17)); border-radius: 999px; padding: 9px 14px; cursor: pointer; }
+.kqd-button:disabled { opacity: .5; cursor: wait; }
+.kqd-button:focus-visible, .kqd-panel summary:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+.kqd-editor #kqd-save { background: var(--kq-accent-soft, rgba(255,255,255,.27)); }
+.kqd-editor #compose-publish, .kqd-editor #kqd-save { flex: 1 1 160px; }
+.kqd-status { display: grid; gap: 5px; margin: 12px 0; font: 12px/1.45 Arial,sans-serif; }
+.kqd-status span, .kqd-local-note { opacity: .8; font-size: 12px; line-height: 1.45; }
+.kqd-launcher { display: block; margin: 12px 0; }
+.kqd-launcher[hidden] { display: none; }
+.kqd-list-overlay { z-index: 6200 !important; box-sizing: border-box; width: 100vw; height: 100dvh; padding: 12px; }
+.kqd-list-overlay .kqd-list-card { width: min(720px,100%); max-height: calc(100dvh - 24px); overflow: auto; }
+.kqd-list-head, .kqd-row-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.kqd-row { border: 1px solid currentColor; border-color: color-mix(in srgb,currentColor 25%,transparent); border-radius: 14px; margin: 10px 0; padding: 14px; background: var(--kq-glass,rgba(255,255,255,.08)); }
+.kqd-row h3 { overflow-wrap: anywhere; margin: 0 0 8px; font-size: 16px; }
+.kqd-row p { font: 12px/1.5 Arial,sans-serif; margin: 4px 0; }
+.kqd-row-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.kqd-badge { font: 11px/1.4 Arial,sans-serif; border-radius: 999px; padding: 4px 8px; background: var(--kq-glass,rgba(255,255,255,.16)); }
+.kqd-confirm { margin-top: 12px; border-top: 1px solid currentColor; padding-top: 12px; }
+.kqd-confirm button { margin: 8px 6px 0 0; }
+.post[data-kqd-bg=pink] { background: rgba(240,201,214,.45) !important; }
+.post[data-kqd-bg=lilac] { background: rgba(200,180,220,.4) !important; }
+.post[data-kqd-bg=dark] { background: rgba(30,20,28,.55) !important; }
+.post[data-kqd-bg=cream] { background: rgba(255,248,240,.5) !important; }
+.post[data-kqd-bg=clear] { background: rgba(255,255,255,.08) !important; }
+@media(max-width:600px){ .kqd-panel{padding:0 10px;} .kqd-row-actions .kqd-button{flex:1 1 100px;} .kqd-list-card{padding:16px;} }
