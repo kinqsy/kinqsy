@@ -95,3 +95,14 @@ article.has-layout .kq-layout-host .kql-card { background: transparent; box-shad
 .kql-edit .kql-o.sel { outline-color: var(--kq-accent, currentColor); }
 .kql-edit .kql-h { background: var(--kq-accent, #55434c); }
 .kql-note { color: inherit; }
+
+.kql-advanced, .kql-document-options { width: 100%; }
+.kql-advanced summary, .kql-document-options summary { cursor: pointer; padding: 6px 0; font: inherit; }
+.kql-advanced-body { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding-top: 8px; }
+.kql-advanced:not([open]) > .kql-advanced-body { display: none; }
+.kql-document-options:not([open]) > :not(summary) { display: none; }
+.kql-document-options input[type=number] { width: 95px; }
+.kql-tools-sel > button { min-height: 32px; }
+.kql-tools-sel > textarea { order: 1; }
+.kql-tools-sel > .kql-advanced { order: 2; }
+.post .kq-canvas.kq-flow { height: auto !important; overflow: visible !important; }

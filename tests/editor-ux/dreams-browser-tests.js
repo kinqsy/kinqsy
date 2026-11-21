@@ -1,0 +1,10 @@
+(async()=>{const results=[],tick=()=>new Promise(r=>setTimeout(r,70));function check(ok,name){results.push({name,ok:!!ok});if(!ok)throw Error(name);}
+try{await tick();window.kqOpenStickerTray=async()=>{};window.__openDreamCompose();await tick();const title=document.getElementById('compose-title');title.value='dream edited';title.dispatchEvent(new Event('input',{bubbles:true}));await tick();check(!window.__errors.length,'Dreams title input does not call removed legacy preview nodes');
+const button=t=>[...document.querySelectorAll('.kql-tools button,.kql-tools-sel button')].find(e=>e.textContent===t);
+check(!button('+ текст').hidden&&!button('каталог').hidden,'Dreams basic add text and catalog controls are available');button('+ текст').click();await tick();check(!document.querySelector('.kql-advanced').open,'Dreams advanced settings collapsed');
+let d=KQL.compose.decor();check(d.canvas&&d.objs.some(o=>o.type==='text'&&!o.role),'Dreams additional text uses shared canvas model');
+document.querySelector('.kql-advanced').open=true;const y=document.querySelector('input[aria-label="Y"]');y.value='135';y.dispatchEvent(new Event('change',{bubbles:true}));await tick();
+let stored=JSON.parse(JSON.stringify(KQL.compose.decor()));KQL.compose.reset();KQL.compose.load(stored);await tick();check(KQL.compose.decor().objs.some(o=>!o.role&&o.y===135),'Dreams re-edit retains lower text position');
+document.getElementById('compose-content').value='saved dream';await document.getElementById('compose-publish').onclick();check(window.__writes.length===1&&window.__writes[0].decor.objs.some(o=>o.y===135),'Dreams submits entire layout to mocked database');
+const h=document.createElement('div');h.style.width='600px';document.body.appendChild(h);KQL.render(h,KQL.fromPost({title:'dream',content:'saved dream',decor:stored}));await tick();check(h.querySelector('.kql-card').offsetHeight>=810,'Dreams renderer includes lower object');
+}catch(e){results.push({error:e.message,stack:e.stack});}document.getElementById('test-results').textContent=JSON.stringify(results);})();

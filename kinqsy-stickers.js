@@ -547,6 +547,18 @@ function kqPlaceBlock(el, spec) {
   if (spec.y != null) el.style.marginTop = Math.round(Number(spec.y) / 100 * 280) + "px";
 }
 
+// Pre-v3 posts still use flow rendering. Include absolute legacy decorations
+// without inheriting the historical 380px board placeholder from the theme.
+function kqFitPublishedFlow(host) {
+  if (!host.closest(".post") || !host.clientWidth) return;
+  host.style.setProperty("min-height","0px","important");
+  var top=host.getBoundingClientRect().top, bottom=host.offsetHeight;
+  host.querySelectorAll(".kq-obj,.kq-sticker-node,.kq-flow-title,.kq-body,img").forEach(function(node){
+    bottom=Math.max(bottom,node.getBoundingClientRect().bottom-top+12);
+  });
+  host.style.setProperty("min-height",Math.ceil(bottom)+"px","important");
+}
+
 window.kqRenderFlow = function (host, opts) {
   if (!host) return;
   opts = opts || {};
@@ -591,6 +603,12 @@ window.kqRenderFlow = function (host, opts) {
   if (opts.interactive) {
     kqDragBlock(title, window.kqBoard.title, host);
     kqDragBlock(body, window.kqBoard.body, host);
+  } else {
+    var fit=function(){kqFitPublishedFlow(host);};
+    fit();
+    host.querySelectorAll("img").forEach(function(img){img.addEventListener("load",fit,{once:true});});
+    if(document.fonts)document.fonts.ready.then(fit);
+    if(window.ResizeObserver && !host._kqFlowRO){host._kqFlowRO=new ResizeObserver(fit);host._kqFlowRO.observe(host);}
   }
 };
 

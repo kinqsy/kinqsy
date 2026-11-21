@@ -35,7 +35,7 @@
   function setSkin(s) {
     localStorage.setItem("kq-player-skin", s);
     var el = document.getElementById("kq-player");
-    if (el) el.setAttribute("data-skin", s);
+    if (el) { el.setAttribute("data-skin", s); if(el.kqFitPosition) requestAnimationFrame(el.kqFitPosition); }
   }
 
   function bar() {
@@ -157,50 +157,69 @@
 
   function setupDrag() {
     var host = document.getElementById("kq-player");
-    if (!host || host.getAttribute("data-drag") === "1") return;
-    host.setAttribute("data-drag", "1");
-    var drag = document.getElementById("kq-p-drag");
-    if (!drag) {
-      drag = document.createElement("button");
-      drag.type = "button";
-      drag.id = "kq-p-drag";
-      drag.textContent = "⋮⋮";
-      drag.setAttribute("aria-label", "переместить");
-      host.insertBefore(drag, host.firstChild);
+    if (!host || host.dataset.drag === "1") return;
+    host.dataset.drag = "1";
+    var drag = document.createElement("button"); drag.type="button";drag.id="kq-p-drag";drag.textContent="⠿";
+    drag.title="Переместить плеер; стрелки — сдвиг, Home — вернуть положение";
+    drag.setAttribute("aria-label","Переместить плеер"); host.insertBefore(drag,host.firstChild);
+    var position = null, active = null;
+    function persist() { try {localStorage.setItem("kq-player-pos",JSON.stringify(position));}catch(ignore){} }
+    function viewport() {var v=window.visualViewport;return {x:v?v.offsetLeft:0,y:v?v.offsetTop:0,w:v?v.width:window.innerWidth,h:v?v.height:window.innerHeight};}
+    function place(x,y,save) {
+      if(!Number.isFinite(x)||!Number.isFinite(y)||host.classList.contains("kq-docked"))return;
+      var v=viewport(),w=host.offsetWidth,h=host.offsetHeight;
+      x=Math.max(v.x+8,Math.min(v.x+Math.max(8,v.w-w-8),x));
+      y=Math.max(v.y+8,Math.min(v.y+Math.max(8,v.h-h-8),y));
+      position={x:x,y:y};
+      host.style.left=x+"px";host.style.top=y+"px";host.style.right="auto";host.style.bottom="auto";host.style.transform="none";
+      if(save)persist();
     }
-    function place(x, y) {
-      var w = host.offsetWidth || 180;
-      var h = host.offsetHeight || 48;
-      x = Math.max(8, Math.min(window.innerWidth - w - 8, x));
-      y = Math.max(48, Math.min(window.innerHeight - h - 8, y));
-      host.style.left = x + "px";
-      host.style.top = y + "px";
-      host.style.right = "auto";
-      host.style.bottom = "auto";
-      host.style.transform = "none";
-      localStorage.setItem("kq-player-pos", JSON.stringify({ x: x, y: y }));
-    }
-    try {
-      var saved = JSON.parse(localStorage.getItem("kq-player-pos") || "null");
-      if (saved && typeof saved.x === "number") place(saved.x, saved.y);
-    } catch (e) {}
-    drag.addEventListener("pointerdown", function (e) {
-      if (e.button != null && e.button !== 0) return;
-      e.preventDefault();
-      e.stopPropagation();
-      drag.setPointerCapture(e.pointerId);
-      var r = host.getBoundingClientRect();
-      var ox = e.clientX - r.left;
-      var oy = e.clientY - r.top;
-      function move(ev) { place(ev.clientX - ox, ev.clientY - oy); }
-      function up(ev) {
-        drag.removeEventListener("pointermove", move);
-        drag.removeEventListener("pointerup", up);
-        try { drag.releasePointerCapture(ev.pointerId); } catch (err) {}
-      }
-      drag.addEventListener("pointermove", move);
-      drag.addEventListener("pointerup", up);
+    function fit(){if(host.classList.contains("kq-docked"))return;var r=host.getBoundingClientRect();place(position?position.x:r.left,position?position.y:r.top,false);}
+    function reset(){position=null;try{localStorage.removeItem("kq-player-pos");}catch(ignore){}["left","top","right","bottom","transform"].forEach(function(p){host.style.removeProperty(p);});requestAnimationFrame(fit);}
+    host.kqFitPosition=fit;host.kqResetPosition=reset;
+    try {var saved=JSON.parse(localStorage.getItem("kq-player-pos")||"null");if(saved&&Number.isFinite(saved.x)&&Number.isFinite(saved.y))position=saved;}catch(ignore){}
+    drag.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();});
+    drag.addEventListener("keydown",function(e){var steps={ArrowLeft:[-10,0],ArrowRight:[10,0],ArrowUp:[0,-10],ArrowDown:[0,10]};
+      if(e.key==="Home"){e.preventDefault();reset();return;}var step=steps[e.key];if(!step)return;e.preventDefault();var r=host.getBoundingClientRect();place(r.left+step[0],r.top+step[1],true);
     });
+    drag.addEventListener("pointerdown",function(e){
+      if(active || (e.button!=null&&e.button!==0)||host.classList.contains("kq-docked"))return;
+      e.preventDefault();e.stopPropagation();var r=host.getBoundingClientRect();active={id:e.pointerId,x:e.clientX-r.left,y:e.clientY-r.top};
+      try{drag.setPointerCapture(e.pointerId);}catch(ignore){}
+      host.classList.add("kq-dragging");
+    });
+    drag.addEventListener("pointermove",function(e){if(!active||e.pointerId!==active.id)return;e.preventDefault();place(e.clientX-active.x,e.clientY-active.y,false);});
+    function end(e){if(!active||e.pointerId!==active.id)return;var id=active.id;active=null;host.classList.remove("kq-dragging");if(position)persist();try{drag.releasePointerCapture(id);}catch(ignore){} }
+    ["pointerup","pointercancel","lostpointercapture"].forEach(function(type){drag.addEventListener(type,end);});
+    window.addEventListener("resize",fit);if(window.visualViewport)window.visualViewport.addEventListener("resize",fit);
+    if(window.ResizeObserver)new ResizeObserver(fit).observe(host);
+    fit(); requestAnimationFrame(fit);
+    setupOverlayDock(host);
+  }
+
+  // The audio lives in the parent shell. Reserve its own strip while a child
+  // editor/dialog or a text field is active, rather than covering iframe controls.
+  function setupOverlayDock(host) {
+    var frame=document.getElementById("kq-frame"), observer=null, oldDoc=null;
+    if(!frame)return;
+    function afterFocus(){ setTimeout(update,0); }
+    function update(){
+      var doc;try{doc=frame.contentDocument;}catch(ignore){}var blocked=false;
+      if(doc){
+        blocked=[].some.call(doc.querySelectorAll(".auth-overlay.open,.modal-overlay.open,dialog[open],[role=dialog][aria-modal=true],#kq-sticker-pop"),function(e){var r=e.getBoundingClientRect();return r.width>0 && r.height>0 && doc.defaultView.getComputedStyle(e).visibility!=="hidden";});
+        var focus=doc.activeElement;blocked=blocked||!!(focus&&focus.matches("input:not([type=button]):not([type=range]):not([type=color]),textarea,[contenteditable=true]"));
+      }
+      if(host.classList.contains("kq-docked")===blocked)return;
+      host.classList.toggle("kq-docked",blocked);document.body.classList.toggle("kq-player-docked",blocked);
+      if(!blocked&&host.kqFitPosition)requestAnimationFrame(host.kqFitPosition);
+    }
+    function bind(){
+      if(observer)observer.disconnect();if(oldDoc){oldDoc.removeEventListener("focus",afterFocus,true);oldDoc.removeEventListener("blur",afterFocus,true);}
+      try{oldDoc=frame.contentDocument;}catch(ignore){oldDoc=null;}
+      if(oldDoc){observer=new MutationObserver(update);observer.observe(oldDoc.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:["class","style","open","hidden","aria-modal"]});oldDoc.addEventListener("focus",afterFocus,true);oldDoc.addEventListener("blur",afterFocus,true);}
+      update();
+    }
+    frame.addEventListener("load",bind);bind();
   }
 
   async function loadTracks() {
@@ -243,8 +262,10 @@
       '<input type="file" id="kq-music-file" accept="audio/mpeg,audio/mp4,audio/ogg,audio/wav,audio/aac,.mp3,.m4a,.ogg,.wav">' +
       '<p class="hint">mp3 / m4a / ogg / wav / aac · до 15 МБ</p>' +
       '<div class="kq-lib-list"></div>' +
+      '<button type="button" id="kq-p-reset">вернуть положение плеера</button> ' +
       '<button type="button" id="kq-lib-x">закрыть</button></div>';
     host.style.display = "flex";
+    host.querySelector("#kq-p-reset").onclick=function(){var player=document.getElementById("kq-player");if(player.kqResetPosition)player.kqResetPosition();};
     host.querySelector("#kq-lib-x").onclick = function () { host.style.display = "none"; };
     host.querySelectorAll("[data-skin]").forEach(function (b) {
       b.onclick = function () { setSkin(b.getAttribute("data-skin")); openLib(); };
