@@ -48,6 +48,8 @@ button('свободный холст').click();check(KQL.compose.decor().canvas
 window.kqOpenStickerTray=window.__realTray;window.kqLoadCatalog=async()=>[{id:'x',kind:'ascii',text:'<img src=x onerror="window.__injected=1">'}];await window.kqOpenStickerTray();check(!document.querySelector('#kq-sticker-pop img')&&!window.__injected,'catalog renders literal text safely');
 document.querySelector('#kq-sticker-pop .kq-sticker-pick').click();check(KQL.compose._objs().filter(o=>o.sid==='x').length===1,'actual catalog delegated click adds exactly once');
 button('каталог').click();check(document.getElementById('kq-sticker-pop').style.display==='none','catalog collapses');
+KQL.compose.load({v:3,objs:Array.from({length:23},(_,i)=>({id:'full'+i,type:'sticker',text:'x',mode:'square',fs:3}))});button('+ текст').click();check(KQL.compose.decor().objs.length===23&&!KQL.compose.decor().canvas,'conversion at capacity never truncates existing objects');
+KQL.compose.reset();KQL.compose.addSticker('first','first');KQL.compose.addSticker('second','second');let order=KQL.compose.decor().objs;check(order[order.length-1].z>Math.max(...order.slice(0,-1).map(o=>o.z)),'new objects appear above existing layers');
 }catch(error){results.push({error:error.message,stack:error.stack});}
 document.getElementById('test-results').textContent=JSON.stringify(results);
 })();
