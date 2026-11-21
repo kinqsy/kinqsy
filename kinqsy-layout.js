@@ -84,7 +84,9 @@
       titleAlign: oneOf(d.titleAlign, ["left", "center", "right"], "left"),
       bodyAlign: oneOf(d.bodyAlign, ["left", "center", "right", "justify"], "left"),
       kp: r2(num(d.pad, 3, 0, 8)),
-      objs: objs, canvas: d.canvas === true, height: num(d.height, 70, 20, 1200)
+      objs: objs, canvas: d.canvas === true, height: num(d.height, 70, 0, 1200),
+      // 70 was the generated workspace default, not an explicit publication size.
+      heightMode: d.heightMode === "fixed" || (!d.heightMode && d.height != null && Number(d.height) !== 70) ? "fixed" : "auto"
     };
   }
 
@@ -128,6 +130,7 @@
     } else if (o.type === "text") {
       e.textContent = o.role === "title" ? L.title : o.role === "body" ? L.text : o.text;
       if (!e.textContent && opt.edit) e.textContent = o.role === "title" ? "заголовок…" : "текст…";
+      if (!e.textContent && !opt.edit) e.hidden = true;
       e.style.fontFamily = o.role === "title" ? L.titleFont : o.role === "body" ? L.bodyFont : o.font;
       e.style.color = o.role === "title" ? L.titleColor : o.role === "body" ? L.bodyColor : o.color;
       e.style.fontSize = ((o.role === "title" ? L.ts : o.role === "body" ? L.bs : o.size / REF)) + "cqw";
@@ -140,6 +143,7 @@
       e.style.fontFamily = L.bodyFont;
       e.textContent = o.text || (opt.edit ? "текст плашки…" : "");
     }
+    if (!opt.edit && o.type === "text" && !e.textContent) e.hidden = true;
     if (opt.edit) {
       var hnd = el("div", "kql-h", "✥"); hnd.title = "перетащить";
       hnd.addEventListener("pointerdown", function (ev) { opt.onDown(ev, o, true); });
@@ -156,22 +160,21 @@
   function clampFree(host) {
     var card = host.querySelector(".kql-card");
     if (!card || !card.clientWidth) return;
-    if (card.classList.contains("kql-canvas")) {
-      var unit = card.clientWidth / 100, bottom = Number(card.dataset.height) || 70;
-      host.querySelectorAll(".kql-o").forEach(function(e) {
-        bottom = Math.max(bottom, (parseFloat(e.style.getPropertyValue("--y")) || 0) + e.offsetHeight / unit + 3);
-      });
-      card.style.minHeight = (bottom * unit) + "px";
-      return;
-    }
-    var u = card.clientWidth / 100, Hu = card.clientHeight / u;
-    host.querySelectorAll(".kql-m-front, .kql-m-behind").forEach(function (e) {
-      var w = e.offsetWidth / u, h = e.offsetHeight / u;
-      var x = parseFloat(e.style.getPropertyValue("--x")) || 0, y = parseFloat(e.style.getPropertyValue("--y")) || 0;
-      var nx = Math.max(0, Math.min(x, 100 - w)), ny = Math.max(0, Math.min(y, Hu - h));
-      if (Math.abs(nx - x) > 0.01) e.style.setProperty("--x", String(r2(nx)));
-      if (Math.abs(ny - y) > 0.01) e.style.setProperty("--y", String(r2(ny)));
+    var unit = card.clientWidth / 100;
+    // Measure natural flow first, so shrinking text also shrinks the publication.
+    card.style.minHeight = "0px";
+    var cardRect = card.getBoundingClientRect(), bottom = card.offsetHeight;
+    host.querySelectorAll(".kql-o").forEach(function(e) {
+      if (!e.getClientRects().length || e.hidden) return;
+      var rect = e.getBoundingClientRect();
+      bottom = Math.max(bottom, rect.bottom - cardRect.top + Number(card.dataset.pad) * unit);
+      // The transformed ASCII pre can extend beyond its unrotated wrapper.
+      var pre = e.querySelector("pre");
+      if (pre) bottom = Math.max(bottom, pre.getBoundingClientRect().bottom - cardRect.top + Number(card.dataset.pad) * unit);
     });
+    var explicit = card.dataset.heightMode === "fixed" ? Number(card.dataset.height) * unit : 0;
+    var workspace = host.classList.contains("kql-edit") && card.classList.contains("kql-canvas") ? 70 * unit : 0;
+    card.style.minHeight = Math.ceil(Math.max(bottom, explicit, workspace)) + "px";
   }
 
   function render(host, L, opt) {
@@ -182,7 +185,7 @@
     var card = el("div", "kql-card");
     card.classList.toggle("kql-canvas", L.canvas);
     card.dataset.height = String(L.height);
-    if (L.canvas) card.style.minHeight = L.height + "cqw";
+    card.dataset.heightMode = L.heightMode; card.dataset.pad = String(L.kp);
     card.style.setProperty("--kp", String(L.kp));
     var title = el("h2", "kql-title", L.title || (opt.edit ? "заголовок…" : ""));
     title.style.setProperty("--ts", String(L.ts));
@@ -215,6 +218,8 @@
     host.appendChild(card);
     var again = function () { clampFree(host); };
     if (opt.afterLoad === undefined) opt.afterLoad = again;
+    again();
+    if (document.fonts) document.fonts.ready.then(function(){ if(host.isConnected) again(); });
     if (typeof requestAnimationFrame === "function") requestAnimationFrame(again);
     if (typeof ResizeObserver === "function" && !host._kqRO) {
       host._kqRO = new ResizeObserver(function () { clampFree(host); });
@@ -234,7 +239,7 @@
     var sbc = function () { return g.__kinqsy_sb || null; };
     var objs = [], sel = null, uidSeq = 0;
     var notesCanvas = !!document.querySelector("#compose-overlay[data-kql-free]");
-    var prefs = { titleAlign: "left", bodyAlign: "left", pad: 3, canvas: notesCanvas, height: 70 };
+    var prefs = { titleAlign: "left", bodyAlign: "left", pad: 3, canvas: notesCanvas, height: 70, heightMode: "auto" };
 
     function val(id, d) { var e = document.getElementById(id); return e && e.value !== "" ? e.value : d; }
     function meta() {
@@ -275,6 +280,16 @@
     var note = el("div", "kql-note"); note.style.width = "100%";
     tools.appendChild(note);
 
+    var documentOptions = el("details", "kql-document-options");
+    documentOptions.appendChild(el("summary", null, "параметры композиции"));
+    [bCanvas,ta.previousSibling,ta,ba.previousSibling,ba,pr.previousSibling,pr].forEach(function(e){ documentOptions.appendChild(e); });
+    var heightMode = sel2([["auto","высота по содержимому"],["fixed","минимальная высота"]],"auto");
+    heightMode.setAttribute("aria-label","Режим высоты композиции");
+    var heightValue = document.createElement("input"); heightValue.type="number";heightValue.min="0";heightValue.max="1200";heightValue.step="1";heightValue.value="70";
+    heightValue.setAttribute("aria-label","Минимальная высота в процентах ширины");
+    documentOptions.appendChild(heightMode);documentOptions.appendChild(heightValue);tools.appendChild(documentOptions);
+    heightMode.onchange=function(){prefs.heightMode=heightMode.value;refresh();};
+    heightValue.onchange=function(){prefs.height=num(heightValue.value,70,0,1200);prefs.heightMode="fixed";refresh();};
     var st = el("div", "kql-tools-sel");
     var stLab = el("span", "lab", "");
     var mSel = sel2(MODES.map(function (m) { return [m, MODE_LABELS[m]]; }), "square");
@@ -309,6 +324,12 @@
     st.appendChild(bSm); st.appendChild(bPl); st.appendChild(padLab); st.appendChild(padR);
     [bRl, bRr, bFx, bFy].forEach(function (b) { st.appendChild(b); });
     st.appendChild(plText); st.appendChild(plBg); st.appendChild(plCol); st.appendChild(plFg); st.appendChild(bDel);
+    var advanced = el("details", "kql-advanced"); advanced.appendChild(el("summary", null, "расширенные настройки"));
+    var advancedBody = el("div", "kql-advanced-body"); advanced.appendChild(advancedBody);
+    [].slice.call(st.children).forEach(function(e){ if([stLab,bSm,bPl,bDel,textEdit].indexOf(e)<0) advancedBody.appendChild(e); });
+    st.appendChild(advanced);
+    bSm.title="уменьшить объект";bPl.title="увеличить объект";
+    var advancedSelection = null;
     box.parentNode.insertBefore(tools, box);
     box.parentNode.insertBefore(st, box);
 
@@ -316,9 +337,11 @@
     function imgCount() { return objs.filter(function (o) { return o.type === "image" || o.type === "media"; }).length; }
 
     function syncTools() {
+      heightMode.value=prefs.heightMode; heightValue.value=prefs.height; heightValue.hidden=prefs.heightMode!=="fixed";
+      if(advancedSelection!==sel){advanced.open=false;advancedSelection=sel;}
       objectPicker.innerHTML=""; var placeholder=el("option",null,"выбрать объект"); placeholder.value="";objectPicker.appendChild(placeholder);
       objs.forEach(function(o,i){var option=el("option",null,(i+1)+" · "+(o.role || o.type)+(o.locked ? " · заблокирован" : ""));option.value=o.id;objectPicker.appendChild(option);});objectPicker.value=sel || "";
-      bCanvas.hidden = !notesCanvas || prefs.canvas; bText.hidden = !notesCanvas; bCatalog.hidden = !notesCanvas;
+      bCanvas.hidden = prefs.canvas; bText.hidden = false; bCatalog.hidden = false;
       var o = selObj();
       st.classList.toggle("on", !!o);
       if (!o) return;
@@ -353,13 +376,13 @@
       if (pl) { plText.value = o.text || ""; plBg.value = o.plate.bg; plCol.value = o.plate.color; plFg.value = o.plate.fg; }
       mSel._o.contour.disabled = !(o.type === "media" || o.type === "image");
       st.querySelectorAll("button,input,select,textarea").forEach(function(e) { if (e !== bLock && o.locked) e.disabled = true; });
-      bCanvas.hidden = !notesCanvas || prefs.canvas; bText.hidden = !notesCanvas;
-      bCatalog.hidden = !notesCanvas;
+      bCanvas.hidden = prefs.canvas; bText.hidden = false;
+      bCatalog.hidden = false;
     }
 
     function currentLayout() {
       var s = sizes();
-      return buildLayout(meta(), { titleSize: s.titleSize, bodySize: s.bodySize, titleAlign: prefs.titleAlign, bodyAlign: prefs.bodyAlign, pad: prefs.pad, canvas: prefs.canvas, height: prefs.height, objs: objs });
+      return buildLayout(meta(), { titleSize: s.titleSize, bodySize: s.bodySize, titleAlign: prefs.titleAlign, bodyAlign: prefs.bodyAlign, pad: prefs.pad, canvas: prefs.canvas, height: prefs.height, heightMode: prefs.heightMode, objs: objs });
     }
 
     function ensureMedia() {
@@ -570,17 +593,17 @@
     function decor() {
       var s = sizes();
       ensureMedia();
-      return g.KQMedia ? g.KQMedia.canonicalize({ v: 3, titleSize: s.titleSize, bodySize: s.bodySize, titleAlign: prefs.titleAlign, bodyAlign: prefs.bodyAlign, pad: prefs.pad, canvas: prefs.canvas, height: prefs.height, objs: currentLayout().objs }) : { v: 3, titleSize: s.titleSize, bodySize: s.bodySize, titleAlign: prefs.titleAlign, bodyAlign: prefs.bodyAlign, pad: prefs.pad, canvas: prefs.canvas, height: prefs.height, objs: currentLayout().objs };
+      return g.KQMedia ? g.KQMedia.canonicalize({ v: 3, titleSize: s.titleSize, bodySize: s.bodySize, titleAlign: prefs.titleAlign, bodyAlign: prefs.bodyAlign, pad: prefs.pad, canvas: prefs.canvas, height: prefs.height, heightMode: prefs.heightMode, objs: currentLayout().objs }) : { v: 3, titleSize: s.titleSize, bodySize: s.bodySize, titleAlign: prefs.titleAlign, bodyAlign: prefs.bodyAlign, pad: prefs.pad, canvas: prefs.canvas, height: prefs.height, heightMode: prefs.heightMode, objs: currentLayout().objs };
     }
-    function reset() { objs = []; sel = null; prefs = { titleAlign: "left", bodyAlign: "left", pad: 3, canvas: notesCanvas, height: 70 }; if(notesCanvas)seedText(); if (ta) ta.value = "left"; if (ba) ba.value = "left"; if (pr) pr.value = "3"; refresh(); }
+    function reset() { objs = []; sel = null; prefs = { titleAlign: "left", bodyAlign: "left", pad: 3, canvas: notesCanvas, height: 70, heightMode: "auto" }; if(notesCanvas)seedText(); if (ta) ta.value = "left"; if (ba) ba.value = "left"; if (pr) pr.value = "3"; refresh(); }
     function load(d) {
-      prefs = {titleAlign:"left",bodyAlign:"left",pad:3,canvas:notesCanvas,height:70};
+      prefs = {titleAlign:"left",bodyAlign:"left",pad:3,canvas:notesCanvas,height:70,heightMode:"auto"};
       try { if (typeof d === "string") d = JSON.parse(d); } catch (e) { d = null; }
       objs = []; sel = null;
       if (d && d.v === 3) {
         prefs.titleAlign = oneOf(d.titleAlign, ["left", "center", "right"], "left");
         prefs.bodyAlign = oneOf(d.bodyAlign, ["left", "center", "right", "justify"], "left");
-        prefs.pad = num(d.pad, 3, 0, 8); prefs.canvas=d.canvas === true; prefs.height=num(d.height,70,20,1200);
+        prefs.pad = num(d.pad, 3, 0, 8); prefs.canvas=d.canvas === true; prefs.height=num(d.height,70,0,1200); prefs.heightMode=buildLayout(meta(),d).heightMode;
         if (ta) ta.value = prefs.titleAlign;
         if (ba) ba.value = prefs.bodyAlign;
         if (pr) pr.value = String(prefs.pad);
