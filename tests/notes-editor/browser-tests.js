@@ -50,6 +50,26 @@ document.querySelector('#kq-sticker-pop .kq-sticker-pick').click();check(KQL.com
 button('каталог').click();check(document.getElementById('kq-sticker-pop').style.display==='none','catalog collapses');
 KQL.compose.load({v:3,objs:Array.from({length:23},(_,i)=>({id:'full'+i,type:'sticker',text:'x',mode:'square',fs:3}))});button('+ текст').click();check(KQL.compose.decor().objs.length===23&&!KQL.compose.decor().canvas,'conversion at capacity never truncates existing objects');
 KQL.compose.reset();KQL.compose.addSticker('first','first');KQL.compose.addSticker('second','second');let order=KQL.compose.decor().objs;check(order[order.length-1].z>Math.max(...order.slice(0,-1).map(o=>o.z)),'new objects appear above existing layers');
+// Published geometry: editor workspace must not become publication whitespace.
+function publication(decor,content){const h=document.createElement('div');h.style.width='600px';document.body.appendChild(h);const before=JSON.stringify(decor);KQL.render(h,KQL.fromPost({title:'short',content:content||'one line',decor}));return {host:h,card:h.querySelector('.kql-card'),before,decor};}
+const basic={v:3,canvas:true,height:70,objs:[{id:'t',type:'text',role:'title',mode:'front',x:3,y:3,w:94},{id:'b',type:'text',role:'body',mode:'front',x:3,y:12,w:94}]};
+let short=publication(basic);await tick();check(short.card.offsetHeight<180,'short legacy-default canvas shrinks to content');check(JSON.stringify(basic)===short.before,'render does not rewrite stored decor');
+const marker=document.createElement('div');marker.textContent='reactions and comments';short.host.after(marker);check(marker.getBoundingClientRect().top-short.card.getBoundingClientRect().bottom<2,'following reactions start directly after visual content');
+let long=publication(basic,Array(90).fill('a line of longer text').join('\n'));await tick();check(long.card.offsetHeight>short.card.offsetHeight+400,'long text expands publication');
+let ascii=publication({v:3,canvas:true,height:70,objs:[{id:'rabbit',type:'sticker',text:' /\\_/\\\n( o.o )\n > ^ <',mode:'front',x:3,y:8,fs:3,w:30}]});await tick();check(ascii.card.offsetHeight<160,'one ASCII object has no workspace-sized blank area');
+let multi=publication({v:3,canvas:true,height:70,objs:[{id:'high',type:'plate',text:'high',mode:'front',x:3,y:10,w:30},{id:'low',type:'plate',text:'low',mode:'behind',x:35,y:130,w:30}]});await tick();let low=multi.host.querySelector('[data-id=low]').getBoundingClientRect();check(multi.card.getBoundingClientRect().bottom>=low.bottom+10,'lowest object on either layer is not cut off');
+let fixed=publication({...basic,heightMode:'fixed',height:100});await tick();check(fixed.card.offsetHeight>=600,'explicit large minimum height is retained');
+let oldFixed=publication({...basic,height:110});await tick();check(oldFixed.card.offsetHeight>=660,'non-default legacy height remains preserved');
+let oldFlow=publication({v:3,objs:[{id:'below',type:'plate',text:'below',mode:'front',x:3,y:150,w:30}]});await tick();check(oldFlow.host.querySelector('[data-id=below]').getBoundingClientRect().top-oldFlow.card.getBoundingClientRect().top>=899,'old flow/free object keeps its original lower position');
+KQL.compose.reset();KQL.compose.addSticker('advanced','test');check(!document.querySelector('.kql-advanced').open,'advanced settings closed by default');check(document.querySelector('.kql-tools-sel > button').getClientRects().length,'basic resize/delete controls remain visible');
+document.querySelector('.kql-advanced').open=true;change(document.querySelector('input[aria-label="X"]'),12);check(document.querySelector('.kql-advanced').open,'advanced panel stays open while changing coordinates');
+change(document.querySelector('select[aria-label="Режим высоты"]')||document.querySelector('.kql-document-options select:last-of-type'),'fixed');
+const heightInput=document.querySelector('input[aria-label="Минимальная высота в процентах ширины"]');if(heightInput)change(heightInput,100);
+let round=KQL.compose.decor();KQL.compose.reset();KQL.compose.load(round);check(KQL.compose.decor().heightMode===round.heightMode && KQL.compose.decor().objs[2].x===12,'height mode and coordinates survive re-edit');
+let flowCSS=document.createElement('link');flowCSS.rel='stylesheet';flowCSS.href='notes-flow.css';document.head.appendChild(flowCSS);await new Promise(r=>flowCSS.onload=r);
+let legacyArticle=document.createElement('article');legacyArticle.className='post has-board';legacyArticle.style.width='600px';legacyArticle.innerHTML='<div class="kq-canvas"><h2 class="post-title">old title</h2><div class="post-content">old text</div></div>';document.body.appendChild(legacyArticle);
+let legacyHost=legacyArticle.firstChild;kqMountDecor(legacyHost,{board:{},stickers:[]});await tick();check(legacyHost.offsetHeight<200,'pre-v3 flow no longer inherits fixed 380px board height');
+kqMountDecor(legacyHost,{board:{},stickers:[{text:'old lower sticker',wrap:'front',x:8,y:180,w:30}]});await tick();check(legacyHost.getBoundingClientRect().bottom>=legacyHost.querySelector('.kq-obj').getBoundingClientRect().bottom,'pre-v3 lower decoration stays inside publication height');
 }catch(error){results.push({error:error.message,stack:error.stack});}
 document.getElementById('test-results').textContent=JSON.stringify(results);
 })();
