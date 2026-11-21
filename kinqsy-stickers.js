@@ -1,5 +1,6 @@
 window.kqStickersOnPost = [];
 window.kqStickerFilter = "all";
+function kqCatalogEscape(value) { return String(value == null ? "" : value).replace(/[&<>"']/g, function(c) { return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
 
 function kqSb() { return window.__kinqsy_sb || null; }
 
@@ -38,9 +39,9 @@ window.kqOpenStickerTray = async function () {
   }).join("");
   var cards = list.length
     ? list.map(function (s) {
-        return '<button type="button" class="kq-sticker-pick" data-id="' + s.id +
-          '" data-text="' + encodeURIComponent(s.text) + '"><i>' + (s.kind || "") +
-          "</i><pre>" + s.text + "</pre></button>";
+        return '<button type="button" class="kq-sticker-pick" data-id="' + kqCatalogEscape(s.id) +
+          '" data-text="' + kqCatalogEscape(encodeURIComponent(s.text)) + '"><i>' + kqCatalogEscape(s.kind) +
+          "</i><pre>" + kqCatalogEscape(s.text) + "</pre></button>";
       }).join("")
     : '<p class="kq-empty">пусто в этой категории</p>';
   var add = owner
@@ -699,4 +700,3 @@ window.kqMountDecor = function (host, decor) {
     bodyStyle: bodyEl ? bodyEl.getAttribute("style") : ""
   });
 };
-
