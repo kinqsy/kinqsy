@@ -405,19 +405,8 @@ footer {
   <button type="button" id="post-menu-delete" class="danger">удалить</button>
 </div>
 
-<div class="auth-overlay" id="compose-overlay">
-  <div class="auth-modal">
-    <h2>новый dream</h2>
-    <label for="compose-title">заголовок</label>
-    <input id="compose-title" type="text">
-    <label for="compose-content">текст</label>
-    <textarea id="compose-content" rows="5"></textarea>
-    <label for="compose-title-size">размер заголовка</label>
-    <input id="compose-title-size" type="range" min="16" max="64" value="29">
-    <label for="compose-body-size">размер текста</label>
-    <input id="compose-body-size" type="range" min="12" max="28" value="17">
-    <label for="compose-title-font">шрифт заголовка</label>
-    <select id="compose-title-font">
+<div class="auth-overlay " id="compose-overlay">
+<div class="auth-modal kqd-editor-card"><h2 hidden>новый dream</h2><details class="kqd-panel kqd-content" id="kqd-content-panel"><summary>Объекты и содержимое</summary><div class="kqd-panel-body"><div class="kqd-field"><label for="compose-title">заголовок</label><input id="compose-title" type="text"></div><div class="kqd-field"><label for="compose-content">текст</label><textarea id="compose-content" rows="5"></textarea></div><div id="kqd-object-tools"></div><div id="kqd-selection-tools"></div><div class="kqd-media-fields"><div class="kqd-field"><label for="compose-media-url">ссылка на фото/gif</label><input id="compose-media-url" type="url" placeholder="https://..."></div><div class="kqd-field"><label for="compose-media-file">или файл с устройства</label><input id="compose-media-file" type="file" accept="image/*,.gif"></div></div><img id="compose-preview" alt="" hidden><div id="kq-sticker-canvas" hidden></div><div id="kq-sticker-pop" class="kq-sticker-dock" style="display:none"></div><div class="auth-error" id="compose-error"></div></div></details><div class="compose-preview-box"><div class="prev-title" id="compose-live-title">заголовок…</div><div class="prev-body" id="compose-live-body">текст…</div></div><details class="kqd-panel kqd-appearance" id="kqd-appearance-panel"><summary>Оформление публикации</summary><div class="kqd-panel-body"><div class="kqd-field"><label for="compose-title-size">размер заголовка</label><input id="compose-title-size" type="range" min="16" max="64" value="29"></div><div class="kqd-field"><label for="compose-body-size">размер текста</label><input id="compose-body-size" type="range" min="12" max="28" value="17"></div><div class="kqd-field"><label for="compose-title-font">шрифт заголовка</label><select id="compose-title-font">
 <option value="Georgia, serif">Georgia</option>
 <option value="'Rubik Beastly', system-ui">Rubik Beastly</option>
 <option value="'Poiret One', sans-serif">Poiret One</option>
@@ -429,9 +418,7 @@ footer {
 <option value="'Press Start 2P', monospace">Press Start 2P</option>
 <option value="'Amatic SC', cursive">Amatic SC</option>
 <option value="'Shafarik', serif">Shafarik</option>
-</select>
-    <label for="compose-body-font">шрифт текста</label>
-    <select id="compose-body-font">
+</select></div><div class="kqd-field"><label for="compose-body-font">шрифт текста</label><select id="compose-body-font">
 <option value="Georgia, serif">Georgia</option>
 <option value="'Rubik Beastly', system-ui">Rubik Beastly</option>
 <option value="'Poiret One', sans-serif">Poiret One</option>
@@ -443,41 +430,12 @@ footer {
 <option value="'Press Start 2P', monospace">Press Start 2P</option>
 <option value="'Amatic SC', cursive">Amatic SC</option>
 <option value="'Shafarik', serif">Shafarik</option>
-</select>
-    <label for="compose-title-color">цвет заголовка</label>
-    <input id="compose-title-color" type="color" value="#1a0f14">
-    <label for="compose-body-color">цвет текста</label>
-    <input id="compose-body-color" type="color" value="#1a0f14">
-    <label for="compose-media-url">ссылка на фото/gif</label>
-    <input id="compose-media-url" type="url" placeholder="https://...">
-    <label for="compose-media-file">или файл с устройства</label>
-    <input id="compose-media-file" type="file" accept="image/*,.gif">
-    <div class="compose-preview-box">
-      <div class="prev-title" id="compose-live-title">заголовок…</div>
-      <div class="prev-body" id="compose-live-body">текст…</div>
-      <img id="compose-preview" alt="" style="display:none;max-width:100%;border-radius:12px;margin-top:8px">
-    </div>
-    <div class="auth-actions">
+</select></div><div class="kqd-field"><label for="compose-title-color">цвет заголовка</label><input id="compose-title-color" type="color" value="#1a0f14"></div><div class="kqd-field"><label for="compose-body-color">цвет текста</label><input id="compose-body-color" type="color" value="#1a0f14"></div><div class="kqd-field"><label for="compose-post-bg">фон публикации</label><select id="compose-post-bg"><option value="glass">glass</option><option value="pink">пыльно-розовый</option><option value="lilac">сирень</option><option value="dark">тёмный</option><option value="cream">крем</option><option value="clear">почти прозрачный</option></select></div></div></details><div class="auth-actions">
       <button type="button" id="compose-publish">опубликовать</button>
       <button type="button" id="compose-close" class="secondary">закрыть</button>
-    </div>
-    <div class="auth-error" id="compose-error"></div>
-  </div>
-</div>
-
-<div class="auth-overlay" id="edit-overlay">
-  <div class="auth-modal">
-    <h2>изменить dream</h2>
-    <label for="edit-title">заголовок</label>
-    <input id="edit-title" type="text">
-    <label for="edit-content">текст</label>
-    <textarea id="edit-content" rows="5"></textarea>
-    <label for="edit-title-size">размер заголовка</label>
-    <input id="edit-title-size" type="range" min="16" max="64" value="29">
-    <label for="edit-body-size">размер текста</label>
-    <input id="edit-body-size" type="range" min="12" max="28" value="17">
-    <label for="edit-title-font">шрифт заголовка</label>
-    <select id="edit-title-font">
+    </div></div></div>
+<div class="auth-overlay kqd-editor kqd-legacy" id="edit-overlay">
+<div class="auth-modal kqd-editor-card"><h2 hidden>изменить dream</h2><details class="kqd-panel kqd-content"><summary>Объекты и содержимое</summary><div class="kqd-panel-body"><div class="kqd-field"><label for="edit-title">заголовок</label><input id="edit-title" type="text"></div><div class="kqd-field"><label for="edit-content">текст</label><textarea id="edit-content" rows="5"></textarea></div><div class="kqd-media-fields"><div class="kqd-field"><label for="edit-media-url">ссылка на фото/gif</label><input id="edit-media-url" type="url"></div></div><div class="auth-error" id="edit-error"></div></div></details><div class="compose-preview-box" id="edit-preview-box"><div class="prev-title" id="edit-live-title">заголовок…</div><div class="prev-body" id="edit-live-body">текст…</div></div><details class="kqd-panel kqd-appearance"><summary>Оформление публикации</summary><div class="kqd-panel-body"><div class="kqd-field"><label for="edit-title-size">размер заголовка</label><input id="edit-title-size" type="range" min="16" max="64" value="29"></div><div class="kqd-field"><label for="edit-body-size">размер текста</label><input id="edit-body-size" type="range" min="12" max="28" value="17"></div><div class="kqd-field"><label for="edit-title-font">шрифт заголовка</label><select id="edit-title-font">
 <option value="Georgia, serif">Georgia</option>
 <option value="'Rubik Beastly', system-ui">Rubik Beastly</option>
 <option value="'Poiret One', sans-serif">Poiret One</option>
@@ -489,9 +447,7 @@ footer {
 <option value="'Press Start 2P', monospace">Press Start 2P</option>
 <option value="'Amatic SC', cursive">Amatic SC</option>
 <option value="'Shafarik', serif">Shafarik</option>
-</select>
-    <label for="edit-body-font">шрифт текста</label>
-    <select id="edit-body-font">
+</select></div><div class="kqd-field"><label for="edit-body-font">шрифт текста</label><select id="edit-body-font">
 <option value="Georgia, serif">Georgia</option>
 <option value="'Rubik Beastly', system-ui">Rubik Beastly</option>
 <option value="'Poiret One', sans-serif">Poiret One</option>
@@ -503,25 +459,10 @@ footer {
 <option value="'Press Start 2P', monospace">Press Start 2P</option>
 <option value="'Amatic SC', cursive">Amatic SC</option>
 <option value="'Shafarik', serif">Shafarik</option>
-</select>
-    <label for="edit-title-color">цвет заголовка</label>
-    <input id="edit-title-color" type="color" value="#1a0f14">
-    <label for="edit-body-color">цвет текста</label>
-    <input id="edit-body-color" type="color" value="#1a0f14">
-    <label for="edit-media-url">ссылка на фото/gif</label>
-    <input id="edit-media-url" type="url">
-    <div class="compose-preview-box">
-      <div class="prev-title" id="edit-live-title">заголовок…</div>
-      <div class="prev-body" id="edit-live-body">текст…</div>
-    </div>
-    <div class="auth-actions">
+</select></div><div class="kqd-field"><label for="edit-title-color">цвет заголовка</label><input id="edit-title-color" type="color" value="#1a0f14"></div><div class="kqd-field"><label for="edit-body-color">цвет текста</label><input id="edit-body-color" type="color" value="#1a0f14"></div></div></details><div class="auth-actions">
       <button type="button" id="edit-save">сохранить</button>
       <button type="button" id="edit-close" class="secondary">отмена</button>
-    </div>
-    <div class="auth-error" id="edit-error"></div>
-  </div>
-</div>
-
+    </div></div></div>
 <div class="auth-overlay" id="del-post-modal">
   <div class="auth-modal">
     <h2>удалить пост?</h2>
