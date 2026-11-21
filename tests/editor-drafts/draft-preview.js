@@ -1,0 +1,10 @@
+(async()=>{await new Promise(r=>setTimeout(r,180));window.kqOpenStickerTray=async()=>{document.getElementById('kq-sticker-pop').style.display='none';};KQDraftAdapter.open();await new Promise(r=>setTimeout(r,100));
+const change=(id,v)=>{let e=document.getElementById('compose-'+id);e.value=v;e.dispatchEvent(new Event('input',{bubbles:true}));};
+change('title','Тихий вечер');change('content','Маленькая композиция: текст, рисунок и свои цвета.\nЧерновик можно продолжить в этом браузере.');change('title-size',36);change('body-size',20);change('post-bg','lilac');
+KQL.compose.addSticker('cat',' /\\_/\\\n( o.o )\n > ^ <');let d=KQL.compose.decor();d.objs[d.objs.length-1].x=55;d.objs[d.objs.length-1].y=30;KQL.compose.load(d);await KQDrafts.save();
+KQDraftAdapter.open();await new Promise(r=>setTimeout(r,120));change('title','Идея на завтра');change('content','Несколько заметок для будущей публикации.');await KQDrafts.save();
+await KQDrafts.showList();let row=[...document.querySelectorAll('.kqd-row')].find(r=>r.querySelector('h3').textContent==='Тихий вечер');[...row.querySelectorAll('button')].find(b=>b.textContent==='Продолжить').click();await new Promise(r=>setTimeout(r,180));
+document.querySelector('.kqd-appearance').open=false;document.querySelector('.kqd-content').open=true;
+document.querySelector('#compose-overlay .auth-modal').scrollTop=0;
+window.__previewReady=true;
+})();

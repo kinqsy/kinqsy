@@ -411,6 +411,7 @@
       if (e) e.classList.add("sel"); else if (sel && !byId(sel)) sel = null;
       clampFree(box);
       syncTools();
+      document.dispatchEvent(new CustomEvent("kq-compose-change"));
     }
 
     function relPos(e) {

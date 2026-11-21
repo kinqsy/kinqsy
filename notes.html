@@ -1152,6 +1152,7 @@ document.getElementById("edit-save").onclick = async function () {
         authOverlay.classList.remove("open");
     }
     function openCompose(post) {
+        if(window.KQDrafts) window.KQDrafts.beforeOpen();
         // post = optional existing post for edit (v3 layout)
         editingPostId = post && post.id ? post.id : null;
         if (post) {
@@ -1202,7 +1203,9 @@ document.getElementById("edit-save").onclick = async function () {
         if (window.kqOpenStickerTray) window.kqOpenStickerTray();
         if (window.kqInitBoard) window.kqInitBoard();
         if (window.KQL && window.KQL.compose && window.KQL.compose.refresh) window.KQL.compose.refresh();
+        if(window.KQDrafts) window.KQDrafts.start({postId:editingPostId});
     }
+    window.KQDraftAdapter={section:"notes",open:function(){openCompose();},close:function(){closeCompose(true);},getPostId:function(){return editingPostId;},setPostId:function(id){editingPostId=id;document.getElementById("compose-publish").textContent=id?"сохранить":"опубликовать";}};
     window.openNotesCompose = openCompose;
     window.openNotesEdit = function (post) {
         // v3 → full layout editor; legacy → old edit overlay
@@ -1212,7 +1215,9 @@ document.getElementById("edit-save").onclick = async function () {
         }
         openEdit(post);
     };
-function closeCompose() {
+async function closeCompose(force) {
+        if(window.KQDrafts && force!==true){try{await window.KQDrafts.flush();}catch(error){document.getElementById("compose-error").textContent="Локальную копию сохранить не удалось. Редактор оставлен открытым.";return;}}
+        if(window.KQDrafts) window.KQDrafts.beforeOpen();
         composeOverlay.classList.remove("open");
         editingPostId = null;
     }
@@ -1312,7 +1317,7 @@ if (mediaFileInput && mediaUrlInput && preview) {
         if (composeSaving) return;
         composeSaving = true; __composePub.disabled = true;
         composeOverlay.inert = true; composeOverlay.setAttribute("aria-busy", "true");
-        var payload = null, localKey = null;
+        var payload = null, localKey = null, draftToken = null;
         try {
         var err = document.getElementById("compose-error");
         err.textContent = "";
@@ -1349,6 +1354,7 @@ if (mediaFileInput && mediaUrlInput && preview) {
         }
         if (!title && !content && !media_url && !payload.decor.objs.some(function(o){return !o.role;})) { err.textContent="пустой пост"; return; }
         localKey = draftKey(session.user.id);
+        if(window.KQDrafts) draftToken=await window.KQDrafts.publishToken();
         var error = null;
         if (editingPostId) {
             var res = await sb.from("posts").update(window.KQMedia ? window.KQMedia.canonicalize(payload) : payload).eq("id", editingPostId).select("id");
@@ -1366,15 +1372,16 @@ if (mediaFileInput && mediaUrlInput && preview) {
         if (error) {
             throw error;
         }
-        try { if(localKey) sessionStorage.removeItem(localKey); } catch(ignore) {}
+        if(window.KQDrafts) await window.KQDrafts.published(draftToken);
         if (window.kqStickersOnPost) window.kqStickersOnPost = [];
         if (window.KQL && window.KQL.compose && window.KQL.compose.reset) window.KQL.compose.reset();
-        closeCompose();
+        await closeCompose(true);
         if (typeof window.loadNotes === "function") window.loadNotes();
         else location.reload();
         } catch(error) {
             var saved=false;
-            if(payload && localKey){try{sessionStorage.setItem(localKey,JSON.stringify(window.KQMedia ? window.KQMedia.canonicalize(payload) : payload));saved=true;}catch(ignore){}}
+            if(window.KQDrafts){await window.KQDrafts.failed();}
+            else if(payload && localKey){try{sessionStorage.setItem(localKey,JSON.stringify(window.KQMedia ? window.KQMedia.canonicalize(payload) : payload));saved=true;}catch(ignore){}}
             document.getElementById("compose-error").textContent="Не удалось сохранить полную композицию. " + (saved ? "Локальный черновик сохранён в этой вкладке. " : "Содержимое оставлено в редакторе; не закрывай вкладку. ") + (error.message || "Проверь соединение.");
         } finally { composeSaving=false; __composePub.disabled=false; composeOverlay.inert=false; composeOverlay.removeAttribute("aria-busy"); }
     };
@@ -1550,6 +1557,9 @@ document.addEventListener("dragstart", function (e) {
 
 <script src="kinqsy-stickers.js"></script>
 <script src="kinqsy-layout.js"></script>
+<script src="kinqsy-draft-store.js"></script>
+<script src="kinqsy-drafts.js"></script>
+<link rel="stylesheet" href="kinqsy-drafts.css">
 <script src="./notes-supabase.js"></script>
 <link rel="stylesheet" href="notes-flow.css">
 <script src="kinqsy-player.js"></script>
