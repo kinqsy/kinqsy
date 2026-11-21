@@ -330,8 +330,9 @@
     st.appendChild(advanced);
     bSm.title="уменьшить объект";bPl.title="увеличить объект";
     var advancedSelection = null;
-    box.parentNode.insertBefore(tools, box);
-    box.parentNode.insertBefore(st, box);
+    var toolsSlot=document.getElementById("kqd-object-tools"),selectedSlot=document.getElementById("kqd-selection-tools");
+    if(toolsSlot)toolsSlot.appendChild(tools);else box.parentNode.insertBefore(tools,box);
+    if(selectedSlot)selectedSlot.appendChild(st);else box.parentNode.insertBefore(st,box);
 
     function say(t) { note.textContent = t || ""; }
     function imgCount() { return objs.filter(function (o) { return o.type === "image" || o.type === "media"; }).length; }
