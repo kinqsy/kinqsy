@@ -55,3 +55,43 @@
 .kq-layout-host { width: 100%; container-type: inline-size; container-name: kql; }
 article.has-layout .post-media { display: none; } /* media lives inside layout objs */
 article.has-layout .kq-layout-host .kql-card { background: transparent; box-shadow: none; }
+
+/* The canvas uses the same width-relative coordinates in the editor and feed. */
+#compose-overlay[data-kql-free] { width: 100vw; height: 100dvh; box-sizing: border-box; left: 0; top: 0; right: auto; padding: 12px; overflow: hidden; }
+.kql-canvas { isolation: isolate; }
+.kql-o.text { width: calc(var(--w, 45) * 1cqw); white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.4; }
+.kql-o.sticker { width: max-content; }
+.kql-edit .kql-free { overflow: visible; }
+.kql-edit .kql-o.locked { cursor: default; }
+.kql-resize { display: none; position: absolute; right: -6px; bottom: -6px; width: 24px; height: 24px; padding: 0; border-radius: 6px; touch-action: none; cursor: nwse-resize; z-index: 10; }
+.kql-edit .kql-o.sel:not(.locked) .kql-resize { display: block; }
+.kql-edit .kql-o.locked .kql-h { display: none; }
+.kql-tools-sel { margin: 8px 0; padding: 8px; box-sizing: border-box; border: 1px solid currentColor; border-radius: 12px; }
+.kql-tools-sel button, .kql-tools-sel input, .kql-tools-sel select, .kql-tools-sel textarea { font: inherit; color: inherit; background: var(--kq-glass, rgba(255,255,255,.2)); border: 1px solid currentColor; border-radius: 8px; padding: 5px 8px; max-width: 100%; box-sizing: border-box; }
+.kql-tools-sel button:disabled, .kql-tools-sel input:disabled, .kql-tools-sel select:disabled, .kql-tools-sel textarea:disabled { opacity: .45; }
+.kql-tools-sel textarea { width: 100%; min-height: 70px; resize: vertical; }
+.kql-coordinate { display: inline-flex; align-items: center; gap: 4px; }
+.kql-tools-sel input[type=number] { width: 78px; }
+.kql-tools-sel input[type=color] { width: 42px; height: 32px; padding: 2px; }
+.kql-tools-sel button.on { outline: 2px solid currentColor; }
+.kql-tools button, .kql-tools select { color: inherit; background: var(--kq-glass, rgba(255,255,255,.2)); }
+.kql-edit .kql-o.sel { outline-color: var(--kq-accent, currentColor); }
+#compose-overlay[data-kql-free] .compose-layout { display: flex; align-items: stretch; gap: 12px; width: min(1180px, 96vw); max-height: 94dvh; }
+#compose-overlay[data-kql-free] .compose-layout > .auth-modal { flex: 1; min-width: 0; overflow: auto; max-height: 94dvh; width: auto; }
+#compose-overlay[data-kql-free] .kq-sticker-dock { position: static !important; flex: 0 0 min(300px, 30vw); width: min(300px, 30vw) !important; overflow: auto; max-height: 94dvh; }
+#compose-overlay[data-kql-free] .kq-sticker-card { width: auto; max-height: none; }
+#compose-overlay[data-kql-free] .kq-sticker-pick pre { max-width: 100%; overflow: auto; }
+#compose-overlay[data-kql-free] #compose-preview,
+#compose-overlay[data-kql-free] #kq-sticker-canvas,
+#compose-overlay[data-kql-free] .kq-flow-tools { display: none !important; }
+@media (max-width: 700px) {
+  #compose-overlay[data-kql-free] .compose-layout { position: relative; width: 96vw; }
+  #compose-overlay[data-kql-free] .kq-sticker-dock { position: absolute !important; right: 0 !important; top: 0 !important; width: min(300px, 88vw) !important; max-height: 85dvh; z-index: 30; box-shadow: 0 8px 30px rgba(0,0,0,.4); }
+  .kql-tools-sel button { min-height: 36px; }
+}
+.kql-tools { color: inherit; }
+.kql-tools select, .kql-tools button { color: inherit; background: var(--kq-glass, rgba(255,255,255,.2)); border-color: currentColor; }
+.kql-tools .kql-object-picker { max-width: 100%; }
+.kql-edit .kql-o.sel { outline-color: var(--kq-accent, currentColor); }
+.kql-edit .kql-h { background: var(--kq-accent, #55434c); }
+.kql-note { color: inherit; }

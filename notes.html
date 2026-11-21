@@ -889,7 +889,7 @@ a, button, .star, .top-menu .star, input, textarea, .react-btn, .post-menu butto
     </div>
 </div>
 
-<div class="auth-overlay" id="compose-overlay">
+<div class="auth-overlay" id="compose-overlay" data-kql-free>
     <div class="compose-layout">
     <div class="auth-modal">
         <h2>новый notes</h2>
@@ -969,7 +969,8 @@ a, button, .star, .top-menu .star, input, textarea, .react-btn, .post-menu butto
             <button type="button" id="compose-publish">опубликовать</button>
             <button type="button" id="compose-close" class="secondary">закрыть</button>
         </div>
-        <div class="auth-error" id="compose-error"></div>
+        <div class="auth-error" id="compose-error" role="status"></div>
+        <button type="button" id="compose-restore-draft">восстановить локальный черновик</button>
     </div>
     <div id="kq-sticker-pop" class="kq-sticker-dock"></div>
     </div>
@@ -1256,6 +1257,7 @@ if (mediaFileInput && mediaUrlInput && preview) {
             mediaUrlInput.value = data.publicUrl;
             preview.style.display = "block";
             preview.src = data.publicUrl;
+            mediaUrlInput.dispatchEvent(new Event("input", {bubbles:true}));
         } catch (error) {
             err.textContent = "Не удалось загрузить изображение. Проверь соединение и повтори.";
         } finally {
@@ -1290,7 +1292,28 @@ if (mediaFileInput && mediaUrlInput && preview) {
     };
 
     var __composePub = document.getElementById("compose-publish");
+    var composeSaving = false;
+    function draftKey(uid) { return "kinqsy:notes:draft:" + uid + ":" + (editingPostId || "new"); }
+    function restoreDraftPayload(p) {
+        var fields={title:"title",content:"content",media_url:"media-url",title_font:"title-font",body_font:"body-font",title_color:"title-color",body_color:"body-color",post_bg:"post-bg"};
+        Object.keys(fields).forEach(function(k){ var e=document.getElementById("compose-"+fields[k]);if(e)e.value=p[k] || ""; });
+        window.KQL.compose.load(p.decor);
+    }
+    document.getElementById("compose-restore-draft").onclick = async function(){
+        var e=document.getElementById("compose-error");
+        try { var a=await sb.auth.getSession(), u=a.data && a.data.session && a.data.session.user;
+          if(!u){e.textContent="нужен вход";return;}
+          var saved=JSON.parse(sessionStorage.getItem(draftKey(u.id)) || "null");
+          if(!saved || !saved.decor || saved.decor.v!==3){e.textContent="для этой записи нет локального черновика в текущей вкладке";return;}
+          restoreDraftPayload(saved);e.textContent="локальный черновик восстановлен; он ещё не опубликован";
+        }catch(error){e.textContent="не удалось восстановить локальный черновик";}
+    };
     if (__composePub) __composePub.onclick = async function () {
+        if (composeSaving) return;
+        composeSaving = true; __composePub.disabled = true;
+        composeOverlay.inert = true; composeOverlay.setAttribute("aria-busy", "true");
+        var payload = null, localKey = null;
+        try {
         var err = document.getElementById("compose-error");
         err.textContent = "";
         var { data: { session } } = await sb.auth.getSession();
@@ -1298,11 +1321,11 @@ if (mediaFileInput && mediaUrlInput && preview) {
 
         var title = document.getElementById("compose-title").value.trim();
         var content = document.getElementById("compose-content").value.trim();
-        if (!title && !content) { err.textContent = "пустой пост"; return; }
+        // A composition may contain images or independent text without the main fields.
 
         var media_url = (document.getElementById("compose-media-url").value || "").trim();
         var bgEl = document.getElementById("compose-post-bg");
-        var payload = {
+        payload = {
             title: title,
             content: content,
             category: "notes",
@@ -1321,34 +1344,39 @@ if (mediaFileInput && mediaUrlInput && preview) {
         // v3 layout from shared editor
         if (window.KQL && window.KQL.compose && window.KQL.compose.decor) {
             payload.decor = window.KQL.compose.decor();
-        } else if (window.kqDecorPayload) {
-            payload.decor = window.kqDecorPayload();
+        } else {
+            err.textContent = "редактор раскладки не загрузился; обнови страницу перед сохранением"; return;
         }
+        if (!title && !content && !media_url && !payload.decor.objs.some(function(o){return !o.role;})) { err.textContent="пустой пост"; return; }
+        localKey = draftKey(session.user.id);
         var error = null;
         if (editingPostId) {
             var res = await sb.from("posts").update(window.KQMedia ? window.KQMedia.canonicalize(payload) : payload).eq("id", editingPostId).select("id");
             error = res.error;
             if (!error && (!res.data || !res.data.length)) {
-                err.textContent = "RLS: пост не обновился";
-                return;
+                throw new Error("RLS: пост не обновился");
             }
         } else {
             payload.user_id = session.user.id;
             payload.visibility = "public";
-            var ins = await sb.from("posts").insert(window.KQMedia ? window.KQMedia.canonicalize(payload) : payload);
-            error = ins.error;
+            var ins = await sb.from("posts").insert(window.KQMedia ? window.KQMedia.canonicalize(payload) : payload).select("id");
+            error = ins.error || (!ins.data || !ins.data.length ? {message:"Сервер не подтвердил сохранение"} : null);
 
         }
         if (error) {
-            err.textContent = error.message || "ошибка сохранения";
-            // keep form content so user can retry
-            return;
+            throw error;
         }
+        try { if(localKey) sessionStorage.removeItem(localKey); } catch(ignore) {}
         if (window.kqStickersOnPost) window.kqStickersOnPost = [];
         if (window.KQL && window.KQL.compose && window.KQL.compose.reset) window.KQL.compose.reset();
         closeCompose();
         if (typeof window.loadNotes === "function") window.loadNotes();
         else location.reload();
+        } catch(error) {
+            var saved=false;
+            if(payload && localKey){try{sessionStorage.setItem(localKey,JSON.stringify(window.KQMedia ? window.KQMedia.canonicalize(payload) : payload));saved=true;}catch(ignore){}}
+            document.getElementById("compose-error").textContent="Не удалось сохранить полную композицию. " + (saved ? "Локальный черновик сохранён в этой вкладке. " : "Содержимое оставлено в редакторе; не закрывай вкладку. ") + (error.message || "Проверь соединение.");
+        } finally { composeSaving=false; __composePub.disabled=false; composeOverlay.inert=false; composeOverlay.removeAttribute("aria-busy"); }
     };
     if (window.kqSyncBoard) {
   ["compose-title","compose-content","compose-media-url","compose-wrap","compose-align","compose-gap"].forEach(function(id){
@@ -1529,5 +1557,3 @@ document.addEventListener("dragstart", function (e) {
 <script src="kinqsy-reports.js?v=reports-2"></script>
 </body>
 </html>
-
-

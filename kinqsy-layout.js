@@ -1,6 +1,9 @@
 /* Kinqsy · Notes · общая раскладка поста.
    ОДИН механизм показа (KQL.render) используется и в предпросмотре при создании, и в опубликованном посте — поэтому они совпадают.
-   Модель (decor v3, лежит в posts.decor): { v:3, titleSize, bodySize, titleAlign, bodyAlign, pad, objs:[ ... ] }.
+   Модель decor v3: { v:3, canvas?, height?, titleSize, bodySize, titleAlign, bodyAlign, pad, objs:[ ... ] }.
+   Notes создаёт свободный холст; существующие v3-макеты сохраняют режим обтекания до явного перевода.
+   Объекты text поддерживают role:title/body (текст из posts), собственные font/color/size/align/bold/italic.
+   Для всех объектов сохраняются locked и z; X/Y/ширина измеряются в долях ширины карточки.
    Заголовок и текст берутся из posts.title / posts.content (шрифты и цвета — из существующих колонок), поэтому правка текста
    не ломает расположение объектов. Объект: { id, type: media|image|sticker|plate, mode, side, anchor, x, y, w, pad, ... }.
    Режимы: inline (в тексте), square (квадрат), contour (по контуру), tb (сверху и снизу), front (перед текстом), behind (за текстом).
@@ -31,7 +34,7 @@
   /* ---------- проверка и очистка данных объекта (чтение из БД никогда не бросает исключений) ---------- */
   function cleanObj(r) {
     if (!r || typeof r !== "object") return null;
-    var type = oneOf(r.type, ["media", "image", "sticker", "plate"], null);
+    var type = oneOf(r.type, ["media", "image", "sticker", "plate", "text"], null);
     if (!type) return null;
     var o = {
       id: String(r.id || "").replace(/[^\w\-]/g, "").slice(0, 40) || ("o" + Math.random().toString(36).slice(2, 8)),
@@ -41,7 +44,8 @@
       anchor: Math.round(num(r.anchor, 0, 0, 5000)),
       x: r2(num(r.x, 5, 0, 100)), y: r2(num(r.y, 5, 0, 1000)),
       w: r2(num(r.w, type === "plate" ? 40 : 30, 5, 100)),
-      pad: r2(num(r.pad, 2, 0, 8))
+      pad: r2(num(r.pad, 2, 0, 8)),
+      locked: r.locked === true, z: Math.round(num(r.z, 0, 0, 1000))
     };
     if (type === "media" || type === "image") {
       o.src = typeof r.src === "string" && URL_RE.test(r.src) ? r.src : "";
@@ -53,6 +57,12 @@
       o.fs = r2(num(r.fs, 3, 0.8, 12));
       o.rot = r2(num(r.rot, 0, -360, 360));
       o.fx = r.fx === -1 ? -1 : 1; o.fy = r.fy === -1 ? -1 : 1;
+    } else if (type === "text") {
+      o.text = String(r.text == null ? "" : r.text).slice(0, 50000);
+      o.role = oneOf(r.role, ["title", "body"], "");
+      o.font = safeFont(r.font); o.color = safeColor(r.color, "#1a0f14");
+      o.size = num(r.size, 16, 10, 80); o.align = oneOf(r.align, ["left","center","right","justify"], "left");
+      o.bold = r.bold === true; o.italic = r.italic === true;
     } else {
       o.text = String(r.text == null ? "" : r.text).slice(0, 600);
       var p = r.plate && typeof r.plate === "object" ? r.plate : {};
@@ -74,7 +84,7 @@
       titleAlign: oneOf(d.titleAlign, ["left", "center", "right"], "left"),
       bodyAlign: oneOf(d.bodyAlign, ["left", "center", "right", "justify"], "left"),
       kp: r2(num(d.pad, 3, 0, 8)),
-      objs: objs
+      objs: objs, canvas: d.canvas === true, height: num(d.height, 70, 20, 1200)
     };
   }
 
@@ -95,6 +105,8 @@
   function makeObj(o, L, opt) {
     var e = el("div", "kql-o " + o.type + " kql-m-" + o.mode + " kql-s-" + o.side);
     e.setAttribute("data-id", o.id);
+    e.style.zIndex = String(o.z);
+    e.classList.toggle("locked", o.locked);
     e.style.setProperty("--pad", String(o.pad));
     e.style.setProperty("--w", String(o.w));
     e.style.setProperty("--x", String(o.x));
@@ -113,6 +125,14 @@
       e.style.setProperty("--fs", String(o.fs)); e.style.setProperty("--rot", o.rot + "deg");
       e.style.setProperty("--fx", String(o.fx)); e.style.setProperty("--fy", String(o.fy));
       e.appendChild(el("pre", null, o.text));
+    } else if (o.type === "text") {
+      e.textContent = o.role === "title" ? L.title : o.role === "body" ? L.text : o.text;
+      if (!e.textContent && opt.edit) e.textContent = o.role === "title" ? "заголовок…" : "текст…";
+      e.style.fontFamily = o.role === "title" ? L.titleFont : o.role === "body" ? L.bodyFont : o.font;
+      e.style.color = o.role === "title" ? L.titleColor : o.role === "body" ? L.bodyColor : o.color;
+      e.style.fontSize = ((o.role === "title" ? L.ts : o.role === "body" ? L.bs : o.size / REF)) + "cqw";
+      e.style.textAlign = o.role === "title" ? L.titleAlign : o.role === "body" ? L.bodyAlign : o.align;
+      e.style.fontWeight = o.bold ? "bold" : "normal"; e.style.fontStyle = o.italic ? "italic" : "normal";
     } else {
       e.classList.add(o.plate.bg);
       e.style.setProperty("--pbg", o.plate.color);
@@ -124,7 +144,11 @@
       var hnd = el("div", "kql-h", "✥"); hnd.title = "перетащить";
       hnd.addEventListener("pointerdown", function (ev) { opt.onDown(ev, o, true); });
       e.appendChild(hnd);
-      e.addEventListener("pointerdown", function (ev) { if (ev.target === hnd) return; opt.onDown(ev, o, false); });
+      var resize = el("button", "kql-resize", "↘"); resize.type = "button"; resize.title = "изменить размер";
+      resize.setAttribute("aria-label", "Изменить размер объекта");
+      resize.addEventListener("pointerdown", function(ev) { ev.stopPropagation(); opt.onResize(ev, o); });
+      e.appendChild(resize);
+      e.addEventListener("pointerdown", function (ev) { if (ev.target === hnd || ev.target === resize) return; opt.onDown(ev, o, false); });
     }
     return e;
   }
@@ -132,6 +156,14 @@
   function clampFree(host) {
     var card = host.querySelector(".kql-card");
     if (!card || !card.clientWidth) return;
+    if (card.classList.contains("kql-canvas")) {
+      var unit = card.clientWidth / 100, bottom = Number(card.dataset.height) || 70;
+      host.querySelectorAll(".kql-o").forEach(function(e) {
+        bottom = Math.max(bottom, (parseFloat(e.style.getPropertyValue("--y")) || 0) + e.offsetHeight / unit + 3);
+      });
+      card.style.minHeight = (bottom * unit) + "px";
+      return;
+    }
     var u = card.clientWidth / 100, Hu = card.clientHeight / u;
     host.querySelectorAll(".kql-m-front, .kql-m-behind").forEach(function (e) {
       var w = e.offsetWidth / u, h = e.offsetHeight / u;
@@ -148,6 +180,9 @@
     host.classList.add("kql");
     host.classList.toggle("kql-edit", !!opt.edit);
     var card = el("div", "kql-card");
+    card.classList.toggle("kql-canvas", L.canvas);
+    card.dataset.height = String(L.height);
+    if (L.canvas) card.style.minHeight = L.height + "cqw";
     card.style.setProperty("--kp", String(L.kp));
     var title = el("h2", "kql-title", L.title || (opt.edit ? "заголовок…" : ""));
     title.style.setProperty("--ts", String(L.ts));
@@ -174,6 +209,8 @@
         body.appendChild(p);
       }
     }
+    if (L.objs.some(function(o) { return o.role === "title"; })) title.hidden = true;
+    if (L.objs.some(function(o) { return o.role === "body"; })) body.querySelectorAll(".kql-p").forEach(function(p) { p.hidden = true; });
     card.appendChild(title); card.appendChild(body); card.appendChild(back); card.appendChild(front);
     host.appendChild(card);
     var again = function () { clampFree(host); };
@@ -192,10 +229,12 @@
   function attachCompose() {
     var box = document.querySelector("#compose-overlay .compose-preview-box");
     if (!box || compose) return;
+    box.classList.remove("kq-board", "kq-flow", "kq-sticker-canvas");
     box.classList.add("kql-box");
     var sbc = function () { return g.__kinqsy_sb || null; };
     var objs = [], sel = null, uidSeq = 0;
-    var prefs = { titleAlign: "left", bodyAlign: "left", pad: 3 };
+    var notesCanvas = !!document.querySelector("#compose-overlay[data-kql-free]");
+    var prefs = { titleAlign: "left", bodyAlign: "left", pad: 3, canvas: notesCanvas, height: 70 };
 
     function val(id, d) { var e = document.getElementById(id); return e && e.value !== "" ? e.value : d; }
     function meta() {
@@ -208,9 +247,13 @@
     function nid() { uidSeq++; return "o" + Date.now().toString(36) + uidSeq; }
     function byId(id) { for (var i = 0; i < objs.length; i++) if (objs[i].id === id) return objs[i]; return null; }
     function selObj() { return sel ? byId(sel) : null; }
+    function appendObject(o) { o.z=objs.reduce(function(z,p){return Math.max(z,Number(p.z)||0);},0)+1; objs.push(o); }
 
     /* панель инструментов */
     var tools = el("div", "kql-tools");
+    var bText = el("button", null, "+ текст"); bText.type = "button";
+    var bCanvas = el("button", null, "свободный холст"); bCanvas.type = "button";
+    var bCatalog = el("button", null, "каталог"); bCatalog.type = "button";
     var bPlate = el("button", null, "+ плашка"); bPlate.type = "button";
     var bImg = el("button", null, "+ фото / GIF"); bImg.type = "button";
     var file = document.createElement("input"); file.type = "file"; file.accept = "image/jpeg,image/png,image/gif,image/webp"; file.style.display = "none";
@@ -222,7 +265,10 @@
     var ta = sel2([["left", "слева"], ["center", "по центру"], ["right", "справа"]], "left");
     var ba = sel2([["left", "слева"], ["center", "по центру"], ["right", "справа"], ["justify", "по ширине"]], "left");
     var pr = document.createElement("input"); pr.type = "range"; pr.min = "0"; pr.max = "8"; pr.step = "0.5"; pr.value = "3";
-    tools.appendChild(bPlate); tools.appendChild(bImg); tools.appendChild(file);
+    tools.appendChild(bCanvas); tools.appendChild(bText); tools.appendChild(bCatalog); tools.appendChild(bPlate); tools.appendChild(bImg); tools.appendChild(file);
+    var objectPicker = sel2([["", "выбрать объект"]], ""); objectPicker.className="kql-object-picker";
+    objectPicker.setAttribute("aria-label","Выбрать объект композиции"); tools.appendChild(objectPicker);
+    objectPicker.onchange=function(){sel=objectPicker.value || null;refresh();};
     tools.appendChild(el("span", "lab", "заголовок")); tools.appendChild(ta);
     tools.appendChild(el("span", "lab", "текст")); tools.appendChild(ba);
     tools.appendChild(el("span", "lab", "поля")); tools.appendChild(pr);
@@ -243,6 +289,22 @@
     var plFg = document.createElement("input"); plFg.type = "color"; plFg.value = "#1a0f14";
     var bDel = el("button", null, "✕ удалить");
     [bSm, bPl, bRl, bRr, bFx, bFy, bDel].forEach(function (b) { b.type = "button"; });
+    var bFront = el("button", null, "на передний план"), bBack = el("button", null, "на задний план"), bLock = el("button", null, "заблокировать");
+    [bFront,bBack,bLock].forEach(function(b) { b.type = "button"; st.appendChild(b); });
+    function coord(label, max) {
+      var lab = el("label", "kql-coordinate", label), input = document.createElement("input");
+      input.type = "number"; input.min = "0"; input.max = String(max); input.step = "0.1";
+      input.setAttribute("aria-label", label); lab.appendChild(input); st.appendChild(lab); return input;
+    }
+    var cx = coord("X",100), cy = coord("Y",1000), cw = coord("ширина",100);
+    var textEdit = document.createElement("textarea"); textEdit.setAttribute("aria-label", "Текст объекта"); textEdit.maxLength = 50000;
+    var textFont = sel2([["Georgia, serif","Georgia"],["Arial, sans-serif","Arial"],["ui-monospace, monospace","моноширинный"]],"Georgia, serif");
+    textFont.setAttribute("aria-label","Шрифт объекта");
+    var textSize = document.createElement("input"); textSize.type = "number"; textSize.min = "10"; textSize.max = "80"; textSize.setAttribute("aria-label","Размер текста");
+    var textAlign = sel2([["left","слева"],["center","центр"],["right","справа"],["justify","по ширине"]],"left");
+    var textColor = document.createElement("input"); textColor.type="color"; textColor.setAttribute("aria-label","Цвет текста");
+    var bBold = el("button",null,"жирный"), bItalic = el("button",null,"курсив"); bBold.type=bItalic.type="button";
+    [textEdit,textFont,textSize,textAlign,textColor,bBold,bItalic].forEach(function(e){ st.appendChild(e); });
     st.appendChild(stLab); st.appendChild(mSel); sideBtns.forEach(function (b) { st.appendChild(b); });
     st.appendChild(bSm); st.appendChild(bPl); st.appendChild(padLab); st.appendChild(padR);
     [bRl, bRr, bFx, bFy].forEach(function (b) { st.appendChild(b); });
@@ -254,11 +316,30 @@
     function imgCount() { return objs.filter(function (o) { return o.type === "image" || o.type === "media"; }).length; }
 
     function syncTools() {
+      objectPicker.innerHTML=""; var placeholder=el("option",null,"выбрать объект"); placeholder.value="";objectPicker.appendChild(placeholder);
+      objs.forEach(function(o,i){var option=el("option",null,(i+1)+" · "+(o.role || o.type)+(o.locked ? " · заблокирован" : ""));option.value=o.id;objectPicker.appendChild(option);});objectPicker.value=sel || "";
+      bCanvas.hidden = !notesCanvas || prefs.canvas; bText.hidden = !notesCanvas; bCatalog.hidden = !notesCanvas;
       var o = selObj();
       st.classList.toggle("on", !!o);
       if (!o) return;
-      stLab.textContent = ({ media: "фото / GIF", image: "фото / GIF", sticker: "стикер", plate: "плашка" })[o.type];
+      st.querySelectorAll("button,input,select,textarea").forEach(function(e){ e.disabled = false; });
+      stLab.textContent = ({ media: "фото / GIF", image: "фото / GIF", sticker: "стикер", plate: "плашка", text: "текст" })[o.type];
       mSel.value = o.mode;
+      bLock.textContent = o.locked ? "разблокировать" : "заблокировать";
+      bLock.setAttribute("aria-pressed", String(o.locked));
+      cx.value = o.x; cy.value = o.y; cw.value = o.w;
+      cx.disabled = cy.disabled = !isFree(o);
+      var txt = o.type === "text";
+      [textEdit,textFont,textSize,textAlign,textColor,bBold,bItalic].forEach(function(e){e.style.display=txt ? "" : "none";});
+      if (txt) {
+        var M=meta(), S=sizes();
+        textEdit.value=o.role === "title" ? M.title : o.role === "body" ? M.text : o.text;
+        textFont.value=o.role === "title" ? M.titleFont : o.role === "body" ? M.bodyFont : o.font;
+        textSize.value=o.role === "title" ? S.titleSize : o.role === "body" ? S.bodySize : o.size;
+        textColor.value=o.role === "title" ? M.titleColor : o.role === "body" ? M.bodyColor : o.color;
+        textAlign.value=o.role === "title" ? prefs.titleAlign : o.role === "body" ? prefs.bodyAlign : o.align;
+        bBold.classList.toggle("on",o.bold); bItalic.classList.toggle("on",o.italic);
+      }
       var floatMode = o.mode === "square" || o.mode === "contour";
       sideBtns.forEach(function (b) {
         var s = b.getAttribute("data-side");
@@ -271,18 +352,21 @@
       [plText, plBg, plCol, plFg].forEach(function (b) { b.style.display = pl ? "" : "none"; });
       if (pl) { plText.value = o.text || ""; plBg.value = o.plate.bg; plCol.value = o.plate.color; plFg.value = o.plate.fg; }
       mSel._o.contour.disabled = !(o.type === "media" || o.type === "image");
+      st.querySelectorAll("button,input,select,textarea").forEach(function(e) { if (e !== bLock && o.locked) e.disabled = true; });
+      bCanvas.hidden = !notesCanvas || prefs.canvas; bText.hidden = !notesCanvas;
+      bCatalog.hidden = !notesCanvas;
     }
 
     function currentLayout() {
       var s = sizes();
-      return buildLayout(meta(), { titleSize: s.titleSize, bodySize: s.bodySize, titleAlign: prefs.titleAlign, bodyAlign: prefs.bodyAlign, pad: prefs.pad, objs: objs });
+      return buildLayout(meta(), { titleSize: s.titleSize, bodySize: s.bodySize, titleAlign: prefs.titleAlign, bodyAlign: prefs.bodyAlign, pad: prefs.pad, canvas: prefs.canvas, height: prefs.height, objs: objs });
     }
 
     function ensureMedia() {
       var url = meta().mediaUrl;
       var m = byId("m0");
       if (url && !m) {
-        m = { id: "m0", type: "media", mode: "square", side: "right", anchor: 0, x: 60, y: 6, w: 34, pad: 2, src: url, ar: 1.5 };
+        m = { id: "m0", type: "media", mode: prefs.canvas ? "front" : "square", side: "right", anchor: 0, x: 60, y: 6, w: 34, pad: 2, src: url, ar: 1.5 };
         objs.unshift(m);
         measureImage(url, m);
       } else if (!url && m) { objs.splice(objs.indexOf(m), 1); if (sel === "m0") sel = null; }
@@ -299,9 +383,10 @@
       if (!box.isConnected) return;
       ensureMedia();
       var L = currentLayout();
-      render(box, L, { edit: true, onDown: startDrag, afterLoad: function () { clampFree(box); } });
+      render(box, L, { edit: true, onDown: startDrag, onResize: startResize, afterLoad: function () { clampFree(box); } });
       var e = sel && box.querySelector('.kql-o[data-id="' + sel + '"]');
       if (e) e.classList.add("sel"); else if (sel && !byId(sel)) sel = null;
+      clampFree(box);
       syncTools();
     }
 
@@ -325,6 +410,9 @@
     }
 
     function startDrag(ev, o, viaHandle) {
+      o = byId(o.id); if (!o) return;
+      if (ev.button != null && ev.button !== 0) return;
+      if (o.locked) { sel=o.id; refresh(); return; }
       if (ev.pointerType !== "mouse" && !viaHandle) { sel = o.id; refresh(); return; }   // на сенсорных — перетаскивание за ручку ✥
       ev.preventDefault();
       sel = o.id;
@@ -338,10 +426,11 @@
         if (!moved && Math.abs(e.clientX - sx) + Math.abs(e.clientY - sy) < 4) return;
         moved = true;
         if (isFree(o)) {
-          var w = node.offsetWidth / u, h = node.offsetHeight / u, H = cardR.height / u;
+          var w = node.offsetWidth / u, h = node.offsetHeight / u, H = prefs.canvas ? 1000 + h : cardR.height / u;
           o.x = r2(Math.max(0, Math.min(100 - w, (e.clientX - offX - cardR.left) / u)));
           o.y = r2(Math.max(0, Math.min(H - h, (e.clientY - offY - cardR.top) / u)));
           node.style.setProperty("--x", String(o.x)); node.style.setProperty("--y", String(o.y));
+          clampFree(box);
         } else {
           tgt = nearestAnchor(e.clientY); tgt.side = sideFor(o, e.clientX);
           if (!mark) { mark = el("div", "kql-mark"); box.querySelector(".kql-card").appendChild(mark); }
@@ -357,6 +446,49 @@
       window.addEventListener("pointermove", mv); window.addEventListener("pointerup", up); window.addEventListener("pointercancel", up);
     }
 
+    function startResize(ev, obj) {
+      var o=byId(obj.id); if (!o || o.locked || (ev.button != null && ev.button !== 0)) return;
+      ev.preventDefault(); sel=o.id;
+      var node=box.querySelector('[data-id="'+o.id+'"]'), unit=box.querySelector(".kql-card").clientWidth/100;
+      var start=ev.clientX, width=o.w, font=o.fs;
+      function move(e) {
+        o.w=r2(num(width+(e.clientX-start)/unit,width,5,100-o.x));
+        if (o.type === "sticker") o.fs=r2(num(font*o.w/width,font,0.8,12));
+        node.style.setProperty("--w",o.w); if (o.type === "sticker") node.style.setProperty("--fs",o.fs);
+        clampFree(box);
+      }
+      function done(){ window.removeEventListener("pointermove",move); window.removeEventListener("pointerup",done); window.removeEventListener("pointercancel",done); refresh(); }
+      window.addEventListener("pointermove",move); window.addEventListener("pointerup",done); window.addEventListener("pointercancel",done);
+    }
+    function textObject(role, x, y, w) {
+      return cleanObj({id:nid(),type:"text",role:role,text:"текст",mode:"front",x:x,y:y,w:w,z:objs.length+1});
+    }
+    function seedText() { objs.push(textObject("title",3,3,94),textObject("body",3,12,94)); }
+    function convertCanvas() {
+      if (prefs.canvas) return;
+      if (objs.length > MAX_OBJS-2) { say("Для перевода на холст нужны два свободных места для заголовка и текста"); return; }
+      var positions={};
+      objs.forEach(function(o) { var n=box.querySelector('[data-id="'+o.id+'"]'); if(n) positions[o.id]=relPos(n); });
+      var t=box.querySelector(".kql-title"), b=box.querySelector(".kql-body"), tp=t && relPos(t), bp=b && relPos(b);
+      objs.forEach(function(o,i){ var p=positions[o.id]; if(p){o.x=r2(p.x);o.y=r2(p.y);} o.mode="front";o.z=i+1; });
+      prefs.height=Math.max(70,box.querySelector(".kql-card").clientHeight/(box.clientWidth/100)); prefs.canvas=true;
+      seedText(); if(tp){objs[objs.length-2].x=tp.x;objs[objs.length-2].y=tp.y;} if(bp){objs[objs.length-1].x=bp.x;objs[objs.length-1].y=bp.y;}
+    }
+    bCanvas.onclick=function(){ if(objs.length>MAX_OBJS-2){say("Нет места для двух текстовых блоков");return;} convertCanvas();refresh(); };
+    bText.onclick=function(){ if(objs.length>=(prefs.canvas ? MAX_OBJS : MAX_OBJS-2)){say("слишком много объектов");return;} if(!prefs.canvas) convertCanvas(); if(objs.length>=MAX_OBJS)return; var o=textObject("",8,20,45);appendObject(o);sel=o.id;refresh(); };
+    bCatalog.onclick=function(){ var dock=document.getElementById("kq-sticker-pop"); if(dock && dock.style.display !== "none"){dock.style.display="none";bCatalog.setAttribute("aria-expanded","false");}else if(g.kqOpenStickerTray){g.kqOpenStickerTray();bCatalog.setAttribute("aria-expanded","true");} };
+    bLock.onclick=function(){var o=selObj();if(o){o.locked=!o.locked;refresh();}};
+    function layer(mode){ var o=selObj();if(!o||o.locked)return;setMode(o,mode);objs.forEach(function(p,i){p.z=i+1;});objs.splice(objs.indexOf(o),1); if(mode==="front")objs.push(o);else objs.unshift(o);objs.forEach(function(p,i){p.z=i+1;});refresh(); }
+    bFront.onclick=function(){layer("front");}; bBack.onclick=function(){layer("behind");};
+    [[cx,"x",0,100],[cy,"y",0,1000],[cw,"w",5,100]].forEach(function(p){p[0].onchange=function(){var o=selObj();if(!o||o.locked)return;var v=num(p[0].value,o[p[1]],p[2],p[3]);if(p[1]==="w"&&o.type==="sticker")o.fs=num(o.fs*v/o.w,o.fs,0.8,12);o[p[1]]=r2(v);refresh();};});
+    function editText(field,value){var o=selObj();if(!o||o.type!=="text"||o.locked)return;
+      if(o.role && ["text","font","size","color","align"].indexOf(field)>=0){
+        var prefix=o.role==="title"?"title":"body", ids={text:o.role==="title"?"compose-title":"compose-content",font:"compose-"+prefix+"-font",size:"compose-"+prefix+"-size",color:"compose-"+prefix+"-color"};
+        if(field==="align")prefs[prefix+"Align"]=value;else {var e=document.getElementById(ids[field]);if(e)e.value=value;}
+      }else o[field]=value;refresh();}
+    textEdit.onchange=function(){editText("text",textEdit.value);}; textFont.onchange=function(){editText("font",textFont.value);};
+    textSize.onchange=function(){editText("size",num(textSize.value,16,10,80));};textAlign.onchange=function(){editText("align",textAlign.value);};textColor.onchange=function(){editText("color",textColor.value);};
+    bBold.onclick=function(){var o=selObj();if(o)editText("bold",!o.bold);};bItalic.onclick=function(){var o=selObj();if(o)editText("italic",!o.italic);};
     /* действия панели */
     function setMode(o, mode) {
       var wasFree = isFree(o), node = box.querySelector('.kql-o[data-id="' + o.id + '"]');
@@ -399,8 +531,8 @@
 
     bPlate.onclick = function () {
       if (objs.length >= MAX_OBJS) { say("слишком много объектов"); return; }
-      var o = { id: nid(), type: "plate", mode: "square", side: "left", anchor: 0, x: 8, y: 8, w: 40, pad: 2, text: "Текст плашки", plate: { bg: "solid", color: "#f0c9d6", fg: "#1a0f14" } };
-      objs.push(o); sel = o.id; refresh();
+      var o = { id: nid(), type: "plate", mode: prefs.canvas ? "front" : "square", side: "left", anchor: 0, x: 8, y: 8, w: 40, pad: 2, text: "Текст плашки", plate: { bg: "solid", color: "#f0c9d6", fg: "#1a0f14" } };
+      appendObject(o); sel = o.id; refresh();
     };
     bImg.onclick = function () { file.click(); };
     file.onchange = async function () {
@@ -421,8 +553,8 @@
       var up = await sb.storage.from("media").upload(path, f, { upsert: false, contentType: f.type });
       if (up.error) { say("не удалось загрузить файл"); return; }
       var url = sb.storage.from("media").getPublicUrl(path).data.publicUrl;
-      var o = { id: nid(), type: "image", mode: "square", side: "left", anchor: 0, x: 8, y: 8, w: 34, pad: 2, src: url, ar: 1.5 };
-      objs.push(o); sel = o.id; say(""); measureImage(url, o); refresh();
+      var o = { id: nid(), type: "image", mode: prefs.canvas ? "front" : "square", side: "left", anchor: 0, x: 8, y: 8, w: 34, pad: 2, src: url, ar: 1.5 };
+      appendObject(o); sel = o.id; say(""); measureImage(url, o); refresh();
       } catch (error) {
         say("Не удалось загрузить изображение. Проверь соединение и повтори.");
       } finally {
@@ -432,22 +564,23 @@
 
     function addSticker(id, text) {
       if (objs.length >= MAX_OBJS || !text) return;
-      var o = { id: nid(), type: "sticker", sid: id != null ? String(id) : "", text: String(text).slice(0, 2000), mode: "square", side: "right", anchor: 0, x: 60, y: 8, w: 0, pad: 2, fs: 3, rot: 0, fx: 1, fy: 1 };
-      objs.push(o); sel = o.id; refresh();
+      var o = { id: nid(), type: "sticker", sid: id != null ? String(id) : "", text: String(text).slice(0, 2000), mode: prefs.canvas ? "front" : "square", side: "right", anchor: 0, x: 60, y: 8, w: 30, pad: 2, fs: 3, rot: 0, fx: 1, fy: 1 };
+      appendObject(o); sel = o.id; refresh();
     }
     function decor() {
       var s = sizes();
       ensureMedia();
-      return g.KQMedia ? g.KQMedia.canonicalize({ v: 3, titleSize: s.titleSize, bodySize: s.bodySize, titleAlign: prefs.titleAlign, bodyAlign: prefs.bodyAlign, pad: prefs.pad, objs: currentLayout().objs }) : { v: 3, titleSize: s.titleSize, bodySize: s.bodySize, titleAlign: prefs.titleAlign, bodyAlign: prefs.bodyAlign, pad: prefs.pad, objs: currentLayout().objs };
+      return g.KQMedia ? g.KQMedia.canonicalize({ v: 3, titleSize: s.titleSize, bodySize: s.bodySize, titleAlign: prefs.titleAlign, bodyAlign: prefs.bodyAlign, pad: prefs.pad, canvas: prefs.canvas, height: prefs.height, objs: currentLayout().objs }) : { v: 3, titleSize: s.titleSize, bodySize: s.bodySize, titleAlign: prefs.titleAlign, bodyAlign: prefs.bodyAlign, pad: prefs.pad, canvas: prefs.canvas, height: prefs.height, objs: currentLayout().objs };
     }
-    function reset() { objs = []; sel = null; prefs = { titleAlign: "left", bodyAlign: "left", pad: 3 }; if (ta) ta.value = "left"; if (ba) ba.value = "left"; if (pr) pr.value = "3"; refresh(); }
+    function reset() { objs = []; sel = null; prefs = { titleAlign: "left", bodyAlign: "left", pad: 3, canvas: notesCanvas, height: 70 }; if(notesCanvas)seedText(); if (ta) ta.value = "left"; if (ba) ba.value = "left"; if (pr) pr.value = "3"; refresh(); }
     function load(d) {
+      prefs = {titleAlign:"left",bodyAlign:"left",pad:3,canvas:notesCanvas,height:70};
       try { if (typeof d === "string") d = JSON.parse(d); } catch (e) { d = null; }
       objs = []; sel = null;
       if (d && d.v === 3) {
         prefs.titleAlign = oneOf(d.titleAlign, ["left", "center", "right"], "left");
         prefs.bodyAlign = oneOf(d.bodyAlign, ["left", "center", "right", "justify"], "left");
-        prefs.pad = num(d.pad, 3, 0, 8);
+        prefs.pad = num(d.pad, 3, 0, 8); prefs.canvas=d.canvas === true; prefs.height=num(d.height,70,20,1200);
         if (ta) ta.value = prefs.titleAlign;
         if (ba) ba.value = prefs.bodyAlign;
         if (pr) pr.value = String(prefs.pad);
@@ -460,6 +593,7 @@
       refresh();
     }
 
+    if(notesCanvas) seedText();
     compose = { refresh: refresh, addSticker: addSticker, decor: decor, reset: reset, load: load, _objs: function () { return objs; } };
     g.KQL.compose = compose;
     ["compose-title", "compose-content", "compose-title-font", "compose-body-font", "compose-title-color", "compose-body-color", "compose-media-url", "compose-title-size", "compose-body-size"].forEach(function (id) {
@@ -485,6 +619,7 @@
      Делается на DOMContentLoaded — когда все скрипты страницы (в т.ч. kinqsy-stickers.js, который задаёт эти функции) уже выполнены. */
   function viaCompose() { if (g.KQL.compose) g.KQL.compose.refresh(); }
   function installOverrides() {
+    g.kqPaintStickersOnBoard = viaCompose;
     g.kqSyncBoard = viaCompose; g.kqInitBoard = viaCompose; g.kqUpdateBoardText = viaCompose; g.kqPaintStickers = viaCompose;
     g.kqAddSticker = function (id, text) { if (g.KQL.compose) g.KQL.compose.addSticker(id, text); };
     g.kqDecorPayload = function () { return g.KQL.compose ? g.KQL.compose.decor() : []; };
@@ -494,4 +629,3 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
   else boot();
 })(window);
-
