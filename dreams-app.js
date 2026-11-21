@@ -107,6 +107,7 @@
   }
 
   function updateComposePreview() {
+    if (window.KQL && window.KQL.compose) { window.KQL.compose.refresh(); return; }
     var t = document.getElementById("compose-live-title");
     var b = document.getElementById("compose-live-body");
     t.textContent = document.getElementById("compose-title").value || "заголовок…";
@@ -570,4 +571,3 @@
 
   loadDreams();
 })();
-
