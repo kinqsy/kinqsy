@@ -247,6 +247,7 @@
     function nid() { uidSeq++; return "o" + Date.now().toString(36) + uidSeq; }
     function byId(id) { for (var i = 0; i < objs.length; i++) if (objs[i].id === id) return objs[i]; return null; }
     function selObj() { return sel ? byId(sel) : null; }
+    function appendObject(o) { o.z=objs.reduce(function(z,p){return Math.max(z,Number(p.z)||0);},0)+1; objs.push(o); }
 
     /* панель инструментов */
     var tools = el("div", "kql-tools");
@@ -465,6 +466,7 @@
     function seedText() { objs.push(textObject("title",3,3,94),textObject("body",3,12,94)); }
     function convertCanvas() {
       if (prefs.canvas) return;
+      if (objs.length > MAX_OBJS-2) { say("Для перевода на холст нужны два свободных места для заголовка и текста"); return; }
       var positions={};
       objs.forEach(function(o) { var n=box.querySelector('[data-id="'+o.id+'"]'); if(n) positions[o.id]=relPos(n); });
       var t=box.querySelector(".kql-title"), b=box.querySelector(".kql-body"), tp=t && relPos(t), bp=b && relPos(b);
@@ -473,7 +475,7 @@
       seedText(); if(tp){objs[objs.length-2].x=tp.x;objs[objs.length-2].y=tp.y;} if(bp){objs[objs.length-1].x=bp.x;objs[objs.length-1].y=bp.y;}
     }
     bCanvas.onclick=function(){ if(objs.length>MAX_OBJS-2){say("Нет места для двух текстовых блоков");return;} convertCanvas();refresh(); };
-    bText.onclick=function(){ if(objs.length>=MAX_OBJS){say("слишком много объектов");return;} if(!prefs.canvas) convertCanvas(); if(objs.length>=MAX_OBJS)return; var o=textObject("",8,20,45);objs.push(o);sel=o.id;refresh(); };
+    bText.onclick=function(){ if(objs.length>=(prefs.canvas ? MAX_OBJS : MAX_OBJS-2)){say("слишком много объектов");return;} if(!prefs.canvas) convertCanvas(); if(objs.length>=MAX_OBJS)return; var o=textObject("",8,20,45);appendObject(o);sel=o.id;refresh(); };
     bCatalog.onclick=function(){ var dock=document.getElementById("kq-sticker-pop"); if(dock && dock.style.display !== "none"){dock.style.display="none";bCatalog.setAttribute("aria-expanded","false");}else if(g.kqOpenStickerTray){g.kqOpenStickerTray();bCatalog.setAttribute("aria-expanded","true");} };
     bLock.onclick=function(){var o=selObj();if(o){o.locked=!o.locked;refresh();}};
     function layer(mode){ var o=selObj();if(!o||o.locked)return;setMode(o,mode);objs.forEach(function(p,i){p.z=i+1;});objs.splice(objs.indexOf(o),1); if(mode==="front")objs.push(o);else objs.unshift(o);objs.forEach(function(p,i){p.z=i+1;});refresh(); }
@@ -530,7 +532,7 @@
     bPlate.onclick = function () {
       if (objs.length >= MAX_OBJS) { say("слишком много объектов"); return; }
       var o = { id: nid(), type: "plate", mode: prefs.canvas ? "front" : "square", side: "left", anchor: 0, x: 8, y: 8, w: 40, pad: 2, text: "Текст плашки", plate: { bg: "solid", color: "#f0c9d6", fg: "#1a0f14" } };
-      objs.push(o); sel = o.id; refresh();
+      appendObject(o); sel = o.id; refresh();
     };
     bImg.onclick = function () { file.click(); };
     file.onchange = async function () {
@@ -552,7 +554,7 @@
       if (up.error) { say("не удалось загрузить файл"); return; }
       var url = sb.storage.from("media").getPublicUrl(path).data.publicUrl;
       var o = { id: nid(), type: "image", mode: prefs.canvas ? "front" : "square", side: "left", anchor: 0, x: 8, y: 8, w: 34, pad: 2, src: url, ar: 1.5 };
-      objs.push(o); sel = o.id; say(""); measureImage(url, o); refresh();
+      appendObject(o); sel = o.id; say(""); measureImage(url, o); refresh();
       } catch (error) {
         say("Не удалось загрузить изображение. Проверь соединение и повтори.");
       } finally {
@@ -563,7 +565,7 @@
     function addSticker(id, text) {
       if (objs.length >= MAX_OBJS || !text) return;
       var o = { id: nid(), type: "sticker", sid: id != null ? String(id) : "", text: String(text).slice(0, 2000), mode: prefs.canvas ? "front" : "square", side: "right", anchor: 0, x: 60, y: 8, w: 30, pad: 2, fs: 3, rot: 0, fx: 1, fy: 1 };
-      objs.push(o); sel = o.id; refresh();
+      appendObject(o); sel = o.id; refresh();
     }
     function decor() {
       var s = sizes();
