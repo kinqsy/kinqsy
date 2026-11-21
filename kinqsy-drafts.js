@@ -17,21 +17,19 @@
   function newContext(uid,postId,payload,source){return {owner:uid,id:id(),targetPostId:postId||null,createdAt:new Date().toISOString(),recoveryRevision:0,active:source||null,storedHash:fingerprint(payload),seenHash:fingerprint(payload),seq:0,persistedSeq:-1,queue:Promise.resolve()};}
   function organize(){
     box=overlay.querySelector(".compose-preview-box");var parent=box.parentNode;
-    function panel(label,cls){var p=el("details",cls),s=el("summary",null,label),body=el("div","kqd-panel-body");p.appendChild(s);p.appendChild(body);return {node:p,body:body};}
-    var top=panel("Объекты и содержимое","kqd-panel kqd-content"),bottom=panel("Оформление публикации","kqd-panel kqd-appearance");top.node.open=true;
-    parent.insertBefore(top.node,box);parent.insertBefore(bottom.node,box.nextSibling);
-    function move(field,target){var e=document.getElementById("compose-"+field);if(!e)return;var label=overlay.querySelector('label[for="compose-'+field+'"]');if(!label&&e.previousElementSibling&&e.previousElementSibling.tagName==="LABEL")label=e.previousElementSibling;if(label)target.appendChild(label);target.appendChild(e);}
-    ["title","content"].forEach(function(f){move(f,top.body);});
-    var tools=parent.querySelector(".kql-tools"),selected=parent.querySelector(".kql-tools-sel");if(tools)top.body.appendChild(tools);if(selected)top.body.appendChild(selected);
-    ["media-url","media-file"].forEach(function(f){move(f,top.body);});
-    ["title-size","body-size","title-font","body-font","title-color","body-color","post-bg"].forEach(function(f){move(f,bottom.body);});
-    if(!document.getElementById("compose-post-bg")){var lab=el("label",null,"фон публикации");lab.htmlFor="compose-post-bg";var bg=el("select");bg.id="compose-post-bg";Object.keys(backgrounds).forEach(function(key){var o=el("option",null,key);o.value=key;bg.appendChild(o);});bottom.body.appendChild(lab);bottom.body.appendChild(bg);}
+    var top=overlay.querySelector("#kqd-content-panel"),bottom=overlay.querySelector("#kqd-appearance-panel");
+    if(!top||!bottom)throw new Error("Структура редактора не загрузилась. Обнови страницу.");
+    var contentBody=top.querySelector(".kqd-panel-body");
+    // HTML owns panel membership. Existing nodes and their listeners are retained.
+    var tools=overlay.querySelector(".kql-tools"),selected=overlay.querySelector(".kql-tools-sel");
+    if(tools)document.getElementById("kqd-object-tools").appendChild(tools);
+    if(selected)document.getElementById("kqd-selection-tools").appendChild(selected);
     overlay.classList.add("kqd-editor");
     Object.keys(fields).forEach(function(key){var e=document.getElementById("compose-"+fields[key]);if(e)defaults[key]=e.value;});
     var actions=overlay.querySelector(".auth-actions");actions.classList.add("kqd-actions");
     var save=button("Сохранить черновик",function(){manualSave();});save.id="kqd-save";actions.insertBefore(save,actions.firstChild);
     var list=button("Мои черновики",function(){showList();});list.id="kqd-list";actions.appendChild(list);
-    var state=el("div","kqd-status");status=el("strong",null,"Есть несохранённые изменения");status.setAttribute("role","status");detail=el("span",null,"Черновики хранятся только в этом браузере.");state.appendChild(status);state.appendChild(detail);actions.after(state);
+    var state=el("div","kqd-status");status=el("strong",null,"Есть несохранённые изменения");status.setAttribute("role","status");detail=el("span",null,"Черновики хранятся только в этом браузере.");state.appendChild(status);state.appendChild(detail);contentBody.appendChild(state);
     var old=document.getElementById("compose-restore-draft");if(old){old.classList.add("kqd-button");old.textContent="Аварийное восстановление";old.onclick=function(){showList();};}
     var feed=document.getElementById("feed");if(feed){var launch=button("Мои черновики · "+section,function(){showList();});launch.id="kqd-launcher";launch.hidden=true;launch.classList.add("kqd-launcher");feed.before(launch);}
     listOverlay=el("div","auth-overlay kqd-list-overlay");listOverlay.id="kqd-dialog";listOverlay.setAttribute("role","dialog");listOverlay.setAttribute("aria-modal","true");listOverlay.setAttribute("aria-label","Мои черновики");listOverlay.tabIndex=-1;
