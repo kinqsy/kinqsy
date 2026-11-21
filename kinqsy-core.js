@@ -804,6 +804,8 @@
       '<button type="button" id="acc-out">выйти здесь</button>',
       '<button type="button" id="acc-out-all" class="secondary">выйти везде</button>',
       "</div>",
+      '<button type="button" class="auth-link" id="acc-deletion-preview">последствия удаления аккаунта</button>',
+      '<p class="auth-hint" id="acc-deletion-result" role="status" style="white-space:pre-line"></p>',
       '<button type="button" class="auth-link" id="acc-close">закрыть</button>',
       '<div class="auth-error" id="acc-err"></div>',
       "</div>"
@@ -834,6 +836,41 @@
     document.getElementById("acc-hint").textContent = "этот код дают подруге в «добавить друга»";
     var code = await ensureFriendCode(uid);
     document.getElementById("acc-code").textContent = code || "—";
+
+    var previewButton = document.getElementById("acc-deletion-preview");
+    var previewResult = document.getElementById("acc-deletion-result");
+    previewResult.textContent = "";
+    previewButton.onclick = async function () {
+      if (previewButton.disabled) return;
+      previewButton.disabled = true;
+      previewResult.textContent = "Считаем последствия. Ничего не удаляется…";
+      try {
+        var viewer = await currentUserId();
+        if (!viewer) throw new Error("Для просмотра нужен вход");
+        var response = await getClient().rpc("preview_account_deletion");
+        if (viewer !== await currentUserId()) { previewResult.textContent = ""; return; }
+        if (response.error) throw response.error;
+        var data = response.data;
+        if (!data || data.preview_only !== true) throw new Error("Нет подтверждённой оценки");
+        function count(key) { return Number.isSafeInteger(data[key]) && data[key] >= 0 ? data[key] : "неизвестно"; }
+        var lines = ["Предварительная оценка. Ничего не удалено.",
+          "Личные записи к удалению: " + count("personal_posts_to_delete"),
+          "Gossip «только мне» к удалению: " + count("only_me_gossip_to_delete"),
+          "Gossip к обезличиванию: " + count("gossip_to_anonymize"),
+          "Связи с прежними читателями к сохранению: " + count("restricted_audience_links_to_preserve"),
+          "Комментарии Gossip к обезличиванию: " + count("own_gossip_comments_to_anonymize"),
+          "Чаты к закрытию для обоих: " + count("sessions_to_close"),
+          "Аудиотреки к удалению: " + count("tracks_to_delete"),
+          "Файлы, которые нужно разобрать перед удалением: " + count("storage_objects_requiring_classification")];
+        if (data.gossip_needing_manual_review > 0) lines.push("Есть Gossip с неизвестной настройкой доступа — сначала нужна проверка.");
+        if (data.owner_account_protected) lines.push("Это аккаунт владельца платформы. Удаление возможно только после отдельно согласованной передачи владения.");
+        previewResult.textContent = lines.join("\n");
+      } catch (error) {
+        previewResult.textContent = "Не удалось получить оценку. Попробуй позже.";
+      } finally {
+        previewButton.disabled = false;
+      }
+    };
 
     var pageWrap = document.getElementById("acc-page-wrap");
     var pageBtn = document.getElementById("acc-page");
