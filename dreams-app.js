@@ -79,6 +79,7 @@
   }
 
   function openEdit(post) {
+    if(window.KQDrafts) window.KQDrafts.beforeOpen();
     editingPostId = post.id;
     if (post.decor && post.decor.v === 3 && window.KQL && window.KQL.compose) {
       ["title", "content", "media-url", "title-font", "body-font", "title-color", "body-color", "title-size", "body-size"].forEach(function (key) {
@@ -90,6 +91,7 @@
       document.getElementById("compose-error").textContent = "";
       document.getElementById("compose-overlay").classList.add("open");
       window.KQL.compose.refresh();
+      if(window.KQDrafts) window.KQDrafts.start({postId:editingPostId});
       return;
     }
     document.getElementById("edit-title").value = post.title || "";
@@ -175,6 +177,7 @@
       var img = document.getElementById("compose-preview");
       img.style.display = "block";
       img.src = pub.data.publicUrl;
+      document.getElementById("compose-media-url").dispatchEvent(new Event("input",{bubbles:true}));
     } catch (error) {
       err.textContent = "Не удалось загрузить изображение. Проверь соединение и повтори.";
     } finally {
@@ -187,6 +190,7 @@
     var article = document.createElement("article");
     article.className = "post";
     article.id = "post-" + post.id;
+    if(post.post_bg)article.setAttribute("data-kqd-bg",post.post_bg);
 
     var titleStyle = "font-family:" + escapeHtml(post.title_font || "Georgia, serif") +
       ";color:" + escapeHtml(post.title_color || "#1a0f14") +
@@ -352,18 +356,23 @@
     }
   }
 
-  document.getElementById("compose-close").onclick = function () {
+  document.getElementById("compose-close").onclick = async function (force) {
+    if(window.KQDrafts && force!==true){try{await window.KQDrafts.flush();}catch(error){document.getElementById("compose-error").textContent="Локальную копию сохранить не удалось. Редактор оставлен открытым.";return;}}
+    if(window.KQDrafts) window.KQDrafts.beforeOpen();
     editingPostId = null;
     document.getElementById("compose-overlay").classList.remove("open");
   };
+  var composeSaving=false;
   document.getElementById("compose-publish").onclick = async function () {
+    if(composeSaving)return;composeSaving=true;var draftToken=null,composeOverlay=document.getElementById("compose-overlay");composeOverlay.inert=true;
+    try {
     var err = document.getElementById("compose-error");
     err.textContent = "";
     var uid = await currentUserId();
     if (!uid) { err.textContent = "нужен вход"; return; }
     var title = document.getElementById("compose-title").value.trim();
     var content = document.getElementById("compose-content").value.trim();
-    if (!title && !content) { err.textContent = "пустой пост"; return; }
+    if (!title && !content && !document.getElementById("compose-media-url").value && !(window.KQL && window.KQL.compose && window.KQL.compose.decor().objs.some(function(o){return !o.role;}))) { err.textContent = "пустой пост"; return; }
     var media_url = document.getElementById("compose-media-url").value.trim();
     var payload = {
       title: title,
@@ -386,24 +395,30 @@
     } else if (window.kqDecorPayload) {
       payload.decor = window.kqDecorPayload();
     }
+    if(!payload.decor || payload.decor.v!==3)throw new Error("Редактор композиции ещё не загрузился");
+    var bg=document.getElementById("compose-post-bg");if(bg)payload.post_bg=bg.value;
+    if(window.KQDrafts)draftToken=await window.KQDrafts.publishToken();
     var result;
     if (editingPostId) {
       payload.media_url = media_url || null;
       if (!media_url) payload.media_type = null;
       result = await sb.from("posts").update(window.KQMedia ? window.KQMedia.canonicalize(payload) : payload).eq("id", editingPostId).select("id");
       if (!result.error && (!result.data || !result.data.length)) {
-        err.textContent = "Пост не обновился: проверь права доступа";
-        return;
+        throw new Error("Пост не обновился: проверь права доступа");
       }
     } else {
-      result = await sb.from("posts").insert(window.KQMedia ? window.KQMedia.canonicalize(payload) : payload);
+      result = await sb.from("posts").insert(window.KQMedia ? window.KQMedia.canonicalize(payload) : payload).select("id");
+      if(!result.error&&(!result.data||!result.data.length))throw new Error("Сервер не подтвердил публикацию");
     }
     var error = result.error;
-    if (error) { err.textContent = error.message || "Ошибка сохранения"; return; }
+    if (error) throw error;
+    if(window.KQDrafts) await window.KQDrafts.published(draftToken);
     if (window.KQL && window.KQL.compose && window.KQL.compose.reset) window.KQL.compose.reset();
     document.getElementById("compose-overlay").classList.remove("open");
     editingPostId = null;
     loadDreams();
+    }catch(error){if(window.KQDrafts)await window.KQDrafts.failed();document.getElementById("compose-error").textContent="Не удалось опубликовать полную композицию: "+(error.message||"ошибка соединения");}
+    finally{composeSaving=false;composeOverlay.inert=false;}
   };
 
   document.getElementById("edit-close").onclick = function () {
@@ -541,6 +556,7 @@
   };
 
   window.__openDreamCompose = function () {
+    if(window.KQDrafts) window.KQDrafts.beforeOpen();
     editingPostId = null;
     document.getElementById("compose-error").textContent = "";
     ["compose-title", "compose-content", "compose-media-url"].forEach(function (id) {
@@ -552,8 +568,10 @@
     if (window.kqOpenStickerTray) window.kqOpenStickerTray();
     if (window.KQL && window.KQL.compose && window.KQL.compose.refresh) window.KQL.compose.refresh();
     else updateComposePreview();
+    if(window.KQDrafts) window.KQDrafts.start({postId:null});
   };
 
+  window.KQDraftAdapter={section:"dreams",open:function(){window.__openDreamCompose();},close:function(){document.getElementById("compose-close").onclick(true);},getPostId:function(){return editingPostId;},setPostId:function(id){editingPostId=id;document.getElementById("compose-publish").textContent=id?"сохранить":"опубликовать";}};
   if (window.Kinqsy) {
     Kinqsy.init({
       onLoginSuccess: async function () {
