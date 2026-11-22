@@ -71,6 +71,8 @@
       <path d="M-2 0h4M0-2v4" stroke="#414850" stroke-width=".9"/>
     </g>
     <g id="kq-hub">
+      <circle r="23" fill="#51565b" fill-opacity=".38" stroke="#a0a7ad" stroke-opacity=".7"/>
+      <path d="M0-19v-4m-19 23h-4m36 17 3 3" stroke="#e1e6eb" stroke-width="2.5" stroke-linecap="round"/>
       <circle r="16" fill="url(#kq-chrome)" stroke="#d9e0e8"/>
       <circle r="10" fill="#252a30" stroke="#596471"/>
       <path d="M0-10v5M8.66-5 4.33-2.5M8.66 5 4.33 2.5M0 10V5M-8.66 5-4.33 2.5M-8.66-5-4.33-2.5" fill="none" stroke="#d6dde5" stroke-width="3"/>
