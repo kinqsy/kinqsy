@@ -284,9 +284,11 @@
     function afterFocus(){ setTimeout(update,0); }
     function update(){
       var doc;try{doc=frame.contentDocument;}catch(ignore){}var blocked=false;
+      var authOpen = !!(doc && doc.querySelector("#auth-overlay.open"));
       var quoteOpen = !!(doc && doc.querySelector("#quote-modal.open"));
+      host.classList.toggle("kq-auth-open", authOpen);
       host.classList.toggle("kq-quote-open", quoteOpen);
-      if(doc && !quoteOpen){
+      if(doc && !authOpen && !quoteOpen){
         blocked=[].some.call(doc.querySelectorAll(".auth-overlay.open,.modal-overlay.open,dialog[open],[role=dialog][aria-modal=true],#kq-sticker-pop"),function(e){var r=e.getBoundingClientRect();return r.width>0 && r.height>0 && doc.defaultView.getComputedStyle(e).visibility!=="hidden";});
         var focus=doc.activeElement;blocked=blocked||!!(focus&&focus.matches("input:not([type=button]):not([type=range]):not([type=color]),textarea,[contenteditable=true]"));
       }

@@ -136,6 +136,7 @@
 #kq-p-drag:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 #kq-player.kq-quote-open { visibility: hidden; }
 body.kq-player-docked #kq-frame { height: calc(100dvh - 64px); }
+#kq-player.kq-auth-open { display: none !important; }
 #kq-player.kq-docked {
   left: 50% !important; right: auto !important; top: auto !important; bottom: 8px !important; transform: translateX(-50%) !important;
   display: flex !important; align-items: center; gap: 8px; width: min(680px, calc(100vw - 16px)) !important; height: 48px !important;
