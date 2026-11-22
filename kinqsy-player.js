@@ -46,13 +46,66 @@
     el.setAttribute("data-skin", skin());
     el.innerHTML =
       '<div class="kq-vinyl" aria-hidden="true"></div>' +
-      '<i class="kq-reel l" aria-hidden="true"></i><i class="kq-reel r" aria-hidden="true"></i>' +
-      '<button type="button" id="kq-p-prev" disabled>⟨</button>' +
-      '<button type="button" id="kq-p-play" disabled>▶</button>' +
-      '<button type="button" id="kq-p-next" disabled>⟩</button>' +
-      '<span id="kq-p-title">нет треков</span>' +
-      '<input id="kq-p-seek" type="range" min="0" max="1000" value="0" disabled>' +
-      '<input id="kq-p-vol" type="range" min="0" max="1" step="0.01" value="0.8" disabled>' +
+      `<svg xmlns="http://www.w3.org/2000/svg" class="kq-cassette" viewBox="0 0 320 200" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="kq-shell" x2=".25" y2="1">
+      <stop stop-color="#e5ebf2" stop-opacity=".52"/>
+      <stop offset=".32" stop-color="#a9b6c3" stop-opacity=".19"/>
+      <stop offset=".75" stop-color="#444b53" stop-opacity=".22"/>
+      <stop offset="1" stop-color="#d9e1e9" stop-opacity=".4"/>
+    </linearGradient>
+    <linearGradient id="kq-chrome" x2=".2" y2="1">
+      <stop stop-color="#f6f8fb"/><stop offset=".46" stop-color="#8f98a3"/>
+      <stop offset=".54" stop-color="#4a515a"/><stop offset="1" stop-color="#d0d7df"/>
+    </linearGradient>
+    <pattern id="kq-grip" width="4" height="4" patternUnits="userSpaceOnUse">
+      <path d="M1 0v4" stroke="#323a43" stroke-opacity=".32"/>
+    </pattern>
+    <g id="kq-screw">
+      <circle r="4" fill="url(#kq-chrome)" stroke="#444b54" stroke-width=".75"/>
+      <path d="M-2 0h4M0-2v4" stroke="#414850" stroke-width=".9"/>
+    </g>
+    <g id="kq-hub">
+      <circle r="16" fill="url(#kq-chrome)" stroke="#d9e0e8"/>
+      <circle r="10" fill="#252a30" stroke="#596471"/>
+      <path d="M0-10v5M8.66-5 4.33-2.5M8.66 5 4.33 2.5M0 10V5M-8.66 5-4.33 2.5M-8.66-5-4.33-2.5" fill="none" stroke="#d6dde5" stroke-width="3"/>
+    </g>
+  </defs>
+  <rect x="3" y="3" width="314" height="194" rx="9" fill="url(#kq-shell)" stroke="#7b8794" stroke-width="1.5"/>
+  <rect x="6.5" y="6.5" width="307" height="187" rx="6" fill="none" stroke="#edf3fa" stroke-opacity=".67"/>
+  <path d="M12 19h296M12 181h43m210 0h43M12 23v151m296-151v151" fill="none" stroke="#596571" stroke-opacity=".55"/>
+  <path d="M23 28h274v19H23z" fill="url(#kq-grip)" stroke="#adb7c2" stroke-opacity=".65"/>
+  <path d="M28 35h47m171 0h47M28 40h31m202 0h31" stroke="#f1f5fa" stroke-opacity=".6"/>
+  <circle cx="83" cy="105" r="41" fill="#30363e" fill-opacity=".21" stroke="#68727d"/>
+  <circle cx="237" cy="105" r="41" fill="#30363e" fill-opacity=".21" stroke="#68727d"/>
+  <path d="M83 70h154a35 35 0 0 1 0 70H83a35 35 0 0 1 0-70Z" fill="#252a31" fill-opacity=".31" stroke="#a9b4c0"/>
+  <circle cx="83" cy="105" r="31" fill="#373737" fill-opacity=".85" stroke="#727578"/>
+  <circle cx="83" cy="105" r="27" fill="none" stroke="#17191c" stroke-opacity=".7"/>
+  <circle cx="237" cy="105" r="26" fill="#363636" fill-opacity=".86" stroke="#74777b"/>
+  <circle cx="237" cy="105" r="22" fill="none" stroke="#17191c" stroke-opacity=".7"/>
+  <g transform="translate(83 105)"><use class="kq-cassette-hub" href="#kq-hub"/></g>
+  <g transform="translate(237 105)"><use class="kq-cassette-hub" href="#kq-hub"/></g>
+  <rect x="119" y="89" width="82" height="32" rx="5" fill="url(#kq-shell)" stroke="#c3ccd6" stroke-opacity=".75"/>
+  <path d="M128 98h64m-54 0v7m11-7v5m11-5v10m11-10v5m11-5v7" fill="none" stroke="#e3eaf2" stroke-opacity=".68"/>
+  <path d="M49 115 36 163l40 20h168l40-20-14-48" fill="none" stroke="#302f2d" stroke-width="2" stroke-opacity=".75"/>
+  <circle cx="37" cy="163" r="7" fill="url(#kq-chrome)" stroke="#68737e"/>
+  <circle cx="283" cy="163" r="7" fill="url(#kq-chrome)" stroke="#68737e"/>
+  <path d="M65 194l13-42h164l13 42z" fill="url(#kq-shell)" stroke="#85919e" stroke-width="1.5"/>
+  <path d="M69 191l12-36h158l12 36" fill="none" stroke="#f1f5fa" stroke-opacity=".57"/>
+  <path d="M120 195v-16h80v16" fill="#20252a" fill-opacity=".88" stroke="#697581"/>
+  <path d="M145 195v-12h30v12" fill="#b5bdc7" stroke="#515a65"/>
+  <path d="M146 188h28" stroke="#ede8de" stroke-width="2"/>
+  <path d="M88 194v-11h16v11m112 0v-11h16v11" fill="#252a30" stroke="#8995a2"/>
+  <use href="#kq-screw" x="14" y="14"/><use href="#kq-screw" x="306" y="14"/>
+  <use href="#kq-screw" x="14" y="186"/><use href="#kq-screw" x="306" y="186"/>
+  <use href="#kq-screw" x="160" y="164"/>
+</svg>` +
+      '<button type="button" id="kq-p-prev" aria-label="Предыдущий трек" disabled>⟨</button>' +
+      '<button type="button" id="kq-p-play" aria-label="Воспроизвести или приостановить" disabled>▶</button>' +
+      '<button type="button" id="kq-p-next" aria-label="Следующий трек" disabled>⟩</button>' +
+      '<span id="kq-p-title">Нет треков</span>' +
+      '<input id="kq-p-seek" aria-label="Позиция воспроизведения" type="range" min="0" max="1000" value="0" disabled>' +
+      '<input id="kq-p-vol" aria-label="Громкость" type="range" min="0" max="1" step="0.01" value="0.8" disabled>' +
       '<button type="button" id="kq-p-lib">библиотека</button>' +
       '<audio id="kq-p-audio"></audio>';
     document.body.appendChild(el);
@@ -81,7 +134,9 @@
     });
     document.getElementById("kq-player").classList.toggle("empty", !on);
     if (!on) {
-      document.getElementById("kq-p-title").textContent = "нет треков";
+      var titleElement = document.getElementById("kq-p-title");
+      titleElement.textContent = "Нет треков";
+      titleElement.removeAttribute("title");
       document.getElementById("kq-p-play").textContent = "▶";
       document.getElementById("kq-p-seek").value = "0";
     }
@@ -89,7 +144,8 @@
 
   function title() {
     var t = document.getElementById("kq-p-title");
-    t.textContent = empty() ? "нет треков" : ((list[idx] && list[idx].title) || "трек");
+    t.textContent = empty() ? "Нет треков" : ((list[idx] && list[idx].title) || "трек");
+    t.title = t.textContent;
   }
 
   async function urlFor(track) {
@@ -125,6 +181,7 @@
 
   function bind() {
     audio = document.getElementById("kq-p-audio");
+    audio.volume = Number(document.getElementById("kq-p-vol").value);
     document.getElementById("kq-p-play").onclick = function () {
       if (!armed) return;
       if (!audio.src) { playAt(idx); return; }
@@ -226,7 +283,9 @@
     var id = await uid();
     if (!id) { list = []; setEnabled(false); return; }
     var { data } = await sb().from("tracks").select("*").eq("user_id", id).order("created_at", { ascending: false });
+    var current = list[idx];
     list = data || [];
+    idx = current ? Math.max(0, list.findIndex(function (track) { return track.id === current.id; })) : 0;
     setEnabled(list.length > 0);
     title();
   }
@@ -239,8 +298,10 @@
       var st = JSON.parse(raw);
       var i = 0;
       list.forEach(function (t, n) { if (t.id === st.id) i = n; });
-      if (st.vol) document.getElementById("kq-p-vol").value = String(st.vol);
-      if (audio) audio.volume = Number(st.vol || 0.8);
+      if (typeof st.vol === "number" && st.vol >= 0 && st.vol <= 1) {
+        document.getElementById("kq-p-vol").value = String(st.vol);
+        audio.volume = st.vol;
+      }
       await playAt(i, st.t || 0, !!st.playing);
       if (!st.playing && audio) audio.pause();
       document.getElementById("kq-p-play").textContent = (st.playing && audio && !audio.paused) ? "❚❚" : "▶";
@@ -255,12 +316,14 @@
       document.body.appendChild(host);
     }
     await loadTracks();
-    host.innerHTML = '<div class="kq-lib-card"><h3>моя музыка</h3>' +
+    if (!host.firstChild) host.innerHTML = '<div class="kq-lib-card"><h3>моя музыка</h3>' +
       '<div class="kq-skins">' + SKINS.map(function (s) {
         return '<button type="button" data-skin="'+s+'" class="'+(skin()===s?"on":"")+'">'+s+'</button>';
       }).join("") + "</div>" +
-      '<input type="file" id="kq-music-file" accept="audio/mpeg,audio/mp4,audio/ogg,audio/wav,audio/aac,.mp3,.m4a,.ogg,.wav">' +
-      '<p class="hint">mp3 / m4a / ogg / wav / aac · до 15 МБ</p>' +
+      '<button type="button" id="kq-upload" aria-describedby="kq-upload-hint">＋ Добавить музыку</button>' +
+      '<input hidden type="file" id="kq-music-file" accept="audio/mpeg,audio/mp4,audio/ogg,audio/wav,audio/aac,.mp3,.m4a,.ogg,.wav">' +
+      '<p class="hint" id="kq-upload-hint">MP3, M4A, OGG, WAV, AAC · до 15 МБ</p>' +
+      '<div class="kq-upload-feedback"><span id="kq-file-info"></span><span id="kq-upload-status" role="status"></span></div>' +
       '<div class="kq-lib-list"></div>' +
       '<button type="button" id="kq-p-reset">вернуть положение плеера</button> ' +
       '<button type="button" id="kq-lib-x">закрыть</button></div>';
@@ -268,11 +331,27 @@
     host.querySelector("#kq-p-reset").onclick=function(){var player=document.getElementById("kq-player");if(player.kqResetPosition)player.kqResetPosition();};
     host.querySelector("#kq-lib-x").onclick = function () { host.style.display = "none"; };
     host.querySelectorAll("[data-skin]").forEach(function (b) {
-      b.onclick = function () { setSkin(b.getAttribute("data-skin")); openLib(); };
+      b.setAttribute("aria-pressed", String(b.dataset.skin === skin()));
+      b.onclick = function () {
+        setSkin(b.dataset.skin);
+        host.querySelectorAll(".kq-skins button").forEach(function (option) {
+          option.classList.toggle("on", option === b);
+          option.setAttribute("aria-pressed", String(option === b));
+        });
+      };
     });
+    renderLibrary(host);
+    var picker = host.querySelector("#kq-music-file");
+    var upload = host.querySelector("#kq-upload");
+    upload.onclick = function () { if (!libraryBusy) picker.click(); };
+    picker.onchange = uploadTrack;
+  }
+
+  function renderLibrary(host) {
     var box = host.querySelector(".kq-lib-list");
+    box.replaceChildren();
     if (!list.length) {
-      box.innerHTML = "<p class='hint'>пока пусто — выбери файл</p>";
+      box.innerHTML = "<p class='hint'>Нет треков</p>";
     }
     list.forEach(function (t, i) {
       var row = document.createElement("div");
@@ -281,6 +360,7 @@
       row.querySelector("span").textContent = t.title;
       row.children[1].onclick = function () { playAt(i); };
       var input = document.createElement("input");
+        input.setAttribute("aria-label", "Название трека");
         input.value = t.title;
         input.maxLength = 80;
         row.replaceChild(input, row.children[2]);
@@ -334,35 +414,48 @@
       };
       box.appendChild(row);
     });
-    host.querySelector("#kq-music-file").onchange = async function () {
-      if (libraryBusy) return;
-      var f = this.files && this.files[0];
-      if (!f) return;
-      if (!f.size || f.size > MAX) { alert("нужен непустой файл не больше 15 МБ"); return; }
-      if (!OK.test(f.name)) { alert("только mp3 m4a ogg wav aac"); return; }
-      libraryBusy = true;
-      var input = this;
-      input.disabled = true;
-      var fileUploaded = false;
-      try {
-        var id = await uid();
-        if (!id) throw new Error("Для загрузки нужен вход");
-        var path = id + "/" + Date.now() + "-" + Math.random().toString(36).slice(2) + "-" + f.name.replace(/[^\\w.\\-]+/g, "_");
-        var up = await sb().storage.from("user-audio").upload(path, f, { contentType: f.type || "audio/mpeg", upsert: false });
-        if (up.error) throw up.error;
-        fileUploaded = true;
-        var saved = await sb().from("tracks").insert({ user_id: id, title: f.name.replace(/\\.[^.]+$/, "").slice(0, 80) || "трек", path: path, bytes: f.size }).select("id").single();
-        if (saved.error) throw saved.error;
-        if (!saved.data || !saved.data.id) throw new Error("Запись трека не подтверждена");
-        await openLib();
-      } catch (error) {
-        alert((fileUploaded ? "Файл загружен, но сохранение в библиотеке не подтверждено. Обнови библиотеку перед повторной загрузкой. " : "Не удалось загрузить трек. ") + (error.message || "ошибка соединения"));
-      } finally {
-        input.disabled = false;
-        input.value = "";
-        libraryBusy = false;
-      }
-    };
+  }
+
+  async function uploadTrack() {
+    if (libraryBusy) return;
+    var f = this.files && this.files[0];
+    if (!f) return;
+    var status = document.getElementById("kq-upload-status");
+    var info = document.getElementById("kq-file-info");
+    info.textContent = f.name + " · " + new Intl.NumberFormat("ru").format(f.size) + " Б";
+    if (!f.size || f.size > MAX || !OK.test(f.name)) {
+      status.textContent = !f.size || f.size > MAX ? "Нужен непустой файл до 15 МБ." : "Выбери файл MP3, M4A, OGG, WAV или AAC.";
+      this.value = "";
+      return;
+    }
+    status.textContent = "Загрузка…";
+    var button = document.getElementById("kq-upload");
+    button.disabled = true;
+    libraryBusy = true;
+    var input = this;
+    input.disabled = true;
+    var fileUploaded = false;
+    try {
+      var id = await uid();
+      if (!id) throw new Error("Для загрузки нужен вход");
+      var path = id + "/" + Date.now() + "-" + Math.random().toString(36).slice(2) + "-" + f.name.replace(/[^\\w.\\-]+/g, "_");
+      var up = await sb().storage.from("user-audio").upload(path, f, { contentType: f.type || "audio/mpeg", upsert: false });
+      if (up.error) throw up.error;
+      fileUploaded = true;
+      var saved = await sb().from("tracks").insert({ user_id: id, title: f.name.replace(/\\.[^.]+$/, "").slice(0, 80) || "трек", path: path, bytes: f.size }).select("id").single();
+      if (saved.error) throw saved.error;
+      if (!saved.data || !saved.data.id) throw new Error("Запись трека не подтверждена");
+      status.textContent = "Трек добавлен";
+      await loadTracks();
+      renderLibrary(document.getElementById("kq-music-lib"));
+    } catch (error) {
+      status.textContent = (fileUploaded ? "Файл загружен, но сохранение в библиотеке не подтверждено. Обнови библиотеку перед повторной загрузкой. " : "Не удалось загрузить трек. ") + (error.message || "ошибка соединения");
+    } finally {
+      button.disabled = false;
+      input.disabled = false;
+      input.value = "";
+      libraryBusy = false;
+    }
   }
 
   document.addEventListener("DOMContentLoaded", async function () {
