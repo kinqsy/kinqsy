@@ -83,8 +83,8 @@
   <circle cx="83" cy="105" r="27" fill="none" stroke="#17191c" stroke-opacity=".7"/>
   <circle cx="237" cy="105" r="26" fill="#363636" fill-opacity=".86" stroke="#74777b"/>
   <circle cx="237" cy="105" r="22" fill="none" stroke="#17191c" stroke-opacity=".7"/>
-  <g transform="translate(83 105)"><use class="kq-cassette-hub" href="#kq-hub"/></g>
-  <g transform="translate(237 105)"><use class="kq-cassette-hub" href="#kq-hub"/></g>
+  <g transform="translate(83 105)"><g class="kq-cassette-hub"><use href="#kq-hub"/></g></g>
+  <g transform="translate(237 105)"><g class="kq-cassette-hub"><use href="#kq-hub"/></g></g>
   <rect x="119" y="89" width="82" height="32" rx="5" fill="url(#kq-shell)" stroke="#c3ccd6" stroke-opacity=".75"/>
   <path d="M128 98h64m-54 0v7m11-7v5m11-5v10m11-10v5m11-5v7" fill="none" stroke="#e3eaf2" stroke-opacity=".68"/>
   <path d="M49 115 36 163l40 20h168l40-20-14-48" fill="none" stroke="#302f2d" stroke-width="2" stroke-opacity=".75"/>
@@ -174,20 +174,28 @@
     if (auto !== false) {
       try { await audio.play(); } catch (e) {}
     }
-    document.getElementById("kq-p-play").textContent = audio.paused ? "▶" : "❚❚";
-    document.getElementById("kq-player").classList.toggle("playing", !audio.paused);
     saveState(!audio.paused);
   }
 
   function bind() {
     audio = document.getElementById("kq-p-audio");
     audio.volume = Number(document.getElementById("kq-p-vol").value);
-    document.getElementById("kq-p-play").onclick = function () {
+    var player = document.getElementById("kq-player");
+    var playButton = document.getElementById("kq-p-play");
+    ["playing", "pause", "waiting", "ended", "emptied"].forEach(function (eventName) {
+      audio.addEventListener(eventName, function () {
+        player.classList.toggle("playing", eventName === "playing" && !audio.paused);
+        playButton.textContent = audio.paused || audio.ended ? "▶" : "❚❚";
+      });
+    });
+    playButton.onclick = async function () {
       if (!armed) return;
-      if (!audio.src) { playAt(idx); return; }
-      if (audio.paused) { audio.play(); this.textContent = "❚❚"; }
-      else { audio.pause(); this.textContent = "▶"; }
-      document.getElementById("kq-player").classList.toggle("playing", !audio.paused);
+      if (!audio.src) { await playAt(idx); return; }
+      if (audio.paused) {
+        try { await audio.play(); } catch (e) {}
+      } else {
+        audio.pause();
+      }
       saveState(!audio.paused);
     };
     document.getElementById("kq-p-prev").onclick = function () { if (armed) playAt(idx - 1); };
