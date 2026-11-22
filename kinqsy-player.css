@@ -38,7 +38,7 @@
 #kq-player:is([data-skin="vinyl"], [data-skin="cassette"]):not(.kq-docked) {
   display: grid;
   width: 280px;
-  grid-template-columns: 32px minmax(0, 1fr) auto;
+  grid-template-columns: 32px minmax(30px, 1fr) minmax(36px, .6fr) auto;
   gap: 6px;
   padding: 0 9px;
   border: 0;
@@ -73,12 +73,11 @@
 
 #kq-player:is([data-skin="vinyl"], [data-skin="cassette"]):not(.kq-docked) #kq-p-drag { grid-area: 2 / 1; }
 #kq-player:is([data-skin="vinyl"], [data-skin="cassette"]):not(.kq-docked) #kq-p-title {
-  grid-area: 2 / 2;
+  grid-area: 2 / 2 / 3 / -1;
   max-width: none;
-  white-space: normal;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
 }
-#kq-player:is([data-skin="vinyl"], [data-skin="cassette"]):not(.kq-docked) #kq-p-lib { grid-area: 2 / 3; }
+#kq-player:is([data-skin="vinyl"], [data-skin="cassette"]):not(.kq-docked) #kq-p-lib { grid-area: 3 / 4; }
 #kq-player:is([data-skin="vinyl"], [data-skin="cassette"]):not(.kq-docked) #kq-p-seek { grid-area: 3 / 1 / 4 / 3; }
 #kq-player:is([data-skin="vinyl"], [data-skin="cassette"]):not(.kq-docked) #kq-p-vol { grid-area: 3 / 3; }
 #kq-player:is([data-skin="vinyl"], [data-skin="cassette"]):not(.kq-docked) input { width: 100%; }
@@ -91,9 +90,8 @@
   aspect-ratio: 1;
   border-radius: 50%;
   background:
-    radial-gradient(circle at 50% 39%, #f2f0ed 0 2px, transparent 3px),
-    radial-gradient(circle at 68% 27%, #a1a1a7 0 1.5px, transparent 2.5px),
     radial-gradient(circle, #16171a 0 3%, #a8aab0 4% 17%, #555961 18% 21%, transparent 22%),
+    conic-gradient(from 18deg, transparent 0deg, #d2d2dd38 27deg, transparent 61deg, transparent 184deg, #b8b8c823 214deg, transparent 243deg),
     repeating-radial-gradient(circle, transparent 0 2px, #03030388 3px 4px),
     conic-gradient(#131315, #505054, #101012, #343438, #131315);
   box-shadow: 0 6px 16px #0007;
@@ -136,6 +134,7 @@
 #kq-player #kq-p-drag { touch-action: none; user-select: none; cursor: grab; }
 #kq-player.kq-dragging #kq-p-drag { cursor: grabbing; }
 #kq-p-drag:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+#kq-player.kq-quote-open { visibility: hidden; }
 body.kq-player-docked #kq-frame { height: calc(100dvh - 64px); }
 #kq-player.kq-docked {
   left: 50% !important; right: auto !important; top: auto !important; bottom: 8px !important; transform: translateX(-50%) !important;
