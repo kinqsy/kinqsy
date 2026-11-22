@@ -12,6 +12,10 @@
     return;
   }
   if (!/kinqsy-keep\.html$/.test(location.pathname)) {
+    // Let Auth consume email callbacks before navigating to the player shell.
+    var callback = new URLSearchParams(location.hash.slice(1));
+    if (callback.has("access_token") || callback.has("error") ||
+        new URLSearchParams(location.search).has("code")) return;
     var page = (location.pathname.split("/").pop() || "index.html") + location.search;
     location.replace("kinqsy-keep.html?p=" + encodeURIComponent(page));
     return;

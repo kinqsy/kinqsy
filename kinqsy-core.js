@@ -310,7 +310,7 @@
     if (hint) {
       if (isForgot) hint.textContent = "Пришлём письмо со ссылкой для сброса. Если в письме есть код, его можно ввести здесь.";
       else if (isCode) hint.textContent = "Код из письма KINQSY. Обычно 6 цифр.";
-      else if (isNewPass) hint.textContent = "Придумай новый пароль (минимум 6 символов).";
+      else if (isNewPass) hint.textContent = passwordHint;
       else if (isSignup) hint.textContent = "Почта + пароль. Юз можно не заполнять. Подтверди почту по письму.";
       else hint.textContent = "";
     }
@@ -324,16 +324,23 @@
   function openAuth(mode) {
     ensureAuthModal();
     wireAuthOnce();
-    setAuthMode(mode || "login");
+    setAuthMode(recoveryFlow ? "newpass" : mode || "login");
     document.getElementById("auth-overlay").classList.add("open");
   }
 
   function showProfileUnavailable() {
     document.documentElement.classList.add("kq-profile-unavailable");
     kqReadyAuth();
-    openAuth("login");
-    var message = document.getElementById("auth-error");
-    if (message) message.textContent = "Не удалось открыть профиль. Войди в свой аккаунт или зарегистрируйся.";
+    var overlay = document.getElementById("auth-overlay");
+    if (recoveryFlow || (overlay && overlay.classList.contains("open"))) return;
+    openAuth("profile");
+    document.getElementById("auth-title").textContent = "Профиль не загрузился";
+    document.getElementById("auth-hint").textContent = "Попробуй загрузить дневник ещё раз.";
+    ["auth-tabs", "auth-email-wrap", "auth-pass-wrap"].forEach(function (id) {
+      document.getElementById(id).style.display = "none";
+    });
+    document.getElementById("auth-submit").textContent = "Повторить загрузку";
+    document.getElementById("auth-forgot").textContent = "Войти в другой аккаунт";
   }
 
   function closeAuth() {
@@ -356,7 +363,7 @@
     if (forgot) {
       forgot.onclick = function (e) {
         e.preventDefault();
-        if (authMode === "signup") setAuthMode("login");
+        if (authMode === "signup" || authMode === "profile") setAuthMode("login");
         else setAuthMode("forgot");
       };
     }
@@ -375,6 +382,7 @@
     submit.onclick = async function (e) {
       e.preventDefault();
       if (submit.disabled) return;
+      if (authMode === "profile") { location.reload(); return; }
       submit.disabled = true;
       try {
       var err = document.getElementById("auth-error");
@@ -413,6 +421,7 @@
         });
         if (vr.error) { err.textContent = vr.error.message || "неверный или старый код"; return; }
         if (pendingOtpType === "recovery") {
+          recoveryFlow = true;
           setAuthMode("newpass");
           err.textContent = "код принят — задай новый пароль";
           return;
@@ -430,7 +439,7 @@
         if (password !== p2) { err.textContent = "пароли не совпадают"; return; }
         err.textContent = "сохраняем…";
         var up = await sb.auth.updateUser({ password: password });
-        if (up.error) { err.textContent = up.error.message; return; }
+        if (up.error) { err.textContent = passwordError(up.error); return; }
         recoveryFlow = false;
         err.textContent = "пароль обновлён — можно пользоваться сайтом";
         setTimeout(function () {
@@ -1099,7 +1108,16 @@
     return match ? "Слишком часто. Повтори через " + Math.max(1, Number(match[1])) + " с." : "Слишком часто. Попробуй позже.";
   }
 
+  var passwordHint = "Используй заглавную и строчную латинские буквы, цифру и спецсимвол, например !. Введи одинаковый пароль в оба поля.";
+  function passwordError(error) {
+    if (error.code === "same_password") return "Выбери пароль, который отличается от прежнего.";
+    if (/should contain at least one character of each/i.test(error.message)) return passwordHint;
+    if (error.code === "weak_password") return "Этот пароль слишком слабый. Попробуй более длинный уникальный пароль.";
+    return "Не удалось сохранить пароль. Попробуй ещё раз или запроси новое письмо для сброса.";
+  }
   global.Kinqsy = {
+    passwordHint: passwordHint,
+    passwordError: passwordError,
     rateLimitMessage: rateLimitMessage,
     sb: getClient,
     OWNER_ID: OWNER_ID,

@@ -916,6 +916,10 @@
 
         var { error } = await sb.from("posts").insert(window.KQMedia ? window.KQMedia.canonicalize(payload) : payload);
         if (error) {
+            if (payload.is_public) {
+                err.textContent = "Не удалось опубликовать в общей ленте. " + error.message;
+                return;
+            }
             // если новых колонок нет — упрощённый insert
             if (/is_public|attribution|title_font|body_font|title_color|body_color|title_size|body_size|author_name/i.test(error.message)) {
                 var basic = {
@@ -944,9 +948,9 @@
         document.getElementById("compose-public").checked = false;
         document.getElementById("compose-preview").style.display = "none";
         closeCompose();
-        mode = "mine";
-        document.getElementById("tab-mine").classList.add("active");
-        document.getElementById("tab-public").classList.remove("active");
+        mode = payload.is_public ? "public" : "mine";
+        document.getElementById("tab-mine").classList.toggle("active", mode === "mine");
+        document.getElementById("tab-public").classList.toggle("active", mode === "public");
         loadBoard();
     };
 

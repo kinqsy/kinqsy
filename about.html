@@ -1900,7 +1900,7 @@
         var hint = document.getElementById("auth-hint");
         if (hint) {
             if (isForgot) hint.textContent = "Пришлём письмо со ссылкой. Открой его и задай новый пароль.";
-            else if (isNewPass) hint.textContent = "Придумай новый пароль (минимум 6 символов).";
+            else if (isNewPass) hint.textContent = Kinqsy.passwordHint;
             else if (isSignup) hint.textContent = "Почта + пароль. Юз можно оставить пустым.";
             else hint.textContent = "";
         }
@@ -1948,7 +1948,7 @@
             if (password !== p2) { err.textContent = "пароли не совпадают"; return; }
             err.textContent = "сохраняем…";
             var upw = await sb.auth.updateUser({ password: password });
-            if (upw.error) { err.textContent = upw.error.message; return; }
+            if (upw.error) { err.textContent = Kinqsy.passwordError(upw.error); return; }
             err.textContent = "пароль обновлён";
             setTimeout(function () { closeAuth(); location.reload(); }, 700);
             return;
@@ -2560,7 +2560,7 @@
         Kinqsy.init({
             skipDefaultStar: true,
             onLoginSuccess: async function () {
-                location.reload();
+                location.replace("index.html?u=me");
             }
         });
         Kinqsy.fixMenu();
