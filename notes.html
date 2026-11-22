@@ -1227,9 +1227,9 @@ if (mediaFileInput && mediaUrlInput && preview) {
         err.textContent = "";
         var email = document.getElementById("auth-email").value.trim();
         var password = document.getElementById("auth-password").value;
-        var { error } = await window.KQAuthCaptcha.run(err, captcha => sb.auth.signUp({ options: captcha, email: email, password: password }));
+        var { data, error } = await window.KQAuthCaptcha.run(err, captcha => sb.auth.signUp({ options: captcha, email: email, password: password }));
         if (error) { err.textContent = error.message; return; }
-        err.textContent = "аккаунт создан — войди";
+        err.textContent = data && data.session ? "регистрация завершена" : "Если требуется подтверждение, проверь почту, затем войди.";
     };
 
     var __composePub = document.getElementById("compose-publish");

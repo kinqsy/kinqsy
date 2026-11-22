@@ -456,9 +456,7 @@
     <script src="kinqsy-core.js"></script>
     <script>
 (function () {
-    var SUPABASE_URL = "https://rgkfegdtxaojceknnzlr.supabase.co";
-    var SUPABASE_KEY = "sb_publishable_uK7zrVyq8AlHpoj13pGQ6g_q3L47Akw";
-    var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    var sb = Kinqsy.sb();
 
     var OWNER_ID = "4923abc5-5c86-48c2-904b-a267c2e21703";
     var OWNER_SLUG = "kinqsy";
@@ -817,15 +815,7 @@
         var password = document.getElementById("auth-password").value;
         var { data, error } = await window.KQAuthCaptcha.run(err, captcha => sb.auth.signUp({ options: captcha, email: email, password: password }));
         if (error) { err.textContent = error.message; return; }
-        err.textContent = "аккаунт создан — подтверди почту, потом войди";
-        if (data && data.user) {
-            await sb.from("profiles").upsert({
-                id: data.user.id,
-                display_name: email.split("@")[0].slice(0, 32) || "user",
-                friend_code: "KQ-" + Math.random().toString(36).slice(2, 8).toUpperCase(),
-                updated_at: new Date().toISOString()
-            }, { onConflict: "id" });
-        }
+        err.textContent = data && data.session ? "регистрация завершена" : "Если требуется подтверждение, проверь почту, затем войди.";
     };
 
     function updateQuotePreview() {

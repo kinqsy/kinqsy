@@ -285,7 +285,9 @@
     function update(){
       var doc;try{doc=frame.contentDocument;}catch(ignore){}var blocked=false;
       var authOpen = !doc || doc.URL === "about:blank" ||
-        doc.documentElement.classList.contains("kq-wait") || !!doc.querySelector("#auth-overlay.open");
+        doc.documentElement.classList.contains("kq-wait") ||
+        doc.documentElement.classList.contains("kq-home-entry") ||
+        !!doc.querySelector("#auth-overlay.open, #kq-gate.open.guest");
       var quoteOpen = !!(doc && doc.querySelector("#quote-modal.open"));
       host.classList.toggle("kq-auth-open", authOpen);
       host.classList.toggle("kq-quote-open", quoteOpen);

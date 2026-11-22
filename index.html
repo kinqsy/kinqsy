@@ -2,6 +2,11 @@
 <html lang="ru">
 <head>
 <script src="kinqsy-boot.js"></script>
+<script>
+    if (!(new URLSearchParams(location.search).get("u") || "").trim()) {
+        document.documentElement.classList.add("kq-home-entry");
+    }
+</script>
 <script src="kinqsy-media.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,6 +17,8 @@
     <link rel="stylesheet" href="kinqsy-finish.css">
     <style>
         * { box-sizing: border-box; }
+        html.kq-home-entry body > :not(#auth-overlay) { visibility: hidden; }
+        html.kq-home-entry #auth-close { display: none; }
         ::selection { background: rgba(240, 201, 214, 0.9); color: #3a2030; }
         body, body * {
             user-select: none;
@@ -305,6 +312,18 @@
         var counter = document.getElementById("post-counter");
         var latest = document.getElementById("latest-posts");
         try {
+            var me = await Kinqsy.currentUserId();
+            if (!me) {
+                if (document.documentElement.classList.contains("kq-home-entry")) {
+                    document.documentElement.classList.remove("kq-wait");
+                } else {
+                    if (latest) latest.innerHTML = "";
+                    if (counter) counter.textContent = "нужен вход";
+                    Kinqsy.showGate({ mode: "guest", guest: true, page: "home" });
+                }
+                return;
+            }
+            document.documentElement.classList.remove("kq-home-entry");
             var uid = await resolveProfile();
             if (!uid) {
                 if (counter) counter.textContent = "профиль не найден";
@@ -312,13 +331,6 @@
                 return;
             }
 
-            var me = await Kinqsy.currentUserId();
-            if (!me) {
-                if (latest) latest.innerHTML = "";
-                if (counter) counter.textContent = "нужен вход";
-                Kinqsy.showGate({ mode: "guest", guest: true, page: "home" });
-                return;
-            }
             if (Kinqsy.checkAccess) {
                 var acc = await Kinqsy.checkAccess("home", uid);
                 if (!acc.ok) {
@@ -485,17 +497,13 @@
         document.addEventListener("visibilitychange", function () { if (!document.hidden) refresh(); });
     })();
     Kinqsy.init({
-        onLoginSuccess: async function () {
-            var prof = await Kinqsy.currentProfile();
-            if (prof && prof.display_name) {
-                location.href = "index.html?u=" + encodeURIComponent(prof.display_name);
-            } else {
-                location.reload();
-            }
+        onLoginSuccess: function () {
+            var page = "index.html?u=me";
+            if (window.top === window) location.replace(page);
+            else window.top.postMessage({ type: "kq-nav", path: page }, location.origin);
         },
-        onStarLoggedIn: async function (uid, prof) {
-            var name = (prof && prof.display_name) ? prof.display_name : "user";
-            location.href = "about.html?u=" + encodeURIComponent(name);
+        onStarLoggedIn: function () {
+            location.href = "about.html?u=me";
         }
     });
 
