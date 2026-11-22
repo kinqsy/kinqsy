@@ -1,6 +1,6 @@
 (function (global) {
   // Public site key. Configure it alongside server-side CAPTCHA in Supabase Auth.
-  const siteKey = "";
+  const siteKey = "0x4AAAAAAGM3jKiZ0c2JsrQS";
   const apiUrl = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
   const retryMessage = "Не удалось пройти проверку. Повтори попытку.";
   const pending = new WeakMap();

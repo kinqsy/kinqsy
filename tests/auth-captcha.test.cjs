@@ -26,7 +26,7 @@ function fixture({ enabled = true, scriptFailure = false } = {}) {
     createElement: () => ({ remove() { this.removed = true; } }),
     head: { appendChild(script) { scripts.push(script); } }
   };
-  const script = enabled ? source.replace('const siteKey = "";', `const siteKey = "${siteKey}";`) : source;
+  const script = source.replace(/const siteKey = "[^"]*";/, `const siteKey = "${enabled ? siteKey : ""}";`);
   vm.runInNewContext(script, { window, document, setTimeout, clearTimeout });
   const anchor = { before() {} };
   return { api: window.KQAuthCaptcha, window, anchor, widgets, removed, scripts, turnstile };
