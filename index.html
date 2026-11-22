@@ -315,6 +315,7 @@
             var me = await Kinqsy.currentUserId();
             if (!me) {
                 if (document.documentElement.classList.contains("kq-home-entry")) {
+                    Kinqsy.openAuth("login");
                     document.documentElement.classList.remove("kq-wait");
                 } else {
                     if (latest) latest.innerHTML = "";
@@ -326,6 +327,10 @@
             document.documentElement.classList.remove("kq-home-entry");
             var uid = await resolveProfile();
             if (!uid) {
+                if (Kinqsy.getU().toLowerCase() === "me") {
+                    Kinqsy.showProfileUnavailable();
+                    return;
+                }
                 if (counter) counter.textContent = "профиль не найден";
                 if (latest) latest.innerHTML = '<div class="home-card-text">нет такого дневника</div>';
                 return;

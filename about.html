@@ -1125,6 +1125,7 @@
             var res = await withTimeout(Kinqsy.resolveViewedProfile(slug, "*"), 4000, "profiles");
             if (res.error) console.warn("profiles select", res.error);
             if (res.data) {
+                document.documentElement.classList.remove("kq-profile-unavailable");
                 var acc = { ok: true, guest: true };
                 if (window.Kinqsy && Kinqsy.checkAccess) {
                     aboutStep("checkAccess about");
@@ -1164,6 +1165,10 @@
                 var rn = document.getElementById("about-real-name");
                 var hh = document.getElementById("about-handle");
                 var ownPage = slug.toLowerCase() === "me" && !!me;
+                if (ownPage) {
+                    Kinqsy.showProfileUnavailable();
+                    return;
+                }
                 if (rn) rn.textContent = ownPage ? "не удалось загрузить профиль" : "закрыто";
                 if (hh) hh.textContent = ownPage ? "" : "@" + String(slug).replace(/^@+/, "");
                 var st = document.getElementById("about-status");
@@ -1189,6 +1194,10 @@
         } catch (e) {
             console.error("loadPublicProfile", e);
             aboutStep("catch " + (e && e.message));
+            if (getU().toLowerCase() === "me") {
+                Kinqsy.showProfileUnavailable();
+                return;
+            }
             try { await renderFilms(null); } catch (e2) {}
         } finally {
             aboutStep("finally clear loader");

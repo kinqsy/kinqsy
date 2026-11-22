@@ -180,6 +180,8 @@
     st.textContent = [
       ".auth-overlay{display:none;position:fixed;inset:0;z-index:100001;background:rgba(20,10,16,.45);align-items:center;justify-content:center;padding:16px}",
       ".auth-overlay.open{display:flex}",
+      "html.kq-profile-unavailable body > :not(#auth-overlay){visibility:hidden}",
+      "html.kq-profile-unavailable #auth-close{display:none}",
       ".auth-modal{width:min(94vw,420px);max-height:90vh;overflow-y:auto;padding:22px;border-radius:20px;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.22);backdrop-filter:blur(16px);color:#2a1822;text-align:left}",
       ".auth-modal h2{margin:0 0 12px;font-weight:normal}",
       ".auth-modal label{display:block;font-size:12px;font-weight:bold;margin:10px 0 4px;font-family:Arial,sans-serif}",
@@ -326,6 +328,14 @@
     document.getElementById("auth-overlay").classList.add("open");
   }
 
+  function showProfileUnavailable() {
+    document.documentElement.classList.add("kq-profile-unavailable");
+    kqReadyAuth();
+    openAuth("login");
+    var message = document.getElementById("auth-error");
+    if (message) message.textContent = "Не удалось открыть профиль. Войди в свой аккаунт или зарегистрируйся.";
+  }
+
   function closeAuth() {
     window.KQAuthCaptcha.cancel(document.getElementById("auth-error"));
     var o = document.getElementById("auth-overlay");
@@ -353,7 +363,8 @@
     var overlay = document.getElementById("auth-overlay");
     if (overlay) {
       overlay.addEventListener("click", function (e) {
-        if (e.target === overlay && !document.documentElement.classList.contains("kq-home-entry")) closeAuth();
+        if (e.target === overlay &&
+            !document.documentElement.matches(".kq-home-entry, .kq-profile-unavailable")) closeAuth();
       });
     }
     var modal = document.getElementById("auth-modal");
@@ -1101,6 +1112,7 @@
     currentProfile: currentProfile,
     resolveViewedProfile: resolveViewedProfile,
     openAuth: openAuth,
+    showProfileUnavailable: showProfileUnavailable,
     closeAuth: closeAuth,
     refreshChip: refreshChip,
     openAccount: openAccount,
