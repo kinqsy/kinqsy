@@ -238,6 +238,7 @@
   }
 
   function setAuthMode(mode) {
+    window.KQAuthCaptcha.cancel(document.getElementById("auth-error"));
     authMode = mode || "login";
     var isSignup = authMode === "signup";
     var isForgot = authMode === "forgot";
@@ -294,6 +295,7 @@
   }
 
   function closeAuth() {
+    window.KQAuthCaptcha.cancel(document.getElementById("auth-error"));
     var o = document.getElementById("auth-overlay");
     if (o) o.classList.remove("open");
   }
@@ -347,7 +349,7 @@
       if (authMode === "forgot") {
         if (!email) { err.textContent = "введи почту"; return; }
         err.textContent = "отправляем…";
-        var fr = await sb.auth.resetPasswordForEmail(email, { redirectTo: redirectTo() });
+        var fr = await window.KQAuthCaptcha.run(err, captcha => sb.auth.resetPasswordForEmail(email, { redirectTo: redirectTo(), ...captcha }));
         if (fr.error) { err.textContent = fr.error.message; return; }
         pendingEmail = email;
         pendingOtpType = "recovery";
@@ -401,7 +403,7 @@
 
       if (authMode === "login") {
         err.textContent = "вход…";
-        var res = await sb.auth.signInWithPassword({ email: email, password: password });
+        var res = await window.KQAuthCaptcha.run(err, captcha => sb.auth.signInWithPassword({ options: captcha, email: email, password: password }));
         if (res.error) {
           var m = res.error.message || "";
           if (/invalid login/i.test(m)) err.textContent = "неверная почта или пароль";
@@ -428,14 +430,15 @@
         return;
       }
       err.textContent = "создаём…";
-      var signed = await sb.auth.signUp({
+      var signed = await window.KQAuthCaptcha.run(err, captcha => sb.auth.signUp({
         email: email,
         password: password,
         options: {
+          ...captcha,
           emailRedirectTo: redirectTo(),
           data: { display_name: nick }
         }
-      });
+      }));
       if (signed.error) {
         var em = signed.error.message || "";
         if (/already/i.test(em)) err.textContent = "эта почта уже есть — нажми «вход» или «забыла пароль»";

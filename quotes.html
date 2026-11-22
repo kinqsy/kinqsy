@@ -452,6 +452,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="kinqsy-auth-captcha.js"></script>
     <script src="kinqsy-core.js"></script>
     <script>
 (function () {
@@ -829,7 +830,10 @@
     var authOverlay = document.getElementById("auth-overlay");
     var composeOverlay = document.getElementById("compose-overlay");
     function openAuth() { authOverlay.classList.add("open"); document.getElementById("auth-error").textContent = ""; }
-    function closeAuth() { authOverlay.classList.remove("open"); }
+    function closeAuth() {
+        window.KQAuthCaptcha.cancel(document.getElementById("auth-error"));
+        authOverlay.classList.remove("open");
+    }
     function openCompose() { composeOverlay.classList.add("open"); document.getElementById("compose-error").textContent = ""; if (typeof updateQuotePreview === "function") updateQuotePreview(); }
     window.__openQuoteCompose = openCompose;
     function closeCompose() { composeOverlay.classList.remove("open"); }
@@ -842,10 +846,9 @@
     document.getElementById("auth-login").onclick = async function () {
         var err = document.getElementById("auth-error");
         err.textContent = "";
-        var { error } = await sb.auth.signInWithPassword({
-            email: document.getElementById("auth-email").value.trim(),
-            password: document.getElementById("auth-password").value
-        });
+        var email = document.getElementById("auth-email").value.trim();
+        var password = document.getElementById("auth-password").value;
+        var { error } = await window.KQAuthCaptcha.run(err, captcha => sb.auth.signInWithPassword({ email, password, options: captcha }));
         if (error) { err.textContent = error.message; return; }
         closeAuth();
         openCompose();
@@ -857,7 +860,7 @@
         err.textContent = "";
         var email = document.getElementById("auth-email").value.trim();
         var password = document.getElementById("auth-password").value;
-        var { data, error } = await sb.auth.signUp({ email: email, password: password });
+        var { data, error } = await window.KQAuthCaptcha.run(err, captcha => sb.auth.signUp({ options: captcha, email: email, password: password }));
         if (error) { err.textContent = error.message; return; }
         err.textContent = "аккаунт создан — подтверди почту, потом войди";
         if (data && data.user) {

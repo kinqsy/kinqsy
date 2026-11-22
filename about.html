@@ -905,6 +905,7 @@
     <script src="kinqsy-music.js"></script>
     <script src="kinqsy-books.js"></script>
     <script src="kinqsy-games.js"></script>
+    <script src="kinqsy-auth-captcha.js"></script>
     <script src="kinqsy-core.js"></script>
     <script>
 (function () {
@@ -1671,7 +1672,10 @@
     var authOverlay = document.getElementById("auth-overlay");
     var aboutOverlay = document.getElementById("about-edit-overlay");
     function openAuth() { authOverlay.classList.add("open"); document.getElementById("auth-error").textContent = ""; }
-    function closeAuth() { authOverlay.classList.remove("open"); }
+    function closeAuth() {
+        window.KQAuthCaptcha.cancel(document.getElementById("auth-error"));
+        authOverlay.classList.remove("open");
+    }
     function openAboutEdit() { aboutOverlay.classList.add("open"); }
     function closeAboutEdit() { aboutOverlay.classList.remove("open"); }
 
@@ -1851,6 +1855,7 @@
     }
 
     function setAuthMode(mode) {
+        window.KQAuthCaptcha.cancel(document.getElementById("auth-error"));
         authMode = mode || "login";
         var isSignup = authMode === "signup";
         var isForgot = authMode === "forgot";
@@ -1915,7 +1920,7 @@
         if (authMode === "forgot") {
             if (!email) { err.textContent = "введи почту"; return; }
             err.textContent = "отправляем…";
-            var fr = await sb.auth.resetPasswordForEmail(email, { redirectTo: redirectTo() });
+            var fr = await window.KQAuthCaptcha.run(err, captcha => sb.auth.resetPasswordForEmail(email, { redirectTo: redirectTo(), ...captcha }));
             if (fr.error) { err.textContent = fr.error.message; return; }
             err.textContent = "письмо отправлено. открой ссылку (проверь спам).";
             return;
@@ -1938,7 +1943,7 @@
 
         if (authMode === "login") {
             err.textContent = "вход…";
-            var res = await sb.auth.signInWithPassword({ email: email, password: password });
+            var res = await window.KQAuthCaptcha.run(err, captcha => sb.auth.signInWithPassword({ options: captcha, email: email, password: password }));
             if (res.error) {
                 var m = res.error.message || "";
                 if (/invalid login/i.test(m)) err.textContent = "неверная почта или пароль";
@@ -1968,14 +1973,15 @@
             return;
         }
         err.textContent = "создаём…";
-        var { data, error } = await sb.auth.signUp({
+        var { data, error } = await window.KQAuthCaptcha.run(err, captcha => sb.auth.signUp({
             email: email,
             password: password,
             options: {
+                ...captcha,
                 emailRedirectTo: redirectTo(),
                 data: { display_name: nick }
             }
-        });
+        }));
         if (error) {
             var em = error.message || "";
             if (/already/i.test(em)) err.textContent = "почта уже есть — войди или «забыла пароль»";
