@@ -37,10 +37,7 @@ async function resolveViewedUser() {
     var slug = getU();
     var label = document.getElementById("notes-user-label");
     if (label) label.textContent = "notes · @" + slug;
-    var res = await supabaseClient.from("profiles").select("id, display_name").ilike("display_name", slug).maybeSingle();
-    if (!res.data && slug.toLowerCase() === OWNER_SLUG) {
-        res = await supabaseClient.from("profiles").select("id, display_name").eq("id", OWNER_ID).maybeSingle();
-    }
+    var res = await Kinqsy.resolveViewedProfile(slug, "id, display_name");
     viewedUserId = res.data ? res.data.id : (slug.toLowerCase() === OWNER_SLUG ? OWNER_ID : null);
     return viewedUserId;
 }

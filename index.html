@@ -296,10 +296,7 @@
         document.getElementById("diary-label").innerHTML =
             'дневник <a href="' + Kinqsy.menuUrl("about.html") + '">@' + escapeHtml(viewedSlug) + "</a>";
 
-        var res = await sb.from("profiles").select("id, display_name").ilike("display_name", viewedSlug).maybeSingle();
-        if (!res.data && viewedSlug.toLowerCase() === OWNER_SLUG) {
-            res = await sb.from("profiles").select("id, display_name").eq("id", OWNER_ID).maybeSingle();
-        }
+        var res = await Kinqsy.resolveViewedProfile(viewedSlug, "id, display_name");
         viewedUserId = res.data ? res.data.id : (viewedSlug.toLowerCase() === OWNER_SLUG ? OWNER_ID : null);
         return viewedUserId;
     }

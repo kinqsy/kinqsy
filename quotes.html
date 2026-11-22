@@ -524,8 +524,6 @@
         return sorted;
     }
 
-    var quotesBoardAllowed = true;
-
     async function currentUserId() {
         var { data: { session } } = await sb.auth.getSession();
         return session ? session.user.id : null;
@@ -533,17 +531,12 @@
 
     async function resolveViewedUser() {
         fixMenu();
-        var slug = getU();
         document.getElementById("quotes-user-label").textContent =
-            (mode === "public" ? "общая лента" : "моя доска") + " · @" + slug;
+            mode === "public" ? "общая лента" : "моя доска";
 
-        var res = await sb.from("profiles").select("id, display_name").ilike("display_name", slug).maybeSingle();
-        if (!res.data && slug.toLowerCase() === OWNER_SLUG) {
-            res = await sb.from("profiles").select("id, display_name").eq("id", OWNER_ID).maybeSingle();
-        }
-        viewedUserId = res.data ? res.data.id : (slug.toLowerCase() === OWNER_SLUG ? OWNER_ID : null);
         var uid = await currentUserId();
-        canReorder = mode === "mine" && !!(uid && viewedUserId && String(uid) === String(viewedUserId));
+        viewedUserId = uid;
+        canReorder = mode === "mine" && !!uid;
         return viewedUserId;
     }
 
@@ -725,60 +718,31 @@
         return pin;
     }
 
+    var boardRequest = 0;
     async function loadBoard() {
+        var request = ++boardRequest;
         var feed = document.getElementById("feed");
         feed.innerHTML = '<div class="empty">loading...</div>';
-        await resolveViewedUser();
-
-        var meId = (window.Kinqsy && Kinqsy.currentUserId) ? await Kinqsy.currentUserId() : null;
-        var isOwner = !!(meId && viewedUserId && String(meId) === String(viewedUserId));
-        quotesBoardAllowed = isOwner;
+        var meId = await resolveViewedUser();
+        if (request !== boardRequest) return;
         if (!meId) {
             feed.innerHTML = "";
             if (window.Kinqsy) Kinqsy.showGate({ mode: "guest", guest: true, page: "quotes" });
             return;
         }
 
-        if (mode === "mine" && !quotesBoardAllowed) {
-            mode = "public";
-            document.getElementById("tab-mine").classList.remove("active");
-            document.getElementById("tab-public").classList.add("active");
-        }
-
         var q = sb.from("posts").select("*").eq("category", "quotes");
 
         if (mode === "public") {
-            if (viewedUserId && !isOwner) {
-                q = q.eq("is_public", true).eq("user_id", viewedUserId).order("created_at", { ascending: false }).limit(120);
-            } else {
-                q = q.eq("is_public", true).order("created_at", { ascending: false }).limit(120);
-            }
+            q = q.eq("is_public", true).order("created_at", { ascending: false }).limit(120);
         } else {
-            if (!viewedUserId) {
-                feed.innerHTML = '<div class="empty">профиль не найден</div>';
-                return;
-            }
-            q = q.eq("user_id", viewedUserId).order("created_at", { ascending: false });
+            q = q.eq("user_id", meId).order("created_at", { ascending: false });
         }
 
         var { data, error } = await q;
+        if (request !== boardRequest) return;
 
         if (error) {
-            // fallback если нет колонки is_public
-            if (String(error.message).indexOf("is_public") !== -1 && mode === "public") {
-                var all = await sb.from("posts").select("*").eq("category", "quotes").order("created_at", { ascending: false }).limit(120);
-                data = all.data || [];
-                error = all.error;
-            } else if (mode === "mine" && viewedUserId) {
-                var mine = await sb.from("posts").select("*").eq("category", "quotes").order("created_at", { ascending: false });
-                data = (mine.data || []).filter(function (p) {
-                    return !p.user_id || String(p.user_id) === String(viewedUserId);
-                });
-                error = mine.error;
-            }
-        }
-
-        if (error && !data) {
             feed.innerHTML = '<div class="empty">' + escapeHtml(error.message) + '</div>';
             return;
         }
@@ -804,15 +768,6 @@
 
     // tabs
     document.getElementById("tab-mine").onclick = function () {
-        if (!quotesBoardAllowed) {
-            if (window.Kinqsy) {
-                Kinqsy.showGate({
-                    mode: "friends",
-                    page: "quotes"
-                });
-            }
-            return;
-        }
         if (window.Kinqsy) Kinqsy.hideGate();
         mode = "mine";
         document.getElementById("tab-mine").classList.add("active");
