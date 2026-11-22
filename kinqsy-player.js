@@ -21,9 +21,14 @@
   var OK = /\.(mp3|m4a|ogg|wav|aac)$/i;
   var SKINS = ["standard", "mini", "vinyl", "cassette"];
   function sb() { return window.__kinqsy_sb; }
-  async function uid() {
-    if (!sb()) return null;
-    var s = await sb().auth.getSession();
+  async function uid(requireSession) {
+    var client = sb();
+    if (!client) {
+      if (requireSession) throw new Error("Не удалось подключиться к аккаунтам сайта. Обнови страницу и попробуй снова.");
+      return null;
+    }
+    var s = await client.auth.getSession();
+    if (requireSession && s.error) throw s.error;
     return s.data && s.data.session && s.data.session.user && s.data.session.user.id;
   }
   function skin() {
@@ -230,22 +235,29 @@
     var position = null, active = null;
     function persist() { try {localStorage.setItem("kq-player-pos",JSON.stringify(position));}catch(ignore){} }
     function viewport() {var v=window.visualViewport;return {x:v?v.offsetLeft:0,y:v?v.offsetTop:0,w:v?v.width:window.innerWidth,h:v?v.height:window.innerHeight};}
-    function place(x,y,save) {
+    function place(x,y) {
       if(!Number.isFinite(x)||!Number.isFinite(y)||host.classList.contains("kq-docked"))return;
       var v=viewport(),w=host.offsetWidth,h=host.offsetHeight;
       x=Math.max(v.x+8,Math.min(v.x+Math.max(8,v.w-w-8),x));
       y=Math.max(v.y+8,Math.min(v.y+Math.max(8,v.h-h-8),y));
-      position={x:x,y:y};
       host.style.left=x+"px";host.style.top=y+"px";host.style.right="auto";host.style.bottom="auto";host.style.transform="none";
-      if(save)persist();
+      return {x:x,y:y};
     }
-    function fit(){if(host.classList.contains("kq-docked"))return;var r=host.getBoundingClientRect();place(position?position.x:r.left,position?position.y:r.top,false);}
+    function fit() {
+      if (host.classList.contains("kq-docked")) return;
+      if (position) {
+        place(position.x, position.y);
+        return;
+      }
+      var v = viewport();
+      place(v.x + (v.w - host.offsetWidth) / 2, v.y + v.h - host.offsetHeight - 8);
+    }
     function reset(){position=null;try{localStorage.removeItem("kq-player-pos");}catch(ignore){}["left","top","right","bottom","transform"].forEach(function(p){host.style.removeProperty(p);});requestAnimationFrame(fit);}
     host.kqFitPosition=fit;host.kqResetPosition=reset;
     try {var saved=JSON.parse(localStorage.getItem("kq-player-pos")||"null");if(saved&&Number.isFinite(saved.x)&&Number.isFinite(saved.y))position=saved;}catch(ignore){}
     drag.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();});
     drag.addEventListener("keydown",function(e){var steps={ArrowLeft:[-10,0],ArrowRight:[10,0],ArrowUp:[0,-10],ArrowDown:[0,10]};
-      if(e.key==="Home"){e.preventDefault();reset();return;}var step=steps[e.key];if(!step)return;e.preventDefault();var r=host.getBoundingClientRect();place(r.left+step[0],r.top+step[1],true);
+      if(e.key==="Home"){e.preventDefault();reset();return;}var step=steps[e.key];if(!step)return;e.preventDefault();var r=host.getBoundingClientRect();position=place(r.left+step[0],r.top+step[1])||position; if(position)persist();
     });
     drag.addEventListener("pointerdown",function(e){
       if(active || (e.button!=null&&e.button!==0)||host.classList.contains("kq-docked"))return;
@@ -253,7 +265,7 @@
       try{drag.setPointerCapture(e.pointerId);}catch(ignore){}
       host.classList.add("kq-dragging");
     });
-    drag.addEventListener("pointermove",function(e){if(!active||e.pointerId!==active.id)return;e.preventDefault();place(e.clientX-active.x,e.clientY-active.y,false);});
+    drag.addEventListener("pointermove",function(e){if(!active||e.pointerId!==active.id)return;e.preventDefault();position=place(e.clientX-active.x,e.clientY-active.y)||position;});
     function end(e){if(!active||e.pointerId!==active.id)return;var id=active.id;active=null;host.classList.remove("kq-dragging");if(position)persist();try{drag.releasePointerCapture(id);}catch(ignore){} }
     ["pointerup","pointercancel","lostpointercapture"].forEach(function(type){drag.addEventListener(type,end);});
     window.addEventListener("resize",fit);if(window.visualViewport)window.visualViewport.addEventListener("resize",fit);
@@ -444,13 +456,13 @@
     input.disabled = true;
     var fileUploaded = false;
     try {
-      var id = await uid();
+      var id = await uid(true);
       if (!id) throw new Error("Для загрузки нужен вход");
-      var path = id + "/" + Date.now() + "-" + Math.random().toString(36).slice(2) + "-" + f.name.replace(/[^\\w.\\-]+/g, "_");
+      var path = id + "/" + Date.now() + "-" + Math.random().toString(36).slice(2) + "-" + f.name.replace(/[^\w.-]+/g, "_");
       var up = await sb().storage.from("user-audio").upload(path, f, { contentType: f.type || "audio/mpeg", upsert: false });
       if (up.error) throw up.error;
       fileUploaded = true;
-      var saved = await sb().from("tracks").insert({ user_id: id, title: f.name.replace(/\\.[^.]+$/, "").slice(0, 80) || "трек", path: path, bytes: f.size }).select("id").single();
+      var saved = await sb().from("tracks").insert({ user_id: id, title: f.name.replace(/\.[^.]+$/, "").slice(0, 80) || "трек", path: path, bytes: f.size }).select("id").single();
       if (saved.error) throw saved.error;
       if (!saved.data || !saved.data.id) throw new Error("Запись трека не подтверждена");
       status.textContent = "Трек добавлен";
