@@ -111,13 +111,16 @@
       if (own.data || own.error) return own;
 
       var requested = String((user.user_metadata || {}).display_name || "").trim();
-      var fallback = "user-" + user.id.replace(/-/g, "");
+      var fallback = "user-" + user.id.replace(/-/g, "").slice(0, 20);
       var names = /^[a-z0-9._-]{2,32}$/i.test(requested) && !/^(me|kinqsy)$/i.test(requested)
         ? [requested, fallback] : [fallback];
       for (var name of names) {
         var saved = await client.from("profiles").upsert({
           id: user.id,
-          display_name: name.slice(0, 32),
+          user_id: name,
+          display_name: name,
+          rating: 0,
+          updated_at: new Date().toISOString(),
           friend_code: makeFriendCode().slice(0, 16)
         }, { onConflict: "id", ignoreDuplicates: true });
         if (!saved.error) return client.from("profiles").select(columns).eq("id", user.id).maybeSingle();
@@ -505,39 +508,12 @@
         err.textContent = "Проверь почту: открой ссылку подтверждения. Если в письме есть код, его можно ввести здесь.";
         return;
       }
-      var user = signed.data && signed.data.user;
-      if (user) {
-        var code = makeFriendCode();
-        var up = await sb.from("profiles").upsert({
-          id: user.id,
-          display_name: nick,
-          friend_code: code.slice(0, 16),
-          updated_at: new Date().toISOString()
-        }, { onConflict: "id" });
-        if (up.error) {
-          err.textContent = "аккаунт создан, профиль: " + up.error.message + " — можно войти; юз поправим позже";
-        } else if (signed.data.session) {
-          err.textContent = "готово! @" + nick + " · код " + code;
-          setTimeout(async function () {
-            closeAuth();
-            if (typeof onLoginSuccess === "function") await onLoginSuccess();
-            else location.reload();
-          }, 600);
-          return;
-        } else {
-          pendingEmail = email;
-          pendingOtpType = "signup";
-          setAuthMode("code");
-          err.textContent = "письмо отправлено. введи код из письма.";
-          return;
-        }
-      } else {
-        pendingEmail = email;
-        pendingOtpType = "signup";
-        setAuthMode("code");
-        err.textContent = "проверь почту и введи код";
-        return;
-      }
+      var own = await resolveViewedProfile("me", "id");
+      if (!own.data || own.error) { closeAuth(); showProfileUnavailable(); return; }
+      kqReadyAuth();
+      closeAuth();
+      if (typeof onLoginSuccess === "function") await onLoginSuccess();
+      else location.reload();
       } catch (error) {
         var failure = document.getElementById("auth-error");
         if (failure) failure.textContent = "Не удалось выполнить запрос. Проверь соединение и повтори.";
@@ -1072,7 +1048,11 @@
     }
     currentUserId().then(function (uid) {
       if (uid) {
-        ensureFriendCode(uid);
+        if (!recoveryFlow) {
+          resolveViewedProfile("me", "id, friend_code").then(function (result) {
+            if (result.data && !isGoodFriendCode(result.data.friend_code)) return ensureFriendCode(result.data.id);
+          }).catch(function () { /* The profile screen offers a retry. */ });
+        }
         heartbeatDevice(uid);
       }
     });

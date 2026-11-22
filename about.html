@@ -2010,28 +2010,9 @@
             err.textContent = "Если требуется подтверждение, проверь почту, затем войди.";
             return;
         }
-        if (data.user) {
-            var code = "KQ-" + Math.random().toString(36).slice(2, 8).toUpperCase();
-            while (code.length < 9) code += "X";
-            var up = await sb.from("profiles").upsert({
-                id: data.user.id,
-                display_name: nick,
-                friend_code: code.slice(0, 16),
-                updated_at: new Date().toISOString()
-            }, { onConflict: "id" });
-            if (up.error) {
-                err.textContent = "аккаунт есть, профиль: " + up.error.message;
-            } else if (data.session) {
-                err.textContent = "готово @" + nick + " · код " + code;
-                setTimeout(function () { closeAuth(); location.reload(); }, 700);
-                return;
-            } else {
-                err.textContent = "аккаунт создан. подтверди почту если просят, потом «вход»";
-            }
-        } else {
-            err.textContent = "проверь почту, потом войди";
-        }
-        setAuthMode("login");
+        var own = await Kinqsy.resolveViewedProfile("me", "id");
+        if (!own.data || own.error) { closeAuth(); Kinqsy.showProfileUnavailable(); return; }
+        location.replace("index.html?u=me");
     };
 
     // stop overlay click from eating taps on modal
