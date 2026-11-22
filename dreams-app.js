@@ -35,10 +35,7 @@
     var el = document.getElementById("dreams-user-label");
     if (el) el.textContent = "dreams · @" + slug;
     if (window.Kinqsy) Kinqsy.fixMenu();
-    var res = await sb.from("profiles").select("id").ilike("display_name", slug).maybeSingle();
-    if (!res.data && slug.toLowerCase() === OWNER_SLUG) {
-      res = await sb.from("profiles").select("id").eq("id", OWNER_ID).maybeSingle();
-    }
+    var res = await Kinqsy.resolveViewedProfile(slug, "id");
     viewedUserId = res.data ? res.data.id : (slug.toLowerCase() === OWNER_SLUG ? OWNER_ID : null);
     return viewedUserId;
   }

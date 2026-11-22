@@ -78,10 +78,10 @@
       return;
     }
     var prof = await currentProfile();
-    var name = (prof && prof.display_name) ? prof.display_name : "me";
+    var name = prof && prof.display_name;
     me.style.display = "inline";
-    me.textContent = "я @" + name;
-    me.href = "about.html?u=" + encodeURIComponent(name);
+    me.textContent = name ? "я @" + name : "мой профиль";
+    me.href = "about.html?u=me";
     me.title = "моя страница";
   }
 
@@ -98,6 +98,37 @@
     if (!uid) return null;
     var { data } = await sb.from("profiles").select("id, display_name, friend_code").eq("id", uid).maybeSingle();
     return data || { id: uid };
+  }
+
+  async function resolveViewedProfile(slug, columns) {
+    var client = getClient();
+    if (slug.toLowerCase() === "me") {
+      var { data, error } = await client.auth.getSession();
+      var user = data && data.session && data.session.user;
+      if (!user || error) return { data: null, error: error };
+      var own = await client.from("profiles").select(columns).eq("id", user.id).maybeSingle();
+      if (own.data || own.error) return own;
+
+      var requested = String((user.user_metadata || {}).display_name || "").trim();
+      var fallback = "user-" + user.id.replace(/-/g, "");
+      var names = /^[a-z0-9._-]{2,32}$/i.test(requested) && !/^(me|kinqsy)$/i.test(requested)
+        ? [requested, fallback] : [fallback];
+      for (var name of names) {
+        var saved = await client.from("profiles").upsert({
+          id: user.id,
+          display_name: name.slice(0, 32),
+          friend_code: makeFriendCode().slice(0, 16)
+        }, { onConflict: "id", ignoreDuplicates: true });
+        if (!saved.error) return client.from("profiles").select(columns).eq("id", user.id).maybeSingle();
+        if (saved.error.code !== "23505" || name === names[names.length - 1]) return saved;
+      }
+    }
+
+    var profile = await client.from("profiles").select(columns).ilike("display_name", slug).maybeSingle();
+    if (!profile.data && slug.toLowerCase() === OWNER_SLUG) {
+      return client.from("profiles").select(columns).eq("id", OWNER_ID).maybeSingle();
+    }
+    return profile;
   }
 
   function ensureChip() {
@@ -1070,6 +1101,7 @@
     refreshMeNav: refreshMeNav,
     currentUserId: currentUserId,
     currentProfile: currentProfile,
+    resolveViewedProfile: resolveViewedProfile,
     openAuth: openAuth,
     closeAuth: closeAuth,
     refreshChip: refreshChip,

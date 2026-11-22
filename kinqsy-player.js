@@ -284,7 +284,8 @@
     function afterFocus(){ setTimeout(update,0); }
     function update(){
       var doc;try{doc=frame.contentDocument;}catch(ignore){}var blocked=false;
-      var authOpen = !!(doc && doc.querySelector("#auth-overlay.open"));
+      var authOpen = !doc || doc.URL === "about:blank" ||
+        doc.documentElement.classList.contains("kq-wait") || !!doc.querySelector("#auth-overlay.open");
       var quoteOpen = !!(doc && doc.querySelector("#quote-modal.open"));
       host.classList.toggle("kq-auth-open", authOpen);
       host.classList.toggle("kq-quote-open", quoteOpen);

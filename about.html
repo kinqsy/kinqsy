@@ -1121,13 +1121,9 @@
         try {
             fixMenu();
             var slug = getU();
-            aboutStep("profiles.ilike " + slug);
-            var res = await withTimeout(sb.from("profiles").select("*").ilike("display_name", slug).maybeSingle(), 4000, "profiles.ilike");
+            aboutStep("resolve profile");
+            var res = await withTimeout(Kinqsy.resolveViewedProfile(slug, "*"), 4000, "profiles");
             if (res.error) console.warn("profiles select", res.error);
-            if (!res.data && slug.toLowerCase() === OWNER_SLUG && OWNER_ID) {
-                aboutStep("profiles.eq OWNER_ID");
-                res = await withTimeout(sb.from("profiles").select("*").eq("id", OWNER_ID).maybeSingle(), 4000, "profiles.id");
-            }
             if (res.data) {
                 var acc = { ok: true, guest: true };
                 if (window.Kinqsy && Kinqsy.checkAccess) {
@@ -1167,8 +1163,9 @@
                 var me = (window.Kinqsy && Kinqsy.currentUserId) ? await Kinqsy.currentUserId() : null;
                 var rn = document.getElementById("about-real-name");
                 var hh = document.getElementById("about-handle");
-                if (rn) rn.textContent = "закрыто";
-                if (hh) hh.textContent = "@" + String(slug).replace(/^@+/, "");
+                var ownPage = slug.toLowerCase() === "me" && !!me;
+                if (rn) rn.textContent = ownPage ? "не удалось загрузить профиль" : "закрыто";
+                if (hh) hh.textContent = ownPage ? "" : "@" + String(slug).replace(/^@+/, "");
                 var st = document.getElementById("about-status");
                 if (st) st.textContent = "—";
                 var atxt = document.getElementById("about-text");
@@ -1629,14 +1626,24 @@
                     return;
                 }
                 if (!val) { el.textContent = old; return; }
-                el.textContent = "@" + val;
-                el.dataset.handle = val;
-                await sb.from("profiles").upsert({
+                if (/^(me|kinqsy)$/i.test(val) && val.toLowerCase() !== old.replace(/^@/, "").toLowerCase()) {
+                    el.textContent = old;
+                    alert("это имя зарезервировано");
+                    return;
+                }
+                var result = await sb.from("profiles").upsert({
                     id: uid,
                     display_name: val,
                     updated_at: new Date().toISOString()
                 }, { onConflict: "id" });
-                location.href = "about.html?u=" + encodeURIComponent(val);
+                if (result.error) {
+                    el.textContent = old;
+                    alert(result.error.code === "23505" ? "этот юз уже занят" : "не удалось сохранить юз");
+                    return;
+                }
+                el.dataset.handle = val;
+                el.textContent = "@" + val;
+                location.href = "about.html?u=me";
             }
             input.addEventListener("keydown", function (e) {
                 if (e.key === "Enter") { e.preventDefault(); save(); }
