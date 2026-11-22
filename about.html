@@ -1996,7 +1996,12 @@
             else err.textContent = em;
             return;
         }
-        if (data && data.user) {
+        if (!data || !data.session) {
+            setAuthMode("login");
+            err.textContent = "Если требуется подтверждение, проверь почту, затем войди.";
+            return;
+        }
+        if (data.user) {
             var code = "KQ-" + Math.random().toString(36).slice(2, 8).toUpperCase();
             while (code.length < 9) code += "X";
             var up = await sb.from("profiles").upsert({

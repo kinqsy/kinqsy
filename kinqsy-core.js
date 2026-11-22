@@ -22,6 +22,7 @@
 
   function getU() {
     var u = new URLSearchParams(location.search).get("u");
+    if ((!u || !u.trim()) && /\/(?:index\.html)?$/.test(location.pathname)) return "me";
     return (u && u.trim()) ? u.trim() : OWNER_SLUG;
   }
 
@@ -352,7 +353,7 @@
     var overlay = document.getElementById("auth-overlay");
     if (overlay) {
       overlay.addEventListener("click", function (e) {
-        if (e.target === overlay) closeAuth();
+        if (e.target === overlay && !document.documentElement.classList.contains("kq-home-entry")) closeAuth();
       });
     }
     var modal = document.getElementById("auth-modal");
@@ -671,36 +672,33 @@
   function showGate(opts) {
     opts = opts || {};
     var gate = ensureGate();
-    var mode = opts.mode === "guest" ? "guest" : "friends";
+    var mode = opts.guest || opts.mode === "guest" ? "guest" : "friends";
     var title = document.getElementById("kq-gate-title");
     var text = document.getElementById("kq-gate-text");
     var su = document.getElementById("kq-gate-signup");
     var li = document.getElementById("kq-gate-login");
     var ab = document.getElementById("kq-gate-about");
     if (ab) ab.style.display = "none";
-    var slug = getU();
-
     gate.className = "kq-gate open " + mode;
 
+    if (li) {
+      li.style.display = "block";
+      li.textContent = mode === "guest" ? "уже есть аккаунт? войти" : "открыть свой профиль / друзья";
+      li.onclick = function (e) {
+        e.preventDefault();
+        if (mode === "guest") openAuth("login");
+        else location.href = "about.html?u=me";
+      };
+    }
     if (mode === "guest") {
       if (title) title.textContent = "нужен вход";
       if (text) text.textContent = "Чужой дневник закрыт. Гости не читают записи. Зарегистрируйся или войди.";
       if (su) su.style.display = "block";
-      if (li) li.style.display = "block";
       document.body.appendChild(gate);
     } else {
       if (title) title.textContent = "дневник закрыт";
       if (text) text.textContent = "Читать чужие notes / dreams / about можно только друзьям. Добавь человека по коду KQ- у себя в профиле.";
       if (su) su.style.display = opts.guest ? "block" : "none";
-      if (li) {
-        li.style.display = "block";
-        li.textContent = opts.guest ? "уже есть аккаунт? войти" : "открыть профиль / друзья";
-        li.onclick = function (e) {
-          e.preventDefault();
-          if (opts.guest) openAuth("login");
-          else location.href = "about.html?u=" + encodeURIComponent(slug);
-        };
-      }
       var host = document.getElementById("feed") || document.querySelector(".kq-inner");
       if (host) {
         host.style.position = "relative";
@@ -1031,7 +1029,7 @@
           kqReadyAuth();
           openAuth("newpass");
         }
-        refreshChip(); refreshMeNav();
+        setTimeout(function () { refreshChip(); refreshMeNav(); }, 0);
       });
     }
     wireAuthOnce();
